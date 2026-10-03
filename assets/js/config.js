@@ -5,8 +5,8 @@
  */
 window.MKS_CONFIG = {
   brand: "MahaKarya Studio",
-  // Format internasional tanpa "+" dan tanpa spasi. GANTI dengan nomor asli.
-  whatsapp: "6281234567890",
+  // Format internasional tanpa "+" dan tanpa spasi.
+  whatsapp: "6285110504229",
   email: "halo@mahakaryastudio.id",
   instagram: "mahakaryastudio",
   tokopedia: "https://www.tokopedia.com/",
