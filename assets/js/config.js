@@ -11,7 +11,7 @@ window.MKS_CONFIG = {
   instagram: "maha.karyastudioid",
   tokopedia: "https://www.tokopedia.com/",
   shopee: "https://shopee.co.id/",
-  city: "Indonesia",
+  city: "Jakarta, Indonesia",
 
   // Ambang gratis ongkir (dipakai sebagai insentif menaikkan nilai order).
   freeShippingMin: 500000,
