@@ -8,6 +8,7 @@
   const A = window.LampArt;
   const $ = (s, el = document) => el.querySelector(s);
   const rp = (n) => "Rp" + Math.round(n).toLocaleString("id-ID");
+  const roundK = (n) => Math.round(n / 1000) * 1000;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const find = A.find;
@@ -49,13 +50,16 @@
     sum += ba.price;
     const n = cfg.body.length + 2;
     const pkg = D().packages[n] || { name: `${n} bagian`, disc: 0, cm: "—" };
-    const disc = Math.round(sum * pkg.disc);
+    // Harga paket dibulatkan ke ribuan; potongan = selisih dari harga satuan
+    const disc = sum - roundK(sum * (1 - pkg.disc));
     const total = sum - disc + (cfg.led ? D().ledPrice : 0);
     return { lines, parts: sum, n, pkg, disc, total };
   }
+  // Harga paket termurah untuk n bagian: {anchor: jumlah harga satuan, price: harga paket}
   function minPackagePrice(n) {
     const min = (list) => Math.min(...list.map((x) => x.price));
-    return Math.round((min(D().heads) + min(D().bodies) * (n - 2) + min(D().bases)) * (1 - D().packages[n].disc));
+    const anchor = min(D().heads) + min(D().bodies) * (n - 2) + min(D().bases);
+    return { anchor, price: roundK(anchor * (1 - D().packages[n].disc)) };
   }
   function code(cfg) {
     const k = (s) => s.slice(0, 3).toUpperCase();
@@ -138,11 +142,12 @@
       .map((l) => `<div class="row row-sw"><span><i style="background:${l.color.hex}"></i>${esc(l.label)} — ${esc(l.color.name)}</span><span class="num">${rp(l.price)}</span></div>`)
       .join("");
     rows += `<div class="row"><span>Harga satuan ${p.n} bagian</span><span class="num"><s>${rp(p.parts)}</s></span></div>`;
-    if (p.disc) rows += `<div class="row"><span>Potongan paket ${esc(p.pkg.name)} (${Math.round(p.pkg.disc * 100)}%)</span><span class="num">− ${rp(p.disc)}</span></div>`;
+    if (p.disc) rows += `<div class="row row-disc"><span>Potongan paket ${esc(p.pkg.name)} (${Math.round(p.pkg.disc * 100)}%)</span><span class="num">− ${rp(p.disc)}</span></div>`;
     if (state.led) rows += `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(D().ledPrice)}</span></div>`;
     $("#summary").innerHTML =
       `<span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span><div class="rows">${rows}</div>` +
-      `<div class="total"><div><small>Total termasuk fitting, kabel &amp; saklar</small><b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
+      `<div class="total"><div><small>Total termasuk fitting, kabel &amp; saklar</small>${p.disc ? `<s class="was num">${rp(p.parts + (state.led ? D().ledPrice : 0))}</s>` : ""}<b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
+      (p.disc ? `<div class="save">Hemat <b>${rp(p.disc)}</b> dibanding beli ${p.n} bagian satuan</div>` : "") +
       `<div class="acts"><a class="btn btn--wa" id="wa-link" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
       `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
       `<p class="note">Cetak 3–5 hari kerja. Ongkir dihitung saat konfirmasi di WhatsApp.</p>`;
@@ -176,7 +181,8 @@
     sw.setAttribute("aria-checked", hero.on);
     sw.lastChild.nodeValue = hero.on ? "Nyala" : "Mati";
     const d = D();
-    $("#hero-from").textContent = rp(minPackagePrice(3));
+    const m = minPackagePrice(3);
+    $("#hero-from").innerHTML = `${rp(m.price)}${m.price < m.anchor ? ` <s>${rp(m.anchor)}</s>` : ""}`;
     $("#chip-shapes").textContent = d.heads.length + d.bodies.length + d.bases.length;
     $("#chip-colors").textContent = d.colors.length;
   }
@@ -186,7 +192,8 @@
       D()
         .presets.map((p, i) => {
           const n = p.body.length + 2;
-          return `<button class="preset" type="button" data-preset="${i}">${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small></button>`;
+          const pr = price(sanitize(clone(p)));
+          return `<button class="preset" type="button" data-preset="${i}">${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.parts - pr.disc)}${pr.disc ? ` <s>${rp(pr.parts)}</s>` : ""}</span></button>`;
         })
         .join("");
   }
@@ -197,10 +204,11 @@
       .map((n) => {
         const pk = D().packages[n];
         const hot = n === 4;
+        const m = minPackagePrice(n);
         return (
-          `<div class="pkg${hot ? " hot" : ""}"><div class="top"><div class="n">${n}<small>bagian</small></div><span class="badge">hemat ${Math.round(pk.disc * 100)}%</span></div><h3>Paket ${esc(pk.name)}</h3>` +
+          `<div class="pkg${hot ? " hot" : ""}">${hot ? '<span class="pkg__flag">Paling laris</span>' : ""}<div class="top"><div class="n">${n}<small>bagian</small></div><span class="badge">hemat ${Math.round(pk.disc * 100)}%</span></div><h3>Paket ${esc(pk.name)}</h3>` +
           `<ul><li>1 kap + ${n - 2} badan + 1 alas</li><li>Tinggi ± ${esc(pk.cm)} cm</li><li>${esc(pk.note || "")}</li></ul>` +
-          `<div class="from"><small>mulai dari</small><b class="num">${rp(minPackagePrice(n))}</b></div><button class="btn ${hot ? "btn--primary" : "btn--ghost"}" type="button" data-pkg="${n}">Rakit paket ini</button></div>`
+          `<div class="from"><small>mulai dari</small><b class="num">${rp(m.price)}</b>${m.price < m.anchor ? `<s class="num">${rp(m.anchor)} beli satuan</s><em>Hemat ${rp(m.anchor - m.price)}</em>` : ""}</div><button class="btn ${hot ? "btn--primary" : "btn--ghost"}" type="button" data-pkg="${n}">Rakit paket ini</button></div>`
         );
       })
       .join("");

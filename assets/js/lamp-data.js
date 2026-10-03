@@ -3,6 +3,12 @@
  * Semua harga dalam Rupiah dan masih ANGKA CONTOH; ganti lewat Mode Edit (#edit)
  * tab "Lampu" atau langsung di file ini.
  *
+ * HARGA CORET: website menampilkan "harga satuan" (jumlah harga kap + badan + alas
+ * bila dibeli terpisah) sebagai pembanding harga paket. Angka itu HARUS harga
+ * satuan yang benar-benar berlaku di katalog bagian satuan, bukan harga fiktif,
+ * agar tidak melanggar UU Perlindungan Konsumen (Pasal 9–10). Diskon paket
+ * (packages.disc) harus masih menyisakan margin setelah biaya cetak + kirim.
+ *
  * photos: foto asli per bagian. Kunci "jenis:bentuk:warna" (mis. "body:bola:salmon")
  * atau "jenis:bentuk" untuk semua warna. Nilai: path file (assets/img/…) atau data URI.
  * Tanpa foto, ilustrasi SVG dipakai.
@@ -27,27 +33,27 @@ window.MKS_LAMP = {
     { id: "kuning", name: "Kuning pucat", hex: "#f6e6b3" },
   ],
   heads: [
-    { id: "plisir", name: "Silinder plisir", price: 145000, cm: 14 },
-    { id: "kerucut", name: "Kerucut", price: 145000, cm: 13 },
-    { id: "kotak", name: "Kotak", price: 155000, cm: 13 },
+    { id: "plisir", name: "Silinder plisir", price: 189000, cm: 14 },
+    { id: "kerucut", name: "Kerucut", price: 189000, cm: 13 },
+    { id: "kotak", name: "Kotak", price: 199000, cm: 13 },
   ],
   bodies: [
-    { id: "bola", name: "Bola", price: 55000, cm: 8, kg: 0.18 },
-    { id: "kubus", name: "Kubus", price: 55000, cm: 7, kg: 0.17 },
-    { id: "cincin", name: "Cincin", price: 45000, cm: 4.5, kg: 0.12 },
-    { id: "heksa", name: "Heksagon", price: 60000, cm: 7.5, kg: 0.19 },
-    { id: "silinder", name: "Silinder", price: 50000, cm: 6, kg: 0.15 },
+    { id: "bola", name: "Bola", price: 72000, cm: 8, kg: 0.18 },
+    { id: "kubus", name: "Kubus", price: 72000, cm: 7, kg: 0.17 },
+    { id: "cincin", name: "Cincin", price: 59000, cm: 4.5, kg: 0.12 },
+    { id: "heksa", name: "Heksagon", price: 79000, cm: 7.5, kg: 0.19 },
+    { id: "silinder", name: "Silinder", price: 65000, cm: 6, kg: 0.15 },
   ],
   bases: [
-    { id: "bulat", name: "Bulat", price: 65000 },
-    { id: "segitiga", name: "Segitiga", price: 65000 },
-    { id: "kotak", name: "Kotak", price: 65000 },
-    { id: "bunga", name: "Bunga", price: 75000 },
+    { id: "bulat", name: "Bulat", price: 85000 },
+    { id: "segitiga", name: "Segitiga", price: 85000 },
+    { id: "kotak", name: "Kotak", price: 85000 },
+    { id: "bunga", name: "Bunga", price: 99000 },
   ],
   packages: {
-    3: { name: "Trio", disc: 0.1, cm: "24–30", note: "Pas untuk meja samping tempat tidur" },
-    4: { name: "Kuarto", disc: 0.12, cm: "30–38", note: "Paling sering dipesan, untuk meja kerja" },
-    5: { name: "Kuinto", disc: 0.15, cm: "36–46", note: "Paling tinggi, untuk sudut ruang tamu" },
+    3: { name: "Trio", disc: 0.3, cm: "24–30", note: "Pas untuk meja samping tempat tidur" },
+    4: { name: "Kuarto", disc: 0.35, cm: "30–38", note: "Paling sering dipesan, untuk meja kerja" },
+    5: { name: "Kuinto", disc: 0.38, cm: "36–46", note: "Paling tinggi, untuk sudut ruang tamu" },
   },
   presets: [
     { name: "Senja", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "kubus", color: "bata" }, { shape: "heksa", color: "kunyit" }, { shape: "bola", color: "jingga" }], base: { shape: "kotak", color: "bata" } },
