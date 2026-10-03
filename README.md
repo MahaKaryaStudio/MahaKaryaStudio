@@ -17,7 +17,7 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 
 ## Yang WAJIB diganti sebelum live
 
-1. **`assets/js/config.js`**: email, Instagram, link Tokopedia/Shopee, kota. (Nomor WhatsApp sudah diisi.)
+1. **`assets/js/config.js`**: email, link Tokopedia/Shopee, kota. (Nomor WhatsApp dan Instagram sudah diisi.)
 2. **Harga di `config.js` dan `assets/js/products.js`**: ini **asumsi**, belum dihitung dari biaya riil. Hitung ulang dari:
    `harga filamen per gram × berat + jam mesin × (listrik + penyusutan printer) + finishing + packing + margin + potongan marketplace`.
 3. **Foto produk**: isi field `image` di `products.js`, misalnya `"assets/img/vas-kawung.jpg"`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
