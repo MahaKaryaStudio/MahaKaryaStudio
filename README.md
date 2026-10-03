@@ -1,9 +1,18 @@
 # MahaKarya Studio — Website
 
-Website toko untuk bisnis **dekorasi rumah 3D print** dengan motif Nusantara.
+Website toko untuk bisnis **lampu meja 3D print yang dirakit sendiri oleh pembeli** (kap + badan + alas, tiap bagian pilih bentuk dan warna), plus katalog dekorasi bermotif Nusantara sebagai lini kedua.
 Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.html` atau deploy ke GitHub Pages / Netlify / Vercel.
 
-## Isi website
+## Halaman
+
+| File | Isi |
+|---|---|
+| `index.html` | **Lampu rakitan**: hero dengan lampu menyala, penjelasan 3 bagian, konfigurator (bentuk + warna per bagian, harga & tinggi langsung terhitung, kode rakitan, pesan via WhatsApp), paket 3/4/5 bagian, katalog bagian satuan, cara pesan, spesifikasi, FAQ |
+| `koleksi.html` | **Koleksi Nusantara**: katalog vas/lampu/pot/panel, keranjang → WhatsApp, estimator pesanan custom, B2B, material, FAQ |
+
+Data: `assets/js/config.js` (kontak, gratis ongkir, estimator), `assets/js/lamp-data.js` (bentuk, warna, harga, paket, foto bagian lampu), `assets/js/products.js` (katalog koleksi).
+
+## Isi halaman koleksi
 
 | Bagian | Fungsi bisnis |
 |---|---|
@@ -18,27 +27,28 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 ## Yang WAJIB diganti sebelum live
 
 1. **`assets/js/config.js`**: link Tokopedia/Shopee. (WhatsApp, Instagram, email, dan kota sudah diisi.)
-2. **Harga di `config.js` dan `assets/js/products.js`**: ini **asumsi**, belum dihitung dari biaya riil. Hitung ulang dari:
+2. **Harga di `lamp-data.js`, `config.js`, dan `products.js`**: ini **asumsi**, belum dihitung dari biaya riil. Hitung ulang dari:
    `harga filamen per gram × berat + jam mesin × (listrik + penyusutan printer) + finishing + packing + margin + potongan marketplace`.
-3. **Foto produk**: isi field `image` di `products.js`, misalnya `"assets/img/vas-kawung.jpg"`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
+3. **Foto produk**: lampu → unggah per bagian lewat Mode Edit tab "Lampu" (atau isi `photos` di `lamp-data.js`); koleksi → field `image` di `products.js`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
 4. **Kebijakan** (garansi, DP 50%, lead time, daur ulang produk lama): pastikan semuanya memang sanggup Anda jalankan.
 
 ## Mode Edit (ubah isi website tanpa coding)
 
-Buka website dengan `#edit` di akhir alamat, misalnya `https://mahakaryastudio.github.io/MahaKaryaStudio/#edit`. Muncul panel di kanan:
+Buka halaman mana pun dengan `#edit` di akhir alamat, misalnya `https://mahakaryastudio.github.io/MahaKaryaStudio/#edit` atau `.../koleksi.html#edit`. Muncul panel di kanan:
 
-| Tab | Fungsi |
-|---|---|
-| Teks | Aktifkan, lalu klik judul/paragraf/tombol/FAQ di halaman dan ketik langsung |
-| Produk | Tambah, hapus, duplikat, urutkan produk; ubah nama, harga, kategori, warna, bentuk ilustrasi, deskripsi, spesifikasi, label, dan unggah foto |
-| Kontak & Harga | WhatsApp, email, Instagram, link marketplace, kota, ambang gratis ongkir, serta semua angka estimator custom |
-| Ekspor | Salin `index.html`, `assets/js/config.js`, `assets/js/products.js` hasil edit, lalu tempel ke file yang sama di GitHub, atau kirim ke Claude untuk di-commit |
+| Tab | Halaman | Fungsi |
+|---|---|---|
+| Teks | semua | Aktifkan, lalu klik judul/paragraf/tombol/FAQ di halaman dan ketik langsung |
+| Lampu | index | Unggah foto asli per bagian (jenis + bentuk + warna), harga tiap bentuk, harga LED, nama/diskon paket, tambah/hapus warna filamen |
+| Produk | koleksi | Tambah, hapus, duplikat, urutkan produk; ubah nama, harga, kategori, warna, bentuk ilustrasi, deskripsi, spesifikasi, label, dan unggah foto |
+| Kontak & Harga | semua | WhatsApp, email, Instagram, link marketplace, kota, ambang gratis ongkir, serta angka estimator custom |
+| Ekspor | semua | Salin file HTML halaman ini + `config.js` + `lamp-data.js`/`products.js` hasil edit, lalu tempel ke file yang sama di GitHub, atau kirim ke Claude untuk di-commit |
 
 Perubahan tersimpan di browser yang dipakai mengedit (localStorage), **belum** tayang untuk pengunjung sampai file hasil ekspor di-commit. Pengunjung biasa tidak melihat panel ini.
 
-Versi satu file untuk artifact claude.ai (Mode Edit selalu aktif): `node tools/build-single.js` → `dist/editor.html`.
+Versi untuk artifact claude.ai (Mode Edit selalu aktif di kedua halaman): `node tools/build-artifact.js` → `dist/artifact/`.
 
-## Menambah produk lewat file
+## Menambah produk koleksi lewat file
 
 Salin satu objek di `assets/js/products.js`, ubah `id` (unik), `name`, `category` (`vas | lampu | pot | aksesori | dinding`), `price`, dan deskripsinya.
 
@@ -50,4 +60,6 @@ Settings → Pages → Source: *Deploy from a branch* → pilih branch dan folde
 
 - Tidak ada pembayaran online atau stok otomatis. Semua order masuk lewat WhatsApp, jadi pencatatan pesanan masih manual.
 - Estimasi waktu produksi di estimator mengasumsikan kapasitas mesin yang kecil. Sesuaikan `leadTimeDays` dengan jumlah printer Anda.
+- Pratinjau lampu di konfigurator adalah ilustrasi SVG, bukan foto. Foto asli yang diunggah tampil di kartu bagian satuan dan strip bagian terpilih.
+- Bentuk bagian lampu (3 kap, 5 badan, 4 alas) terikat pada gambar SVG di `lamp-art.js`; menambah bentuk baru perlu menggambar ilustrasinya.
 - Belum ada testimoni. Sengaja tidak diisi testimoni palsu. Tambahkan testimoni asli setelah ada pelanggan.

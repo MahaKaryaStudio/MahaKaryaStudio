@@ -1,24 +1,27 @@
 /*
- * MODE EDIT — buka website dengan #edit di akhir alamat, misalnya:
+ * MODE EDIT — buka halaman dengan #edit di akhir alamat, misalnya:
  *   https://mahakaryastudio.github.io/MahaKaryaStudio/#edit
  *
  * - Teks: klik langsung pada tulisan di halaman lalu ketik.
- * - Produk, harga, foto, kontak: lewat panel di kanan.
+ * - Produk / bagian lampu, harga, foto, kontak: lewat panel di kanan.
  * - Perubahan disimpan di browser ini saja (localStorage). Supaya tayang untuk
- *   semua orang, salin file dari tab "Ekspor" ke GitHub (index.html,
- *   assets/js/config.js, assets/js/products.js).
+ *   semua orang, salin file dari tab "Ekspor" ke GitHub.
  *
- * File ini harus dimuat SEBELUM main.js agar produk/kontak hasil edit dipakai
- * saat halaman dirender.
+ * File ini dimuat SEBELUM skrip halaman (main.js / lamp.js) agar data hasil edit
+ * dipakai saat halaman dirender. Tab tambahan (mis. editor-lamp.js) mendaftar
+ * lewat window.MKSEditor.register().
  */
 (function () {
-  const KEY = "mks-edits-v1";
-  const products = window.MKS_PRODUCTS;
+  const KEY = "mks-edits-v2";
+  const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
+  const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;
-  const ORIGINAL = { products: clone(products), config: clone(config) };
+  const ORIGINAL = { products: products && clone(products), config: clone(config) };
   const state = load();
-  if (state.products) replaceArray(products, state.products);
+  if (products && state.products) replaceArray(products, state.products);
   if (state.config) replaceObject(config, state.config);
+  if (!state.text[PAGE]) state.text[PAGE] = {};
+  const plugins = [];
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -38,7 +41,7 @@
   function load() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY)) || {};
-      return { text: s.text || {}, products: s.products || null, config: s.config || null };
+      return Object.assign({ text: {}, products: null, config: null }, s, { text: s.text || {} });
     } catch (_) {
       return { text: {}, products: null, config: null };
     }
@@ -51,8 +54,26 @@
     } catch (_) {
       if (!saveWarned) {
         saveWarned = true;
-        setStatus("Penyimpanan browser penuh — kecilkan/hapus foto produk", true);
+        setStatus("Penyimpanan browser penuh — kecilkan/hapus foto", true);
       }
+    }
+  }
+  function refreshAll() {
+    if (window.MKS) window.MKS.refresh();
+    if (window.MKSLamp) window.MKSLamp.refresh();
+  }
+  // Dipanggil plugin/tab saat datanya berubah: simpan ke state[key] lalu render ulang halaman
+  function markChanged(key, data) {
+    state[key] = data;
+    save();
+    refreshAll();
+  }
+  // Plugin mendaftar sebelum DOMContentLoaded; override dari localStorage langsung diterapkan
+  function register(p) {
+    plugins.push(p);
+    if (p.storeKey && p.data) {
+      if (!p.original) p.original = clone(p.data);
+      if (state[p.storeKey]) replaceObject(p.data, state[p.storeKey]);
     }
   }
 
@@ -74,9 +95,8 @@
     return segs.join("/");
   }
   function resolve(path, root) {
-    const segs = path.split("/");
     let cur = root.body;
-    for (const seg of segs) {
+    for (const seg of path.split("/")) {
       if (seg.startsWith("#")) cur = root.querySelector("#" + CSS.escape(seg.slice(1)));
       else {
         const [tag, idx] = seg.split(":");
@@ -87,20 +107,18 @@
     return cur;
   }
 
-  const EXCLUDE = "[data-products],[data-modal],[data-drawer],[data-hero-art],[data-filters],[data-opt],.mks-editor,.mks-pill";
-  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,.eyebrow,.promo,.mat b,.mat span,.footer a,.footer h4,.nav__links a,.estimate__label,.card-why__num,.step span";
-  const editables = () => $$(SEL).filter((el) => !el.closest(EXCLUDE));
+  const EXCLUDE = "[data-dynamic],[data-dynamic-text],.mks-editor,.mks-pill";
+  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,.eyebrow,.promo,.mat b,.mat span,.footer a:not([data-link]),.footer h4,.nav__links a,.estimate__label,.card-why__num,.step span,.part-row .tag,.spec dt,.spec dd:not([id]),.contact-line span:first-child";
+  const editables = () => $$(SEL).filter((el) => !el.closest(EXCLUDE) && el.tagName !== "BUTTON");
 
   function applyText() {
-    Object.entries(state.text).forEach(([path, html]) => {
+    const edits = state.text[PAGE];
+    Object.entries(edits).forEach(([path, html]) => {
       const el = resolve(path, document);
       if (el) el.innerHTML = html;
     });
-    if (window.MKS) {
-      // Teks yang diedit bisa membawa nilai lama dari config; segarkan binding.
-      $$("[data-free-ship]").forEach((el) => (el.textContent = rp(config.freeShippingMin)));
-      $$("[data-city]").forEach((el) => (el.textContent = config.city));
-    }
+    // Teks yang diedit bisa membawa nilai lama dari config; render ulang binding.
+    if (Object.keys(edits).length) refreshAll();
   }
 
   const wanted = () => !!window.MKS_EDITOR_ALWAYS || location.hash === "#edit";
@@ -119,21 +137,21 @@
     if (booted) return;
     booted = true;
     injectStyle();
+    const tabs = [{ id: "teks", label: "Teks", render: tabText }];
+    if (products) tabs.push({ id: "produk", label: "Produk", render: tabProducts });
+    plugins.forEach((p) => tabs.push({ id: p.id, label: p.label, render: p.render }));
+    tabs.push({ id: "atur", label: "Kontak & Harga", render: tabConfig }, { id: "ekspor", label: "Ekspor", render: tabExport });
+
     panel = document.createElement("aside");
     panel.className = "mks-editor";
     panel.setAttribute("aria-label", "Panel edit website");
     panel.innerHTML = `
       <header class="mks-head">
-        <b>Mode Edit</b>
+        <b>Mode Edit</b><small class="mks-page">${esc(PAGE)}</small>
         <span class="mks-status" data-status></span>
         <button type="button" class="mks-x" data-hide title="Sembunyikan panel">✕</button>
       </header>
-      <nav class="mks-tabs">
-        <button type="button" class="is-on" data-tab="teks">Teks</button>
-        <button type="button" data-tab="produk">Produk</button>
-        <button type="button" data-tab="atur">Kontak &amp; Harga</button>
-        <button type="button" data-tab="ekspor">Ekspor</button>
-      </nav>
+      <nav class="mks-tabs">${tabs.map((t, i) => `<button type="button" class="${i ? "" : "is-on"}" data-tab="${t.id}">${t.label}</button>`).join("")}</nav>
       <section class="mks-body" data-body></section>`;
     document.body.appendChild(panel);
     const pill = document.createElement("button");
@@ -148,6 +166,11 @@
     });
     statusEl = $("[data-status]", panel);
 
+    const showTab = (id) => {
+      const body = $("[data-body]", panel);
+      if (id !== "teks" && textMode) setTextMode(false);
+      tabs.find((t) => t.id === id).render(body);
+    };
     panel.addEventListener("click", (e) => {
       if (e.target.closest("[data-hide]")) {
         panel.hidden = true;
@@ -165,16 +188,10 @@
     document.addEventListener("input", (e) => {
       const el = e.target.closest && e.target.closest(".mks-editable");
       if (!el) return;
-      state.text[pathOf(el)] = el.innerHTML;
+      state.text[PAGE][pathOf(el)] = el.innerHTML;
       save();
     });
-    document.addEventListener(
-      "click",
-      (e) => {
-        if (textMode && e.target.closest(".mks-editable")) e.preventDefault();
-      },
-      true
-    );
+    document.addEventListener("click", (e) => textMode && e.target.closest(".mks-editable") && e.preventDefault(), true);
     document.addEventListener("paste", (e) => {
       if (!e.target.closest || !e.target.closest(".mks-editable")) return;
       e.preventDefault();
@@ -193,7 +210,6 @@
     statusEl.textContent = msg;
     statusEl.classList.toggle("is-bad", !!bad);
   }
-
   function setTextMode(on) {
     textMode = on;
     editables().forEach((el) => {
@@ -203,46 +219,30 @@
     if (on) $$("details").forEach((d) => (d.open = true));
   }
 
-  function showTab(name) {
-    const body = $("[data-body]", panel);
-    if (name !== "teks" && textMode) setTextMode(false);
-    if (name === "teks") return tabText(body);
-    if (name === "produk") return tabProducts(body);
-    if (name === "atur") return tabConfig(body);
-    if (name === "ekspor") return tabExport(body);
-  }
-
   /* ---------- Tab Teks ---------- */
   function tabText(body) {
     body.innerHTML = `
       <label class="mks-switch"><input type="checkbox" id="mks-textmode" ${textMode ? "checked" : ""}/> <span>Aktifkan edit teks di halaman</span></label>
-      <p class="mks-help">Saat aktif, semua judul, paragraf, tombol, dan FAQ bisa diklik lalu diketik langsung. Tekan Enter untuk baris baru. Perubahan tersimpan otomatis.</p>
-      <p class="mks-help">Teks produk (nama, harga, deskripsi) diubah di tab <b>Produk</b>. Nomor WhatsApp, email, dan harga estimator di tab <b>Kontak &amp; Harga</b>.</p>
-      <div class="mks-row">
-        <button type="button" class="mks-btn" data-reset-text>Kembalikan semua teks asli</button>
-      </div>
-      <p class="mks-help mks-muted">${Object.keys(state.text).length} bagian teks sudah diubah.</p>`;
+      <p class="mks-help">Saat aktif, judul, paragraf, tombol, dan FAQ bisa diklik lalu diketik langsung. Tekan Enter untuk baris baru. Perubahan tersimpan otomatis.</p>
+      <p class="mks-help">Nama/harga produk dan bagian lampu diubah di tab masing-masing. Nomor WhatsApp, email, dan harga estimator di tab <b>Kontak &amp; Harga</b>.</p>
+      <div class="mks-row"><button type="button" class="mks-btn" data-reset-text>Kembalikan teks asli halaman ini</button></div>
+      <p class="mks-help mks-muted">${Object.keys(state.text[PAGE]).length} bagian teks sudah diubah di halaman ini.</p>`;
     $("#mks-textmode", body).addEventListener("change", (e) => setTextMode(e.target.checked));
     $("[data-reset-text]", body).addEventListener("click", () =>
-      confirmBox(body, "Semua teks akan kembali ke versi asli. Lanjutkan?", () => {
-        state.text = {};
+      confirmBox(body, "Semua teks halaman ini kembali ke versi asli. Lanjutkan?", () => {
+        state.text[PAGE] = {};
         save();
         location.reload();
       })
     );
   }
 
-  /* ---------- Tab Produk ---------- */
+  /* ---------- Tab Produk (halaman koleksi) ---------- */
   const SHAPES = ["vase", "tall", "bulb", "cylinder", "bowl", "lamp", "planter", "wave"];
   const MOTIFS = ["ridge", "twist", "batik", "parang", "kawung", "smooth", "voronoi", "wave"];
   const CATS = ["vas", "lampu", "pot", "aksesori", "dinding"];
   const TAGS = [["bestseller", "Terlaris"], ["baru", "Baru"], ["hadiah", "Ide hadiah"]];
-
-  function productsChanged() {
-    state.products = products;
-    save();
-    window.MKS && window.MKS.refresh();
-  }
+  const productsChanged = () => markChanged("products", products);
 
   function tabProducts(body) {
     body.innerHTML = `
@@ -250,29 +250,14 @@
         <button type="button" class="mks-btn mks-btn--primary" data-add-product>+ Tambah produk</button>
         <button type="button" class="mks-btn" data-reset-products>Kembalikan katalog asli</button>
       </div>
-      <p class="mks-help">Harga dalam Rupiah tanpa titik. Foto akan diperkecil otomatis (maks. 900 px). Tanpa foto, ilustrasi dibuat dari bentuk &amp; motif.</p>
+      <p class="mks-help">Harga dalam Rupiah tanpa titik. Foto diperkecil otomatis (maks. 900 px). Tanpa foto, ilustrasi dibuat dari bentuk &amp; motif.</p>
       <div data-list></div>`;
     const list = $("[data-list]", body);
-    const render = () => {
-      list.innerHTML = products.map((p, i) => productCard(p, i)).join("");
-    };
+    const render = () => (list.innerHTML = products.map((p, i) => productCard(p, i)).join(""));
     render();
 
     $("[data-add-product]", body).addEventListener("click", () => {
-      const n = products.length + 1;
-      products.push({
-        id: "produk-" + Date.now().toString(36),
-        name: "Produk baru " + n,
-        category: "vas",
-        collection: "Modern",
-        price: 150000,
-        shape: "vase",
-        motif: "ridge",
-        color: "#c8794a",
-        desc: "Deskripsi singkat produk.",
-        specs: ["Tinggi 15 cm", "PLA Matte"],
-        tags: [],
-      });
+      products.push({ id: "produk-" + Date.now().toString(36), name: "Produk baru " + (products.length + 1), category: "vas", collection: "Modern", price: 150000, shape: "vase", motif: "ridge", color: "#c8794a", desc: "Deskripsi singkat produk.", specs: ["Tinggi 15 cm", "PLA Matte"], tags: [] });
       productsChanged();
       render();
       list.lastElementChild.open = true;
@@ -283,13 +268,12 @@
         replaceArray(products, ORIGINAL.products);
         state.products = null;
         save();
-        window.MKS && window.MKS.refresh();
+        refreshAll();
         render();
       })
     );
-
-    list.addEventListener("input", (e) => onProductField(e, list));
-    list.addEventListener("change", (e) => onProductField(e, list));
+    list.addEventListener("input", (e) => onProductField(e));
+    list.addEventListener("change", (e) => onProductField(e));
     list.addEventListener("click", (e) => {
       const b = e.target.closest("[data-act]");
       if (!b) return;
@@ -315,10 +299,9 @@
       productsChanged();
       render();
       const again = list.querySelector(`[data-i="${act === "up" ? i - 1 : act === "down" ? i + 1 : i}"]`);
-      if (again && act !== "del") again.open = true;
+      if (again) again.open = true;
     });
   }
-
   function productCard(p, i) {
     const sel = (name, opts, val) => `<select data-f="${name}">${opts.map((o) => `<option value="${o}"${o === val ? " selected" : ""}>${o}</option>`).join("")}</select>`;
     return `
@@ -354,8 +337,7 @@
       </div>
     </details>`;
   }
-
-  function onProductField(e, list) {
+  function onProductField(e) {
     const inp = e.target.closest("[data-f]");
     if (!inp) return;
     const card = inp.closest("[data-i]");
@@ -405,12 +387,7 @@
   }
 
   /* ---------- Tab Kontak & Harga ---------- */
-  function configChanged() {
-    state.config = config;
-    save();
-    window.MKS && window.MKS.refresh();
-  }
-
+  const configChanged = () => markChanged("config", config);
   function tabConfig(body) {
     const E = config.estimator;
     const f = (k, label, type = "text", attrs = "") => `<label>${label}<input data-c="${k}" type="${type}" value="${esc(config[k])}" ${attrs}/></label>`;
@@ -428,7 +405,8 @@
       ${f("tokopedia", "Link toko Tokopedia", "url")}
       ${f("shopee", "Link toko Shopee", "url")}
       ${f("city", "Kota (footer)")}
-      ${f("freeShippingMin", "Minimal belanja gratis ongkir (Rp)", "number", 'min="0" step="10000"')}
+      ${f("freeShippingMin", "Minimal belanja gratis ongkir (Rp, halaman koleksi)", "number", 'min="0" step="10000"')}
+      <p class="mks-help mks-muted">Estimator di bawah dipakai halaman <b>koleksi.html</b> (pesanan custom dekorasi).</p>
       ${table("Estimator — ukuran", "sizes", [{ k: "label", label: "Label" }, { k: "base", label: "Harga dasar (Rp)", type: "number" }, { k: "hours", label: "Jam cetak", type: "number", attrs: 'step="0.5"' }])}
       ${table("Estimator — material", "materials", [{ k: "label", label: "Label" }, { k: "mult", label: "Pengali harga (1 = sama)", type: "number", attrs: 'step="0.05"' }])}
       ${table("Estimator — finishing", "finishes", [{ k: "label", label: "Label" }, { k: "add", label: "Tambahan (Rp)", type: "number" }])}
@@ -439,7 +417,6 @@
         <label>Desain baru (Rp)<input data-e="designFee.custom" type="number" value="${E.designFee.custom}" /></label>
       </div>
       <div class="mks-row"><button type="button" class="mks-btn" data-reset-config>Kembalikan pengaturan asli</button></div>`;
-
     body.addEventListener("input", (e) => {
       const c = e.target.closest("[data-c]");
       if (c) {
@@ -462,7 +439,7 @@
         replaceObject(config, ORIGINAL.config);
         state.config = null;
         save();
-        window.MKS && window.MKS.refresh();
+        refreshAll();
         tabConfig(body);
       })
     );
@@ -478,7 +455,7 @@
       </div>
       <div data-files><p class="mks-help">Menyiapkan file…</p></div>`;
     $("[data-reset-all]", body).addEventListener("click", () =>
-      confirmBox(body, "Semua perubahan (teks, produk, kontak) dihapus dari browser ini. Lanjutkan?", () => {
+      confirmBox(body, "Semua perubahan (teks semua halaman, produk, lampu, kontak) dihapus dari browser ini. Lanjutkan?", () => {
         try {
           localStorage.removeItem(KEY);
         } catch (_) {}
@@ -501,31 +478,27 @@
         const b = e.target.closest("[data-copy]");
         if (b) copy(files[+b.dataset.copy].content, b);
       });
-      $("[data-copy-all]", body).addEventListener("click", (e) => {
-        copy(files.map((f) => `===== FILE: ${f.path} =====\n${f.content || "(" + f.error + ")"}\n`).join("\n"), e.target);
-      });
+      $("[data-copy-all]", body).addEventListener("click", (e) => copy(files.map((f) => `===== FILE: ${f.path} =====\n${f.content || "(" + f.error + ")"}\n`).join("\n"), e.target));
     });
   }
-
+  const header = (what) => `/*\n * ${what} — diekspor dari Mode Edit website pada ${new Date().toLocaleString("id-ID")}.\n * Ubah lewat Mode Edit (#edit) atau langsung di file ini.\n */\n`;
   async function buildExports() {
-    const header = (what) => `/*\n * ${what} — diekspor dari Mode Edit website pada ${new Date().toLocaleString("id-ID")}.\n * Ubah lewat Mode Edit (#edit) atau langsung di file ini.\n */\n`;
-    const files = [
-      { path: "assets/js/config.js", content: header("KONFIGURASI BISNIS") + "window.MKS_CONFIG = " + JSON.stringify(config, null, 2) + ";\n" },
-      { path: "assets/js/products.js", content: header("KATALOG PRODUK") + "window.MKS_PRODUCTS = " + JSON.stringify(products, null, 2) + ";\n" },
-    ];
-    let html;
+    const files = [];
     try {
-      const src = window.MKS_TEMPLATE || (await (await fetch(location.pathname.replace(/\/$/, "/index.html"), { cache: "no-store" })).text());
+      const src = window.MKS_TEMPLATE || (await (await fetch(PAGE, { cache: "no-store" })).text());
       const doc = new DOMParser().parseFromString(src, "text/html");
-      Object.entries(state.text).forEach(([path, h]) => {
+      Object.entries(state.text[PAGE]).forEach(([path, h]) => {
         const el = resolve(path, doc);
         if (el) el.innerHTML = h;
       });
-      html = { path: "index.html", content: "<!doctype html>\n" + doc.documentElement.outerHTML + "\n" };
+      files.push({ path: PAGE, content: "<!doctype html>\n" + doc.documentElement.outerHTML + "\n" });
     } catch (_) {
-      html = { path: "index.html", error: "index.html hanya bisa diekspor saat website dibuka lewat alamat web (bukan file lokal)." };
+      files.push({ path: PAGE, error: `${PAGE} hanya bisa diekspor saat website dibuka lewat alamat web (bukan file lokal).` });
     }
-    return [html, ...files];
+    files.push({ path: "assets/js/config.js", content: header("KONFIGURASI BISNIS") + "window.MKS_CONFIG = " + JSON.stringify(config, null, 2) + ";\n" });
+    if (products) files.push({ path: "assets/js/products.js", content: header("KATALOG PRODUK") + "window.MKS_PRODUCTS = " + JSON.stringify(products, null, 2) + ";\n" });
+    plugins.forEach((p) => p.exportFiles && files.push(...p.exportFiles(header)));
+    return files;
   }
 
   function copy(text, btn) {
@@ -534,9 +507,7 @@
       btn.textContent = ok ? "✓ Tersalin" : "Gagal — pilih teks manual";
       setTimeout(() => (btn.textContent = t), 1500);
     };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), () => fallback());
-    else fallback();
-    function fallback() {
+    const fallback = () => {
       const ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
@@ -547,7 +518,9 @@
       } catch (_) {}
       ta.remove();
       done(ok);
-    }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+    else fallback();
   }
 
   function confirmBox(host, msg, onYes) {
@@ -570,19 +543,20 @@
     const s = document.createElement("style");
     s.textContent = `
       .mks-editable{outline:1.5px dashed rgba(200,121,74,.75);outline-offset:3px;border-radius:3px;cursor:text;min-width:1ch}
-      .mks-editable:hover{background:rgba(200,121,74,.1)}
-      .mks-editable:focus{outline:2px solid #c8794a;background:#fff}
+      .mks-editable:hover{background:rgba(200,121,74,.12)}
+      .mks-editable:focus{outline:2px solid #c8794a}
       .mks-editor{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);z-index:200;background:#fffdf9;color:#1f1a16;border-left:1px solid #e4dacb;box-shadow:-12px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;font:14px/1.5 Inter,system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
       .mks-editor[hidden]{display:none}
       .mks-editor *{box-sizing:border-box}
       .mks-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #e4dacb;background:#1f1a16;color:#fff}
       .mks-head b{font-size:15px}
+      .mks-page{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#bfb2a1;background:rgba(255,255,255,.1);padding:2px 7px;border-radius:6px}
       .mks-status{flex:1;font-size:12px;color:#bfb2a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .mks-status.is-bad{color:#ff9f7a}
       .mks-x{border:0;background:transparent;color:#fff;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px}
       .mks-x:hover{background:rgba(255,255,255,.12)}
-      .mks-tabs{display:flex;border-bottom:1px solid #e4dacb;background:#f2ebdf}
-      .mks-tabs button{flex:1;border:0;background:transparent;padding:10px 4px;font:inherit;font-weight:600;font-size:13px;color:#5b524a;cursor:pointer;border-bottom:2px solid transparent}
+      .mks-tabs{display:flex;border-bottom:1px solid #e4dacb;background:#f2ebdf;overflow-x:auto}
+      .mks-tabs button{flex:1;border:0;background:transparent;padding:10px 6px;font:inherit;font-weight:600;font-size:13px;color:#5b524a;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
       .mks-tabs button.is-on{color:#1f1a16;border-bottom-color:#c8794a;background:#fffdf9}
       .mks-body{flex:1;overflow-y:auto;padding:14px}
       .mks-body h4{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#9c5730}
@@ -592,6 +566,7 @@
       .mks-body input[type=color]{width:100%;height:38px;padding:2px;border:1.5px solid #e4dacb;border-radius:8px;background:#fff}
       .mks-body textarea{resize:vertical}
       .mks-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .mks-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
       .mks-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
       .mks-row--end{justify-content:flex-end}
       .mks-row--between{justify-content:space-between;align-items:center}
@@ -601,6 +576,7 @@
       .mks-btn--primary:hover{background:#9c5730;border-color:#9c5730}
       .mks-btn--danger{border-color:#b3412a;color:#b3412a}
       .mks-btn--danger:hover{background:#b3412a;color:#fff}
+      .mks-btn--sm{padding:4px 10px;font-size:12px}
       .mks-icon{width:36px;height:36px;border-radius:50%;border:1.5px solid #e4dacb;background:#fff;cursor:pointer;font-size:16px}
       .mks-switch{flex-direction:row!important;align-items:center;gap:10px!important;font-size:15px!important;color:#1f1a16!important;font-weight:600}
       .mks-switch input{width:20px;height:20px;accent-color:#c8794a}
@@ -610,7 +586,7 @@
       .mks-card{border:1px solid #e4dacb;border-radius:12px;margin-bottom:10px;background:#fff}
       .mks-card summary{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;list-style:none}
       .mks-card summary::-webkit-details-marker{display:none}
-      .mks-thumb{width:46px;height:52px;flex:none;background:#f2ebdf;border-radius:8px;padding:3px;display:grid;place-items:center}
+      .mks-thumb{width:46px;height:52px;flex:none;background:#f2ebdf;border-radius:8px;padding:3px;display:grid;place-items:center;overflow:hidden}
       .mks-thumb svg,.mks-thumb img{width:100%;height:100%;object-fit:contain}
       .mks-sum{display:flex;flex-direction:column;min-width:0}
       .mks-sum b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -621,8 +597,14 @@
       .mks-file{cursor:pointer}
       .mks-table{width:100%;border-collapse:collapse;font-size:12px}
       .mks-table th{text-align:left;font-weight:600;color:#5b524a;padding:0 4px 4px 0}
-      .mks-table td{padding:0 4px 6px 0}
+      .mks-table td{padding:0 4px 6px 0;vertical-align:middle}
       .mks-table input{padding:6px 8px!important}
+      .mks-table input[type=color]{height:32px!important;width:44px!important}
+      .mks-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+      .mks-photo{border:1px solid #e4dacb;border-radius:10px;overflow:hidden;background:#fff;font-size:11px;display:grid}
+      .mks-photo img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+      .mks-photo span{padding:4px 6px;word-break:break-all;color:#5b524a}
+      .mks-photo button{border:0;background:#f2ebdf;color:#b3412a;font:inherit;font-weight:600;padding:5px;cursor:pointer}
       .mks-file-block{margin-bottom:14px}
       .mks-file-block code{font-size:12px;background:#f2ebdf;padding:3px 8px;border-radius:6px}
       .mks-file-block textarea{font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;white-space:pre}
@@ -636,4 +618,6 @@
     document.head.appendChild(s);
     document.body.classList.add("mks-has-panel");
   }
+
+  window.MKSEditor = { register, markChanged, state, save, confirmBox, shrinkImage, esc, rp, clone, replaceObject, replaceArray, refreshAll, $, $$ };
 })();

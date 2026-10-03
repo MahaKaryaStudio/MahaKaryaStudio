@@ -2,34 +2,35 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MahaKarya Studio — Dekorasi Rumah 3D Print Bermotif Nusantara</title>
-  <meta name="description" content="Dekorasi rumah 3D print bermotif Nusantara: vas, lampu, pot, dan panel dinding. Bisa custom, personalisasi nama/logo, dan pesanan souvenir korporat. Diproduksi sesuai pesanan di Jakarta." />
-  <meta name="theme-color" content="#1f1a16" />
-  <meta property="og:title" content="MahaKarya Studio — Dekorasi Rumah 3D Print" />
-  <meta property="og:description" content="Motif warisan Nusantara, dicetak presisi. Bisa custom & pesanan korporat." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MahaKarya Studio — Lampu Meja 3D Print yang Kamu Susun Sendiri</title>
+  <meta name="description" content="Lampu meja cetak 3D rakitan: pilih kap, badan, dan alas satu per satu dengan warna masing-masing. Harga langsung terlihat, dicetak sesuai pesanan di Jakarta, pesan via WhatsApp." />
+  <meta name="theme-color" content="#15100c" />
+  <meta property="og:title" content="MahaKarya Studio — Lampu yang kamu susun sendiri" />
+  <meta property="og:description" content="Pilih kap, badan, dan alas. Tiap bagian punya bentuk dan warnanya sendiri. Kami cetak, rakit, lalu kirim." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f1a16'/%3E%3Cpath d='M9 24h14M10 21h12M11 18h10M12 15h8M11 12h10M10 9h12' stroke='%23c8794a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/lamp.css" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Store",
     "name": "MahaKarya Studio",
-    "description": "Dekorasi rumah 3D print bermotif Nusantara, custom dan souvenir korporat.",
+    "description": "Lampu meja cetak 3D yang dirakit sesuai pesanan: kap, badan, dan alas dengan pilihan bentuk dan warna.",
     "address": { "@type": "PostalAddress", "addressLocality": "Jakarta", "addressCountry": "ID" },
     "areaServed": "ID",
     "currenciesAccepted": "IDR"
   }
   </script>
 </head>
-<body>
-  <a class="skip" href="#koleksi">Lewati ke koleksi</a>
+<body data-page="index.html">
+  <a class="skip" href="#rakit">Lewati ke konfigurator</a>
 
-  <div class="promo">Gratis ongkir untuk pesanan di atas <strong data-free-ship></strong> · Diproduksi sesuai pesanan, bukan stok gudang</div>
+  <div class="promo">Dicetak satu per satu sesuai pesanan · Bagian bisa diganti kapan saja · Pesan lewat WhatsApp</div>
 
   <header class="nav" id="top">
     <div class="wrap nav__inner">
@@ -38,228 +39,168 @@
         <span>MahaKarya<em>Studio</em></span>
       </a>
       <nav class="nav__links" aria-label="Navigasi utama">
-        <a href="#koleksi">Koleksi</a>
-        <a href="#custom">Custom</a>
-        <a href="#bisnis">Untuk Bisnis</a>
-        <a href="#proses">Proses</a>
+        <a href="#rakit">Rakit</a>
+        <a href="#paket">Paket</a>
+        <a href="#bagian">Bagian satuan</a>
+        <a href="#cara">Cara pesan</a>
         <a href="#faq">FAQ</a>
+        <a href="koleksi.html">Koleksi lain</a>
       </nav>
-      <button class="cart-btn" data-open-cart aria-label="Buka keranjang">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
-        <span class="cart-count" data-cart-count>0</span>
-      </button>
+      <a class="btn btn--primary btn--sm" href="#rakit">Rakit lampumu</a>
     </div>
   </header>
 
   <main>
-    <!-- HERO -->
-    <section class="hero">
-      <div class="wrap hero__grid">
-        <div class="hero__copy">
-          <p class="eyebrow">Dekorasi rumah · 3D print · Made in Jakarta</p>
-          <h1>Motif warisan Nusantara,<br /><span>dicetak lapis demi lapis.</span></h1>
-          <p class="lead">Vas, lampu, pot, dan panel dinding yang menggabungkan pola batik &amp; arsitektur tradisional dengan desain parametrik. Bisa dipersonalisasi, diproduksi sesuai pesanan, tanpa stok menumpuk.</p>
-          <div class="hero__cta">
-            <a href="#koleksi" class="btn btn--primary">Lihat Koleksi</a>
-            <a href="#custom" class="btn btn--ghost">Hitung Pesanan Custom</a>
+    <!-- HERO (gelap) -->
+    <section class="lhero dark">
+      <div class="wrap lhero__grid">
+        <div>
+          <p class="eyebrow">Lampu meja cetak 3D · dirakit sesuai pesanan · Jakarta</p>
+          <h1>Lampu yang kamu <span>susun sendiri.</span></h1>
+          <p class="lead">Pilih kap, badan, dan alas satu per satu. Tiap bagian punya bentuk dan warnanya sendiri. Kami cetak, rakit, lalu kirim ke rumahmu.</p>
+          <div class="chips" data-dynamic-text>
+            <span class="chip-stat"><b>3</b> bagian</span>
+            <span class="chip-stat"><b id="chip-shapes">12</b> bentuk</span>
+            <span class="chip-stat"><b id="chip-colors">9</b> warna filamen</span>
+            <span class="chip-stat">Mulai <b id="hero-from">Rp —</b></span>
           </div>
-          <ul class="hero__points">
-            <li><strong>Custom</strong> nama, logo, ukuran</li>
-            <li><strong>Garansi</strong> ganti bila rusak saat kirim</li>
-            <li><strong>Material</strong> PLA berbasis tanaman</li>
-          </ul>
+          <div class="lhero__cta">
+            <a class="btn btn--primary" href="#rakit">Mulai merakit</a>
+            <a class="btn btn--ghost" href="#paket">Lihat paket</a>
+          </div>
         </div>
-        <div class="hero__art" aria-hidden="true">
-          <div class="hero__stage" data-hero-art></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- DIFERENSIASI -->
-    <section class="why">
-      <div class="wrap">
-        <h2 class="section-title">Kenapa bukan sekadar “barang 3D print” biasa</h2>
-        <p class="section-sub">Pasar 3D print dekorasi makin ramai dan banyak penjual bersaing harga dengan desain unduhan gratis. Kami bersaing di hal yang tidak mudah ditiru.</p>
-        <div class="why__grid">
-          <article class="card-why">
-            <span class="card-why__num">01</span>
-            <h3>Desain orisinal bercerita</h3>
-            <p>Setiap koleksi berangkat dari motif lokal — kawung, parang, megamendung, stupa, terasering — dirancang ulang sendiri, bukan file unduhan.</p>
-          </article>
-          <article class="card-why">
-            <span class="card-why__num">02</span>
-            <h3>Personalisasi cepat</h3>
-            <p>Nama, inisial, logo, warna, dan ukuran bisa disesuaikan. Hal yang tidak bisa dilakukan pabrik massal.</p>
-          </article>
-          <article class="card-why">
-            <span class="card-why__num">03</span>
-            <h3>Produksi sesuai pesanan</h3>
-            <p>Tanpa gudang, tanpa sisa stok. Modal berputar lebih sehat dan limbah lebih sedikit.</p>
-          </article>
-          <article class="card-why">
-            <span class="card-why__num">04</span>
-            <h3>Fungsional, bukan cuma pajangan</h3>
-            <p>Vas dengan wadah kaca anti-bocor, pot dengan drainase, lampu dengan komponen listrik standar. Dipakai, bukan hanya difoto.</p>
-          </article>
+        <div class="stage" id="hero-stage" style="--dim:1">
+          <div class="wall"></div>
+          <div class="frames"><i></i><i></i><i></i></div>
+          <div class="glow"></div>
+          <div class="lamp" id="hero-lamp" data-dynamic></div>
+          <div class="stage-ui">
+            <button class="switch" id="hero-switch" role="switch" aria-checked="true"><i></i>Nyala</button>
+            <label class="dimmer">Redup<input type="range" id="hero-dim" min="15" max="100" value="100" aria-label="Kecerahan lampu">Terang</label>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- KOLEKSI -->
-    <section class="collection" id="koleksi">
+    <!-- TIGA BAGIAN (terang) -->
+    <section id="tiga">
       <div class="wrap">
-        <div class="collection__head">
+        <p class="eyebrow">Cara kerjanya</p>
+        <h2 class="section-title">Tiga bagian, satu ulir yang sama.</h2>
+        <p class="section-sub">Kap, badan, dan alas disambung dengan ulir cetak M20 yang sama di semua bagian. Tanpa lem. Bagian apa pun bisa dilepas dan diganti kapan saja, termasuk yang kamu beli belakangan.</p>
+        <div class="parts-grid" style="margin-top:36px">
+          <div class="exploded" id="exploded" data-dynamic></div>
           <div>
-            <h2 class="section-title">Koleksi</h2>
-            <p class="section-sub">Harga mulai dari ukuran &amp; material standar. Semua bisa diubah warna dan ukurannya.</p>
+            <div class="part-row"><span class="tag">Kap</span><div><h3>Head. Meredam dan mengarahkan cahaya.</h3><p>Silinder plisir, kerucut, atau kotak. Fitting E27 tertanam di leher kap, jadi bola lampu tinggal diputar masuk.</p></div></div>
+            <div class="part-row"><span class="tag">Badan</span><div><h3>Body. Bagian yang membangun karakter lampu.</h3><p>Susun satu sampai tiga bentuk: bola, kubus, cincin, heksagon, silinder. Campur warna sesuka hati; kabel lewat di dalam.</p></div></div>
+            <div class="part-row"><span class="tag">Alas</span><div><h3>Base. Penopang dan jalur kabel keluar.</h3><p>Bulat, segitiga, kotak, atau bunga. Diberi pemberat di dalam supaya lampu tidak mudah goyah walau badannya tinggi.</p></div></div>
           </div>
-          <div class="filters" role="tablist" aria-label="Filter kategori" data-filters></div>
         </div>
-        <div class="products" data-products></div>
       </div>
     </section>
 
-    <!-- CUSTOM / ESTIMATOR -->
-    <section class="custom" id="custom">
-      <div class="wrap custom__grid">
-        <div>
-          <p class="eyebrow">Pesanan custom</p>
-          <h2 class="section-title">Hitung estimasi harga dalam 30 detik</h2>
-          <p class="section-sub">Untuk hadiah personal, dekorasi kafe, atau souvenir acara. Harga final dikonfirmasi setelah desain disetujui.</p>
-          <ol class="steps-mini">
-            <li>Pilih ukuran, material, finishing &amp; jumlah</li>
-            <li>Kirim estimasi ke WhatsApp kami</li>
-            <li>Terima mockup desain (gratis revisi 2×)</li>
-            <li>DP 50%, produksi, kirim</li>
-          </ol>
-        </div>
-        <form class="estimator" data-estimator>
-          <fieldset>
-            <legend>Ukuran</legend>
-            <div class="opts" data-opt="sizes"></div>
-          </fieldset>
-          <fieldset>
-            <legend>Material</legend>
-            <div class="opts" data-opt="materials"></div>
-          </fieldset>
-          <fieldset>
-            <legend>Finishing</legend>
-            <div class="opts" data-opt="finishes"></div>
-          </fieldset>
-          <fieldset>
-            <legend>Desain</legend>
-            <div class="opts">
-              <label class="opt"><input type="radio" name="design" value="none" checked /><span>Dari katalog</span></label>
-              <label class="opt"><input type="radio" name="design" value="personal" /><span>+ Nama / logo</span></label>
-              <label class="opt"><input type="radio" name="design" value="custom" /><span>Desain baru</span></label>
-            </div>
-          </fieldset>
-          <div class="row">
-            <label class="field">
-              <span>Jumlah</span>
-              <input type="number" name="qty" min="1" max="1000" value="1" inputmode="numeric" />
-            </label>
-            <label class="field field--grow">
-              <span>Catatan (opsional)</span>
-              <input type="text" name="note" maxlength="140" placeholder="mis. souvenir pernikahan, warna sage" />
-            </label>
-          </div>
-          <div class="estimate" aria-live="polite">
-            <div>
-              <span class="estimate__label">Estimasi total</span>
-              <strong class="estimate__total" data-est-total>—</strong>
-              <span class="estimate__meta" data-est-meta></span>
-            </div>
-            <button type="submit" class="btn btn--primary">Kirim ke WhatsApp</button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- B2B -->
-    <section class="b2b" id="bisnis">
+    <!-- KONFIGURATOR (gelap) -->
+    <section id="rakit" class="dark">
       <div class="wrap">
-        <h2 class="section-title">Untuk bisnis &amp; profesional</h2>
-        <p class="section-sub">Pesanan berulang dari bisnis adalah fondasi kami. Program khusus dengan harga bertingkat.</p>
-        <div class="b2b__grid">
-          <article class="b2b__card">
-            <h3>Souvenir &amp; corporate gift</h3>
-            <p>Hampers lebaran, natal, akhir tahun, souvenir seminar dan pernikahan dengan logo atau nama terukir.</p>
-            <ul><li>Mulai 10 pcs</li><li>Diskon hingga 25%</li><li>Kemasan branded</li></ul>
-          </article>
-          <article class="b2b__card">
-            <h3>Kafe, hotel &amp; resto</h3>
-            <p>Kap lampu, pot, dan aksen dekor yang konsisten dengan identitas brand Anda — bisa diulang kapan saja dengan hasil identik.</p>
-            <ul><li>Konsultasi gratis</li><li>Desain eksklusif</li><li>Re-order cepat</li></ul>
-          </article>
-          <article class="b2b__card">
-            <h3>Desainer interior &amp; arsitek</h3>
-            <p>Program mitra: harga trade, file mockup untuk presentasi klien, dan prototipe cepat.</p>
-            <ul><li>Harga trade khusus</li><li>Sampel warna</li><li>Prioritas produksi</li></ul>
-          </article>
-        </div>
-        <div class="b2b__cta">
-          <a class="btn btn--primary" data-wa="Halo MahaKarya Studio, saya tertarik dengan program bisnis/korporat. Boleh minta katalog & price list?">Minta Price List Bisnis</a>
+        <p class="eyebrow">Konfigurator</p>
+        <h2 class="section-title">Rakit lampumu.</h2>
+        <p class="section-sub">Harga menyesuaikan seketika. Paket 3, 4, atau 5 bagian sudah termasuk fitting E27, kabel 1,5 m, dan saklar.</p>
+        <div class="presets" id="presets" data-dynamic style="margin-top:28px"></div>
+        <div class="config">
+          <div class="preview">
+            <div class="stage" id="cfg-stage" style="--dim:1">
+              <div class="wall"></div>
+              <div class="frames"><i></i><i></i><i></i></div>
+              <div class="glow"></div>
+              <div class="lamp" id="cfg-lamp" data-dynamic></div>
+              <div class="stage-ui">
+                <button class="switch" id="cfg-switch" role="switch" aria-checked="true"><i></i>Nyala</button>
+                <span class="mono" id="cfg-height" style="font-size:12px;color:var(--dark-muted)">≈ — cm</span>
+              </div>
+            </div>
+            <div class="pstrip" id="parts-strip" data-dynamic aria-label="Bagian yang dipilih"></div>
+            <div class="summary" id="summary" data-dynamic></div>
+          </div>
+          <div class="controls" id="controls" data-dynamic></div>
         </div>
       </div>
     </section>
 
-    <!-- PROSES -->
-    <section class="process" id="proses">
+    <!-- PAKET (terang) -->
+    <section id="paket">
       <div class="wrap">
-        <h2 class="section-title">Dari ide ke rumah Anda</h2>
-        <div class="process__grid">
-          <div class="step"><span>1</span><h3>Desain</h3><p>Motif tradisional digambar ulang lalu diolah secara parametrik.</p></div>
-          <div class="step"><span>2</span><h3>Cetak</h3><p>Dicetak lapis 0,2 mm. Satu vas bisa memakan 4–12 jam.</p></div>
-          <div class="step"><span>3</span><h3>Finishing</h3><p>Dicek manual, dirapikan, dan diberi coating bila dipilih.</p></div>
-          <div class="step"><span>4</span><h3>Kirim</h3><p>Dikemas berlapis dengan bahan daur ulang, diasuransikan.</p></div>
+        <p class="eyebrow">Paket</p>
+        <h2 class="section-title">Tiga ukuran, pilih yang pas di mejamu.</h2>
+        <p class="section-sub">Setiap paket adalah kap + badan + alas. Makin banyak badan, makin tinggi lampu dan makin besar potongannya dibanding beli satuan.</p>
+        <div class="pkgs" id="pkgs" data-dynamic style="margin-top:36px"></div>
+        <div class="incl">
+          <span>Fitting E27 tertanam</span>
+          <span>Kabel 1,5 m + saklar inline</span>
+          <span>Kartu perawatan &amp; kunci ulir</span>
+          <span>Bola LED 5 W hangat, opsional +<b id="led-price-note">Rp25.000</b></span>
         </div>
       </div>
     </section>
 
-    <!-- MATERIAL -->
-    <section class="material">
-      <div class="wrap material__grid">
+    <!-- BAGIAN SATUAN (terang) -->
+    <section id="bagian" style="background:var(--paper-2)">
+      <div class="wrap">
+        <p class="eyebrow">Bagian satuan</p>
+        <h2 class="section-title">Ganti satu bagian, lampu terasa baru.</h2>
+        <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Pilih warna di kartu, lalu pakai langsung di konfigurator.</p>
+        <div class="pcat" id="catalog" data-dynamic style="margin-top:36px"></div>
+      </div>
+    </section>
+
+    <!-- CARA PESAN + SPESIFIKASI -->
+    <section id="cara">
+      <div class="wrap how">
         <div>
-          <h2 class="section-title">Tentang material</h2>
-          <p>Mayoritas produk menggunakan <strong>PLA</strong>, plastik berbasis pati tanaman (jagung/tebu). Kami jujur soal batasannya:</p>
-          <ul class="checklist">
-            <li>PLA <strong>tidak tahan panas</strong> di atas ±55 °C — jangan diletakkan di dalam mobil atau di bawah terik matahari langsung.</li>
-            <li>PLA hanya terurai di <strong>fasilitas kompos industri</strong>, bukan di tanah biasa. Kami menerima produk lama untuk didaur ulang.</li>
-            <li>Untuk luar ruangan atau kontak air terus-menerus, kami sarankan <strong>PETG</strong>.</li>
-            <li>Vas untuk bunga segar memakai <strong>wadah kaca</strong> di dalamnya agar benar-benar kedap air.</li>
-          </ul>
+          <p class="eyebrow">Cara pesan</p>
+          <h2 class="section-title">Dari layar ke meja dalam seminggu.</h2>
+          <div class="steps-l" style="margin-top:28px">
+            <div class="step"><span>1</span><div><h3>Rakit di sini</h3><p>Susun bentuk dan warna. Harga dan tinggi lampu muncul langsung saat kamu mengubahnya.</p></div></div>
+            <div class="step"><span>2</span><div><h3>Kirim lewat WhatsApp</h3><p>Tombol Pesan membuka WhatsApp dengan ringkasan rakitan dan kode. Kami balas konfirmasi stok warna dan tagihan.</p></div></div>
+            <div class="step"><span>3</span><div><h3>Kami cetak</h3><p>Tiap bagian dicetak satu per satu, 3–5 hari kerja. Kamu terima foto rakitan sebelum dikirim.</p></div></div>
+            <div class="step"><span>4</span><div><h3>Tiba di rumah</h3><p>Dikemas per bagian, tinggal putar dan pasang. Jabodetabek 1–2 hari, luar kota 2–5 hari.</p></div></div>
+          </div>
         </div>
-        <div class="material__cards">
-          <div class="mat"><b>PLA Matte</b><span>Tekstur halus doff, warna paling lengkap</span></div>
-          <div class="mat"><b>PLA Silk</b><span>Kilau metalik emas, perunggu, tembaga</span></div>
-          <div class="mat"><b>Wood-fill</b><span>Campuran serat kayu, bisa diamplas</span></div>
-          <div class="mat"><b>PETG</b><span>Lebih kuat, tahan air &amp; UV</span></div>
+        <div class="spec">
+          <p class="eyebrow">Spesifikasi rakitan saat ini</p>
+          <div class="fig" id="spec-fig" data-dynamic></div>
+          <dl>
+            <dt>Bahan</dt><dd>PLA+ matte, lapis 0,2 mm</dd>
+            <dt>Kap</dt><dd>Ø 20 cm, tebal 1,6 mm</dd>
+            <dt>Sambungan</dt><dd>Ulir cetak M20, tanpa lem</dd>
+            <dt>Fitting</dt><dd>E27 · LED maks 7 W</dd>
+            <dt>Kabel</dt><dd>1,5 m, saklar inline</dd>
+            <dt>Tinggi</dt><dd id="spec-height">≈ — cm</dd>
+            <dt>Bobot</dt><dd id="spec-weight">≈ — kg</dd>
+          </dl>
         </div>
       </div>
     </section>
 
     <!-- FAQ -->
-    <section class="faq" id="faq">
+    <section class="faq" id="faq" style="background:var(--paper-2)">
       <div class="wrap">
-        <h2 class="section-title">Pertanyaan umum</h2>
+        <h2 class="section-title">Yang sering ditanyakan</h2>
         <div class="faq__list">
-          <details><summary>Berapa lama waktu produksi?</summary><p>Produk katalog 2–4 hari kerja. Pesanan custom 5–10 hari kerja setelah desain disetujui. Pesanan korporat besar dijadwalkan sesuai jumlah.</p></details>
-          <details><summary>Apakah garis-garis layer itu cacat?</summary><p>Bukan. Garis halus horizontal adalah ciri khas 3D print dan bagian dari estetika produk. Jika ingin permukaan lebih halus, pilih finishing “Diamplas + coating”.</p></details>
-          <details><summary>Bagaimana jika barang rusak saat pengiriman?</summary><p>Kirim video unboxing dalam 2×24 jam, kami cetak ulang dan kirim gratis.</p></details>
-          <details><summary>Bisa pesan satuan dengan nama?</summary><p>Bisa. Personalisasi nama/inisial tersedia mulai 1 pcs dengan biaya tambahan kecil.</p></details>
-          <details><summary>Metode pembayaran?</summary><p>Transfer bank, QRIS, atau checkout melalui marketplace resmi kami. Pesanan custom memakai DP 50%.</p></details>
-          <details><summary>Apakah desain saya aman?</summary><p>Desain eksklusif yang Anda pesan tidak akan kami jual ke pihak lain. Perjanjian kerahasiaan tersedia untuk klien bisnis.</p></details>
+          <details><summary>Apakah lampu cetak 3D aman dari panas?</summary><p>Aman dengan bola LED sampai 7 W. Jangan pakai bola pijar atau halogen; panasnya bisa melunakkan PLA. Setiap paket disertai catatan ini di kartu perawatan.</p></details>
+          <details><summary>Bisa pesan warna di luar yang ada?</summary><p>Bisa untuk pesanan minimal lima bagian dengan warna yang sama. Sebutkan warnanya di WhatsApp, kami cek stok filamen dan kirim foto contoh cetak sebelum produksi.</p></details>
+          <details><summary>Apakah garis lapisan cetaknya terlihat?</summary><p>Ya, tipis. Itu karakter cetak 3D dan sengaja kami biarkan. Filamen matte membuat garisnya halus dan tidak mengilap di bawah cahaya.</p></details>
+          <details><summary>Kalau satu bagian retak atau ingin diganti?</summary><p>Semua bagian dijual satuan dan tinggal diputar ke ulir yang sama. Retak akibat cacat cetak dalam 30 hari pertama kami ganti gratis.</p></details>
+          <details><summary>Bisa pakai bola lampu sendiri?</summary><p>Bisa, fittingnya E27 standar. Pilih LED warna hangat 2700 K agar kap tampak seperti di foto.</p></details>
+          <details><summary>Apakah ada produk selain lampu?</summary><p>Ada. Vas, pot, panel dinding, dan aksesori bermotif Nusantara ada di halaman <a href="koleksi.html">Koleksi lain</a>.</p></details>
         </div>
       </div>
     </section>
 
-    <!-- CTA -->
     <section class="final">
       <div class="wrap final__inner">
-        <h2>Punya ruang yang butuh karakter?</h2>
-        <p>Ceritakan ruangannya, kami bantu pilihkan atau rancangkan.</p>
-        <a class="btn btn--light" data-wa="Halo MahaKarya Studio, saya ingin konsultasi dekorasi.">Konsultasi via WhatsApp</a>
+        <h2>Belum yakin kombinasinya?</h2>
+        <p>Kirim foto meja atau ruanganmu, kami bantu pilihkan bentuk dan warna.</p>
+        <a class="btn btn--light" data-wa="Halo MahaKarya Studio, saya ingin konsultasi lampu rakitan untuk ruangan saya.">Konsultasi via WhatsApp</a>
       </div>
     </section>
   </main>
@@ -268,60 +209,38 @@
     <div class="wrap footer__grid">
       <div>
         <a href="#top" class="logo logo--light"><span>MahaKarya<em>Studio</em></span></a>
-        <p>Dekorasi rumah 3D print bermotif Nusantara.<br /><span data-city></span></p>
+        <p>Dekorasi rumah cetak 3D. Dicetak satu per satu sesuai pesanan, dirakit tanpa lem, dan bisa terus diganti bagiannya.<br /><span data-city></span></p>
       </div>
       <div>
-        <h4>Belanja</h4>
-        <a href="#koleksi">Koleksi</a>
-        <a href="#custom">Pesanan custom</a>
-        <a href="#bisnis">Korporat</a>
+        <h4>Hubungi</h4>
+        <div class="contact-line"><span>WhatsApp</span><span class="mono" data-wa-text></span><button class="copy" type="button" data-wa-copy data-copy="">Salin</button></div>
+        <div class="contact-line"><span>Instagram</span><a class="mono" data-link="instagram" target="_blank" rel="noopener" data-ig style="display:inline;margin:0"></a></div>
+        <div class="contact-line"><span>Jam balas</span><span class="mono">09.00–18.00 WIB</span></div>
+      </div>
+      <div>
+        <h4>Jelajah</h4>
+        <a href="#rakit">Konfigurator</a>
+        <a href="#paket">Paket</a>
+        <a href="#bagian">Bagian satuan</a>
+        <a href="koleksi.html">Koleksi lain</a>
       </div>
       <div>
         <h4>Marketplace</h4>
         <a data-link="tokopedia" target="_blank" rel="noopener">Tokopedia</a>
         <a data-link="shopee" target="_blank" rel="noopener">Shopee</a>
-      </div>
-      <div>
-        <h4>Kontak</h4>
-        <a data-wa="Halo MahaKarya Studio">WhatsApp</a>
-        <a data-link="instagram" target="_blank" rel="noopener">Instagram</a>
         <a data-link="email">Email</a>
       </div>
     </div>
-    <div class="wrap footer__bottom">© <span data-year></span> MahaKarya Studio</div>
+    <div class="wrap footer__bottom">© <span data-year></span> MahaKarya Studio · Harga dapat berubah; total final dikonfirmasi lewat WhatsApp</div>
   </footer>
 
-  <!-- Product modal -->
-  <dialog class="modal" data-modal>
-    <div class="modal__body" data-modal-body></div>
-  </dialog>
-
-  <!-- Cart drawer -->
-  <aside class="drawer" data-drawer aria-hidden="true" aria-label="Keranjang">
-    <div class="drawer__panel">
-      <div class="drawer__head">
-        <h3>Keranjang</h3>
-        <button class="icon-btn" data-close-cart aria-label="Tutup keranjang">✕</button>
-      </div>
-      <div class="drawer__items" data-cart-items></div>
-      <div class="drawer__foot">
-        <div class="ship-bar" data-ship-bar></div>
-        <div class="drawer__total"><span>Subtotal</span><strong data-cart-total>Rp0</strong></div>
-        <button class="btn btn--primary btn--block" data-checkout>Pesan via WhatsApp</button>
-        <p class="drawer__note">Ongkir dihitung saat konfirmasi pesanan.</p>
-      </div>
-    </div>
-  </aside>
-  <div class="scrim" data-scrim></div>
-
-  <a class="wa-float" data-wa="Halo MahaKarya Studio, saya mau tanya produk." aria-label="Chat WhatsApp">
-    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z"/></svg>
-  </a>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/products.js"></script>
-  <script src="assets/js/art.js"></script>
+  <script src="assets/js/lamp-data.js"></script>
+  <script src="assets/js/lamp-art.js"></script>
   <script src="assets/js/editor.js"></script>
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/editor-lamp.js"></script>
+  <script src="assets/js/lamp.js"></script>
 </body>
 </html>
