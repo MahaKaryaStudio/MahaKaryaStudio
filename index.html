@@ -9,6 +9,13 @@
   <meta property="og:title" content="MahaKarya Studio — Lampu yang kamu susun sendiri" />
   <meta property="og:description" content="Pilih kap, badan, dan alas. Tiap bagian punya bentuk dan warnanya sendiri. Kami cetak, rakit, lalu kirim." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mahakaryastudio.github.io/MahaKaryaStudio/" />
+  <meta property="og:image" content="https://mahakaryastudio.github.io/MahaKaryaStudio/assets/brand/og-lampu.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="id_ID" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://mahakaryastudio.github.io/MahaKaryaStudio/" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/lapis-icon.svg" />
   <link rel="apple-touch-icon" href="assets/brand/png/ikon-512.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -69,6 +76,11 @@
             <a class="btn btn--primary" href="#rakit">Mulai merakit</a>
             <a class="btn btn--ghost" href="#paket">Lihat paket</a>
           </div>
+          <ul class="trust trust--hero">
+            <li>Garansi 30 hari cacat cetak</li>
+            <li>Foto rakitan sebelum dikirim</li>
+            <li>Bagian bisa diganti kapan saja</li>
+          </ul>
         </div>
         <div class="stage" id="hero-stage" style="--dim:1">
           <div class="wall"></div>
@@ -121,10 +133,16 @@
             </div>
             <div class="pstrip" id="parts-strip" data-dynamic aria-label="Bagian yang dipilih"></div>
             <div class="summary" id="summary" data-dynamic></div>
+            <ul class="trust trust--summary">
+              <li>Bayar transfer bank / QRIS setelah konfirmasi</li>
+              <li>Garansi 30 hari untuk cacat cetak</li>
+              <li>Foto rakitan dikirim sebelum paket berangkat</li>
+            </ul>
           </div>
           <div class="controls" id="controls" data-dynamic></div>
         </div>
       </div>
+      <div class="orderbar" id="orderbar" data-dynamic hidden></div>
     </section>
 
     <!-- PAKET (terang) -->
@@ -150,6 +168,13 @@
         <h2 class="section-title">Ganti satu bagian, lampu terasa baru.</h2>
         <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Pilih warna di kartu, lalu pakai langsung di konfigurator.</p>
         <div class="pcat" id="catalog" data-dynamic style="margin-top:36px"></div>
+        <div class="bulk">
+          <div>
+            <h3>Pesan 10 lampu atau lebih?</h3>
+            <p>Untuk kafe, hotel, hampers, atau hadiah karyawan: warna seragam, logo di alas, dan harga khusus volume.</p>
+          </div>
+          <a class="btn btn--primary" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
+        </div>
       </div>
     </section>
 
@@ -192,6 +217,8 @@
           <details><summary>Apakah garis lapisan cetaknya terlihat?</summary><p>Ya, tipis. Itu karakter cetak 3D dan sengaja kami biarkan. Filamen matte membuat garisnya halus dan tidak mengilap di bawah cahaya.</p></details>
           <details><summary>Kalau satu bagian retak atau ingin diganti?</summary><p>Semua bagian dijual satuan dan tinggal diputar ke ulir yang sama. Retak akibat cacat cetak dalam 30 hari pertama kami ganti gratis.</p></details>
           <details><summary>Bisa pakai bola lampu sendiri?</summary><p>Bisa, fittingnya E27 standar. Pilih LED warna hangat 2700 K agar kap tampak seperti di foto.</p></details>
+          <details><summary>Bagaimana cara bayar dan kapan dikirim?</summary><p>Setelah rakitan dikonfirmasi di WhatsApp, kami kirim tagihan untuk transfer bank atau QRIS. Produksi dimulai setelah pembayaran diterima, 3–5 hari kerja, lalu kami kirim foto rakitan sebelum paket berangkat.</p></details>
+          <details><summary>Bagaimana merawatnya?</summary><p>Lap dengan kain kering atau sedikit lembap; hindari alkohol dan tiner. Jauhkan dari sinar matahari langsung dan sumber panas di atas 50 °C karena PLA bisa melunak. Untuk membersihkan bagian dalam, putar lepas bagiannya.</p></details>
           <details><summary>Apakah ada produk selain lampu?</summary><p>Ada. Vas, pot, panel dinding, dan aksesori bermotif Nusantara ada di halaman <a href="koleksi.html">Koleksi lain</a>.</p></details>
         </div>
       </div>
@@ -225,8 +252,8 @@
         <a href="#bagian">Bagian satuan</a>
         <a href="koleksi.html">Koleksi lain</a>
       </div>
-      <div>
-        <h4>Marketplace</h4>
+      <div data-marketplace-col>
+        <h4 data-marketplace>Marketplace</h4>
         <a data-link="tokopedia" target="_blank" rel="noopener">Tokopedia</a>
         <a data-link="shopee" target="_blank" rel="noopener">Shopee</a>
         <a data-link="email">Email</a>

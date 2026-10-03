@@ -38,6 +38,7 @@
       </tbody></table>
 
       <h4>Warna filamen (badan &amp; alas)</h4>
+      <p class="mks-help">Kolom "Ada": hilangkan centang bila stok filamen warna itu habis; warnanya tetap tampil tapi tidak bisa dipilih.</p>
       ${colorTable("colors")}
       <div class="mks-row"><button type="button" class="mks-btn" data-add-color="colors">+ Tambah warna</button></div>
       <h4>Warna kap</h4>
@@ -107,6 +108,14 @@
           render(body);
         });
     });
+    body.addEventListener("change", (e) => {
+      const st = e.target.closest("[data-stock]");
+      if (!st) return;
+      const [list, i] = st.dataset.stock.split(".");
+      if (st.checked) delete data[list][+i].stock;
+      else data[list][+i].stock = false;
+      changed();
+    });
     body.addEventListener("input", (e) => {
       const t = e.target.closest("[data-l]");
       if (!t) return;
@@ -127,8 +136,8 @@
     </tbody></table>`;
   }
   function colorTable(list) {
-    return `<table class="mks-table"><thead><tr><th>Nama</th><th>Warna</th><th></th></tr></thead><tbody>
-      ${data[list].map((c, i) => `<tr><td><input data-l="${list}.${i}.name" value="${esc(c.name)}"/></td><td><input data-l="${list}.${i}.hex" type="color" value="${/^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : "#c8794a"}"/></td><td><button type="button" class="mks-btn mks-btn--sm mks-btn--danger" data-del-color="${list}.${i}">✕</button></td></tr>`).join("")}
+    return `<table class="mks-table"><thead><tr><th>Nama</th><th>Warna</th><th>Ada</th><th></th></tr></thead><tbody>
+      ${data[list].map((c, i) => `<tr><td><input data-l="${list}.${i}.name" value="${esc(c.name)}"/></td><td><input data-l="${list}.${i}.hex" type="color" value="${/^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : "#c8794a"}"/></td><td><input type="checkbox" data-stock="${list}.${i}" ${c.stock === false ? "" : "checked"} title="Hilangkan centang bila stok filamen habis"/></td><td><button type="button" class="mks-btn mks-btn--sm mks-btn--danger" data-del-color="${list}.${i}">✕</button></td></tr>`).join("")}
     </tbody></table>`;
   }
   function label(key) {

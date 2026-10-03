@@ -12,7 +12,10 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const find = A.find;
-  const pick = (list) => list[Math.floor(Math.random() * list.length)].id;
+  const pick = (list) => {
+    const ok = list.filter((x) => x.stock !== false);
+    return (ok.length ? ok : list)[Math.floor(Math.random() * (ok.length ? ok : list).length)].id;
+  };
   const KIND_LABEL = { head: "Kap", body: "Badan", base: "Alas" };
 
   const listOf = (kind) => (kind === "head" ? D().heads : kind === "body" ? D().bodies : D().bases);
@@ -92,9 +95,10 @@
   }
 
   /* ---------- Potongan HTML ---------- */
+  const inStock = (c) => c.stock !== false;
   const swatchesHtml = (list, current, attr) =>
     `<div class="swatches">${list
-      .map((c) => `<button class="sw" type="button" aria-pressed="${c.id === current}" title="${esc(c.name)}" style="background:${c.hex}" ${attr} data-color="${c.id}"><span>${esc(c.name)}</span></button>`)
+      .map((c) => `<button class="sw${inStock(c) ? "" : " sw--out"}" type="button" aria-pressed="${c.id === current}" title="${esc(c.name)}${inStock(c) ? "" : " — habis"}" style="background:${c.hex}" ${attr} data-color="${c.id}" ${inStock(c) ? "" : "disabled"}><span>${esc(c.name)}${inStock(c) ? "" : " (habis)"}</span></button>`)
       .join("")}</div>`;
   const shapesHtml = (kind, list, current, attr) =>
     `<div class="shapes">${list
@@ -151,6 +155,10 @@
       `<div class="acts"><a class="btn btn--wa" id="wa-link" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
       `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
       `<p class="note">Cetak 3–5 hari kerja. Ongkir dihitung saat konfirmasi di WhatsApp.</p>`;
+    // Bilah pesan di HP
+    $("#orderbar").innerHTML =
+      `<div class="orderbar__info"><span>${p.disc ? `<s class="num">${rp(p.parts + (state.led ? D().ledPrice : 0))}</s>` : ""}<small>${p.disc ? `Hemat ${rp(p.disc)}` : `Paket ${esc(p.pkg.name)}`}</small></span><b class="num">${rp(p.total)}</b></div>` +
+      `<a class="btn btn--wa" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>`;
     // Strip bagian terpilih: foto asli bila ada
     $("#parts-strip").innerHTML = p.lines
       .map((l, i) => `<figure class="pstrip__item"><div class="pstrip__fig">${partFig(l.kind, l.shape, l.color.id, "ps" + i)}</div><figcaption>${esc(l.label.split(" · ")[1] || l.label)}<small>${esc(l.color.name)}</small></figcaption></figure>`)
@@ -325,17 +333,57 @@
       a.rel = "noopener";
     });
     const links = { instagram: `https://instagram.com/${C.instagram}`, email: `mailto:${C.email}`, tokopedia: C.tokopedia, shopee: C.shopee };
-    document.querySelectorAll("[data-link]").forEach((a) => (a.href = links[a.dataset.link] || "#"));
+    document.querySelectorAll("[data-link]").forEach((a) => {
+      a.href = links[a.dataset.link] || "#";
+      // Sembunyikan link marketplace yang masih mengarah ke beranda marketplace (belum ada toko)
+      if (["tokopedia", "shopee"].includes(a.dataset.link)) a.hidden = !/\/\/(www\.)?(tokopedia|shopee)\.[a-z.]+\/[^/?#]+/i.test(links[a.dataset.link] || "");
+    });
+    document.querySelectorAll("[data-marketplace]").forEach((el) => (el.hidden = [...el.querySelectorAll("a[data-link]")].every((a) => a.hidden)));
     document.querySelectorAll("[data-wa-text]").forEach((el) => (el.textContent = "+" + C.whatsapp));
     document.querySelectorAll("[data-wa-copy]").forEach((el) => (el.dataset.copy = "+" + C.whatsapp));
     document.querySelectorAll("[data-ig]").forEach((el) => (el.textContent = "@" + C.instagram));
     document.querySelectorAll("[data-city]").forEach((el) => (el.textContent = C.city));
     document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
   }
+  // Data terstruktur produk + rentang harga paket, selalu mengikuti data terkini
+  function renderSchema() {
+    const ns = Object.keys(D().packages).map(Number);
+    const lows = ns.map((n) => minPackagePrice(n).price);
+    const max = (list) => Math.max(...list.map((x) => x.price));
+    const nMax = Math.max(...ns);
+    const high = roundK((max(D().heads) + max(D().bodies) * (nMax - 2) + max(D().bases)) * (1 - D().packages[nMax].disc)) + D().ledPrice;
+    let el = document.getElementById("schema-product");
+    if (!el) {
+      el = document.createElement("script");
+      el.type = "application/ld+json";
+      el.id = "schema-product";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: "Lampu meja rakitan MahaKarya Studio",
+      description: "Lampu meja cetak 3D yang dirakit sesuai pesanan: pilih kap, badan, dan alas dengan bentuk dan warna masing-masing.",
+      brand: { "@type": "Brand", name: C.brand },
+      material: "PLA+",
+      offers: { "@type": "AggregateOffer", priceCurrency: "IDR", lowPrice: Math.min(...lows), highPrice: high, offerCount: ns.length, availability: "https://schema.org/MadeToOrder" },
+    });
+  }
+  // Bilah pesan di HP hanya saat area pilihan konfigurator terlihat
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(
+      ([e]) => {
+        $("#orderbar").hidden = !e.isIntersecting;
+        document.body.classList.toggle("has-orderbar", e.isIntersecting);
+      },
+      { rootMargin: "-120px 0px 0px 0px" }
+    ).observe($("#controls"));
+  }
   function refresh() {
     sanitize(state);
     sanitize(hero.cfg);
     bindStatic();
+    renderSchema();
     renderStatic();
     renderHero();
     renderPresets();

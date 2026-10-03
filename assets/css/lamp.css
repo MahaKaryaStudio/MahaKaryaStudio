@@ -216,3 +216,37 @@
 }
 @media (max-width: 700px) { .pcat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .pcat { grid-template-columns: 1fr; } }
+
+/* Jaminan */
+.trust { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13.5px; }
+.trust li::before { content: "✓"; margin-right: 6px; font-weight: 700; }
+.trust--hero { color: var(--dark-muted); }
+.trust--hero li::before { color: var(--amber); }
+.trust--summary { margin: 0; color: var(--dark-muted); font-size: 12.5px; flex-direction: column; gap: 6px; padding: 0 6px; }
+.trust--summary li::before { color: var(--amber); }
+
+/* Bilah pesan di HP: muncul saat konfigurator terlihat */
+.orderbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; align-items: center; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(21, 16, 12, 0.94); backdrop-filter: blur(10px); border-top: 1px solid var(--dark-line); color: var(--dark-fg); }
+.orderbar[hidden] { display: none !important; }
+.orderbar__info { flex: 1; min-width: 0; line-height: 1.2; }
+.orderbar__info > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.orderbar__info b { font-family: var(--serif); font-size: 22px; display: block; }
+.orderbar__info s { color: var(--dark-muted); font-size: 12px; margin-right: 6px; }
+.orderbar__info small { color: var(--amber); font-size: 12px; }
+.orderbar .btn { padding: 11px 18px; font-size: 14px; }
+@media (max-width: 900px) { .orderbar { display: flex; } body.has-orderbar .wa-float { display: none; } }
+
+/* Pesanan volume */
+.bulk { margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 24px 28px; }
+.bulk h3 { font-size: 22px; margin-bottom: 4px; }
+.bulk p { color: #bfb2a1; margin: 0; max-width: 560px; font-size: 15px; }
+.bulk .btn--primary { background: var(--accent); border-color: var(--accent); color: var(--amber-ink); }
+.bulk .btn--primary:hover { background: #ffb654; border-color: #ffb654; }
+
+/* Warna habis */
+.sw--out { opacity: 0.35; cursor: not-allowed; }
+.sw--out::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: currentColor; transform: rotate(45deg); }
+
+@media (max-width: 760px) {
+  .nav .btn--sm { white-space: nowrap; padding: 8px 12px; font-size: 13px; }
+}

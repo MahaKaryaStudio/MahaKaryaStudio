@@ -30,7 +30,12 @@
       instagram: `https://instagram.com/${C.instagram}`,
       email: `mailto:${C.email}`,
     };
-    $$("[data-link]").forEach((a) => (a.href = links[a.dataset.link] || "#"));
+    $$("[data-link]").forEach((a) => {
+      a.href = links[a.dataset.link] || "#";
+      // Sembunyikan link marketplace yang masih mengarah ke beranda marketplace (belum ada toko)
+      if (["tokopedia", "shopee"].includes(a.dataset.link)) a.hidden = !/\/\/(www\.)?(tokopedia|shopee)\.[a-z.]+\/[^/?#]+/i.test(links[a.dataset.link] || "");
+    });
+    $$("[data-marketplace]").forEach((el) => (el.hidden = [...el.querySelectorAll("a[data-link]")].every((a) => a.hidden)));
     $$("[data-free-ship]").forEach((el) => (el.textContent = rp(C.freeShippingMin)));
     $$("[data-city]").forEach((el) => (el.textContent = C.city));
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));

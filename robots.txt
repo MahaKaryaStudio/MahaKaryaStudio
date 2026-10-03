@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mahakaryastudio.github.io/MahaKaryaStudio/sitemap.xml
