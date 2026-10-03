@@ -23,7 +23,22 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 3. **Foto produk**: isi field `image` di `products.js`, misalnya `"assets/img/vas-kawung.jpg"`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
 4. **Kebijakan** (garansi, DP 50%, lead time, daur ulang produk lama): pastikan semuanya memang sanggup Anda jalankan.
 
-## Menambah produk
+## Mode Edit (ubah isi website tanpa coding)
+
+Buka website dengan `#edit` di akhir alamat, misalnya `https://mahakaryastudio.github.io/MahaKaryaStudio/#edit`. Muncul panel di kanan:
+
+| Tab | Fungsi |
+|---|---|
+| Teks | Aktifkan, lalu klik judul/paragraf/tombol/FAQ di halaman dan ketik langsung |
+| Produk | Tambah, hapus, duplikat, urutkan produk; ubah nama, harga, kategori, warna, bentuk ilustrasi, deskripsi, spesifikasi, label, dan unggah foto |
+| Kontak & Harga | WhatsApp, email, Instagram, link marketplace, kota, ambang gratis ongkir, serta semua angka estimator custom |
+| Ekspor | Salin `index.html`, `assets/js/config.js`, `assets/js/products.js` hasil edit, lalu tempel ke file yang sama di GitHub, atau kirim ke Claude untuk di-commit |
+
+Perubahan tersimpan di browser yang dipakai mengedit (localStorage), **belum** tayang untuk pengunjung sampai file hasil ekspor di-commit. Pengunjung biasa tidak melihat panel ini.
+
+Versi satu file untuk artifact claude.ai (Mode Edit selalu aktif): `node tools/build-single.js` → `dist/editor.html`.
+
+## Menambah produk lewat file
 
 Salin satu objek di `assets/js/products.js`, ubah `id` (unik), `name`, `category` (`vas | lampu | pot | aksesori | dinding`), `price`, dan deskripsinya.
 

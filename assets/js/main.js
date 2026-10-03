@@ -18,25 +18,30 @@
   const TAG_LABEL = { bestseller: "Terlaris", baru: "Baru", hadiah: "Ide hadiah" };
 
   /* ---------- Static bindings ---------- */
-  $$("[data-wa]").forEach((a) => {
-    a.href = waLink(a.dataset.wa);
-    a.target = "_blank";
-    a.rel = "noopener";
-  });
-  const links = {
-    tokopedia: C.tokopedia,
-    shopee: C.shopee,
-    instagram: `https://instagram.com/${C.instagram}`,
-    email: `mailto:${C.email}`,
-  };
-  $$("[data-link]").forEach((a) => (a.href = links[a.dataset.link] || "#"));
-  $$("[data-free-ship]").forEach((el) => (el.textContent = rp(C.freeShippingMin)));
-  $$("[data-city]").forEach((el) => (el.textContent = C.city));
-  $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+  function bindStatic() {
+    $$("[data-wa]").forEach((a) => {
+      a.href = waLink(a.dataset.wa);
+      a.target = "_blank";
+      a.rel = "noopener";
+    });
+    const links = {
+      tokopedia: C.tokopedia,
+      shopee: C.shopee,
+      instagram: `https://instagram.com/${C.instagram}`,
+      email: `mailto:${C.email}`,
+    };
+    $$("[data-link]").forEach((a) => (a.href = links[a.dataset.link] || "#"));
+    $$("[data-free-ship]").forEach((el) => (el.textContent = rp(C.freeShippingMin)));
+    $$("[data-city]").forEach((el) => (el.textContent = C.city));
+    $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+  }
 
   /* ---------- Hero art ---------- */
-  const heroPicks = ["lampu-candi", "vas-kawung", "pot-twist"].map((id) => P.find((p) => p.id === id)).filter(Boolean);
-  $("[data-hero-art]").innerHTML = heroPicks.map((p, i) => `<div class="hero__piece hero__piece--${i}">${MKSArt.render(p)}</div>`).join("");
+  function renderHero() {
+    const picks = ["lampu-candi", "vas-kawung", "pot-twist"].map((id) => P.find((p) => p.id === id)).filter(Boolean);
+    while (picks.length < 3 && P[picks.length]) if (!picks.includes(P[picks.length])) picks.push(P[picks.length]);
+    $("[data-hero-art]").innerHTML = picks.map((p, i) => `<div class="hero__piece hero__piece--${i}">${MKSArt.render(p)}</div>`).join("");
+  }
 
   /* ---------- Catalog ---------- */
   let filter = "all";
@@ -63,8 +68,8 @@
       .map(
         (p) => `
       <article class="product">
-        <button class="product__art" data-view="${p.id}" aria-label="Lihat detail ${esc(p.name)}">
-          ${p.tags.map((t) => `<span class="badge badge--${t}">${TAG_LABEL[t] || t}</span>`).join("")}
+        <button class="product__art" data-view="${esc(p.id)}" aria-label="Lihat detail ${esc(p.name)}">
+          ${(p.tags || []).map((t) => `<span class="badge badge--${esc(t)}">${TAG_LABEL[t] || esc(t)}</span>`).join("")}
           ${MKSArt.render(p, { small: true })}
         </button>
         <div class="product__info">
@@ -72,14 +77,13 @@
           <h3>${esc(p.name)}</h3>
           <div class="product__row">
             <span class="price">${rp(p.price)}</span>
-            <button class="btn btn--sm" data-add="${p.id}">+ Keranjang</button>
+            <button class="btn btn--sm" data-add="${esc(p.id)}">+ Keranjang</button>
           </div>
         </div>
       </article>`
       )
       .join("");
   }
-  renderProducts();
 
   grid.addEventListener("click", (e) => {
     const add = e.target.closest("[data-add]");
@@ -101,10 +105,10 @@
         <h3>${esc(p.name)}</h3>
         <p class="price price--lg">${rp(p.price)}</p>
         <p>${esc(p.desc)}</p>
-        <ul class="specs">${p.specs.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+        <ul class="specs">${(p.specs || []).map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
         <div class="modal__actions">
           <div class="qty"><button type="button" data-q="-1" aria-label="Kurangi">−</button><input type="number" min="1" value="1" aria-label="Jumlah" data-mqty /><button type="button" data-q="1" aria-label="Tambah">+</button></div>
-          <button class="btn btn--primary" data-madd="${p.id}">Tambah ke keranjang</button>
+          <button class="btn btn--primary" data-madd="${esc(p.id)}">Tambah ke keranjang</button>
         </div>
         <a class="link" target="_blank" rel="noopener" href="${waLink(`Halo, saya mau custom produk "${p.name}" (warna/ukuran/nama). Bisa dibantu?`)}">Mau warna, ukuran, atau nama sendiri? Tanya custom →</a>
       </div>`;
@@ -186,9 +190,9 @@
           <div class="line__info">
             <b>${esc(l.p.name)}</b>
             <span>${rp(l.p.price)}</span>
-            <div class="qty qty--sm"><button data-dec="${l.p.id}" aria-label="Kurangi">−</button><span>${l.qty}</span><button data-inc="${l.p.id}" aria-label="Tambah">+</button></div>
+            <div class="qty qty--sm"><button data-dec="${esc(l.p.id)}" aria-label="Kurangi">−</button><span>${l.qty}</span><button data-inc="${esc(l.p.id)}" aria-label="Tambah">+</button></div>
           </div>
-          <button class="icon-btn" data-del="${l.p.id}" aria-label="Hapus ${esc(l.p.name)}">✕</button>
+          <button class="icon-btn" data-del="${esc(l.p.id)}" aria-label="Hapus ${esc(l.p.name)}">✕</button>
         </div>`
           )
           .join("")
@@ -236,30 +240,32 @@
   });
   scrim.addEventListener("click", closeCart);
   document.addEventListener("keydown", (e) => e.key === "Escape" && closeCart());
-  renderCart();
 
   /* ---------- Estimator ---------- */
-  const E = C.estimator;
+  const E = () => C.estimator;
   const form = $("[data-estimator]");
   const optGroups = { sizes: "size", materials: "material", finishes: "finish" };
-  Object.entries(optGroups).forEach(([key, name]) => {
-    $(`[data-opt="${key}"]`, form).innerHTML = E[key]
-      .map((o, i) => `<label class="opt"><input type="radio" name="${name}" value="${o.id}"${i === 0 ? " checked" : ""} /><span>${o.label}</span></label>`)
-      .join("");
-  });
+  function buildEstimatorOptions() {
+    Object.entries(optGroups).forEach(([key, name]) => {
+      $(`[data-opt="${key}"]`, form).innerHTML = E()[key]
+        .map((o, i) => `<label class="opt"><input type="radio" name="${name}" value="${esc(o.id)}"${i === 0 ? " checked" : ""} /><span>${esc(o.label)}</span></label>`)
+        .join("");
+    });
+  }
 
   function estimate() {
     const fd = new FormData(form);
-    const size = E.sizes.find((s) => s.id === fd.get("size"));
-    const mat = E.materials.find((m) => m.id === fd.get("material"));
-    const fin = E.finishes.find((f) => f.id === fd.get("finish"));
+    const e = E();
+    const size = e.sizes.find((s) => s.id === fd.get("size")) || e.sizes[0];
+    const mat = e.materials.find((m) => m.id === fd.get("material")) || e.materials[0];
+    const fin = e.finishes.find((f) => f.id === fd.get("finish")) || e.finishes[0];
     const design = fd.get("design");
     const qty = Math.max(1, Math.min(1000, parseInt(fd.get("qty"), 10) || 1));
-    const tier = E.tiers.filter((t) => qty >= t.min).pop();
+    const tier = e.tiers.filter((t) => qty >= t.min).pop() || { disc: 0 };
     const unit = size.base * mat.mult + fin.add;
-    const designFee = E.designFee[design] || 0;
+    const designFee = e.designFee[design] || 0;
     const subtotal = unit * qty * (1 - tier.disc) + designFee;
-    const days = Math.ceil(E.leadTimeDays.base + (design === "custom" ? 3 : 0) + size.hours * qty * E.leadTimeDays.perUnitHours / 3);
+    const days = Math.ceil(e.leadTimeDays.base + (design === "custom" ? 3 : 0) + (size.hours * qty * e.leadTimeDays.perUnitHours) / 3);
     return { size, mat, fin, design, qty, tier, unit, designFee, subtotal, days, note: (fd.get("note") || "").trim() };
   }
 
@@ -284,5 +290,16 @@
       `\nEstimasi dari website: ${rp(r.subtotal)} (±${r.days} hari kerja)`;
     window.open(waLink(msg), "_blank", "noopener");
   });
-  renderEstimate();
+
+  /* ---------- Boot + API untuk Mode Edit ---------- */
+  function refresh() {
+    bindStatic();
+    renderHero();
+    renderProducts();
+    renderCart();
+    buildEstimatorOptions();
+    renderEstimate();
+  }
+  refresh();
+  window.MKS = { refresh, rp };
 })();
