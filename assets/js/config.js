@@ -12,6 +12,20 @@ window.MKS_CONFIG = {
   tokopedia: "https://www.tokopedia.com/",
   shopee: "https://shopee.co.id/",
   city: "Jakarta, Indonesia",
+  // Alamat studio & NIB ditampilkan di footer bila diisi (menambah kepercayaan).
+  address: "",
+  nib: "",
+  // Janji waktu balas chat; tampil di bawah tombol pesan dan di footer.
+  replyPromise: "Dibalas < 15 menit, 09.00–21.00 WIB",
+  // Perkiraan ongkir per zona untuk lampu (kemasan ±25×25×25 cm). ANGKA CONTOH; cek tarif kurir.
+  shipping: {
+    zones: [
+      { id: "jabodetabek", label: "Jabodetabek", price: 20000 },
+      { id: "jawa", label: "Pulau Jawa", price: 45000 },
+      { id: "luar", label: "Luar Jawa", price: 95000 },
+    ],
+    note: "Perkiraan; ongkir pasti dikonfirmasi di WhatsApp sebelum bayar.",
+  },
 
   // Ambang gratis ongkir (dipakai sebagai insentif menaikkan nilai order).
   freeShippingMin: 500000,

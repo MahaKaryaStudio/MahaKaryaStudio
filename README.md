@@ -10,7 +10,12 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 | `index.html` | **Lampu rakitan**: hero dengan lampu menyala, penjelasan 3 bagian, konfigurator (bentuk + warna per bagian, harga & tinggi langsung terhitung, kode rakitan, pesan via WhatsApp), paket 3/4/5 bagian, katalog bagian satuan, cara pesan, spesifikasi, FAQ |
 | `koleksi.html` | **Koleksi Nusantara**: katalog vas/lampu/pot/panel, keranjang → WhatsApp, estimator pesanan custom, B2B, material, FAQ |
 
-Data: `assets/js/config.js` (kontak, gratis ongkir, estimator), `assets/js/lamp-data.js` (bentuk, warna, harga, paket, foto bagian lampu), `assets/js/products.js` (katalog koleksi).
+Data: `assets/js/config.js` (kontak, janji waktu balas, alamat/NIB, perkiraan ongkir per zona, gratis ongkir, estimator), `assets/js/lamp-data.js` (bentuk, warna, harga, paket, kit kelistrikan, waktu produksi, preset populer, foto bagian lampu), `assets/js/products.js` (katalog koleksi).
+
+Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
+- Harga paket lampu diposisikan Rp375–465 ribu (di antara lampu IKEA dan pesaing lokal 3D print), bagian satuan Rp65–229 ribu, diskon paket 15/22/28%. Bohlam LED (≤5 W) dan **kit kelistrikan ber-SNI/K3L** adalah baris terpisah; lampu bisa dipesan "hanya bagian cetak". Website tidak pernah menyebut lampu rakitan "ber-SNI".
+- Konfigurator dibuka dengan preset "Paling populer"; di HP panel ubah bentuk dilipat. Waktu produksi tampil per varian: preset/berstok vs custom.
+- Perkiraan ongkir per zona dan perkiraan total tampil sebelum tombol WhatsApp; angkanya contoh, samakan dengan tarif kurir.
 
 ## Isi halaman koleksi
 
@@ -26,7 +31,7 @@ Data: `assets/js/config.js` (kontak, gratis ongkir, estimator), `assets/js/lamp-
 
 ## Yang WAJIB diganti sebelum live
 
-1. **`assets/js/config.js`**: link Tokopedia/Shopee. (WhatsApp, Instagram, email, dan kota sudah diisi.)
+1. **`assets/js/config.js`**: link Tokopedia/Shopee, alamat studio, NIB, tarif ongkir per zona. (WhatsApp, Instagram, email, dan kota sudah diisi.)
 2. **Harga di `lamp-data.js`, `config.js`, dan `products.js`**: ini **asumsi**, belum dihitung dari biaya riil. Hitung ulang dari:
    `harga filamen per gram × berat + jam mesin × (listrik + penyusutan printer) + finishing + packing + margin + potongan marketplace`.
 3. **Foto produk**: lampu → unggah per bagian lewat Mode Edit tab "Lampu" (atau isi `photos` di `lamp-data.js`); koleksi → field `image` di `products.js`. Foto asli jauh lebih meyakinkan daripada ilustrasi.

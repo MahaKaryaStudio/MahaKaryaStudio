@@ -31,6 +31,13 @@
       ${table("bodies", [["name", "Badan"], ["price", "Harga", "number"], ["cm", "Tinggi cm", "number", 'step="0.5"'], ["kg", "Berat kg", "number", 'step="0.01"']])}
       ${table("bases", [["name", "Alas"], ["price", "Harga", "number"]])}
       <label>Bola LED 5 W hangat (Rp)<input data-l="ledPrice" type="number" value="${data.ledPrice}" /></label>
+      <label>Kit kelistrikan ber-SNI/K3L (Rp)<input data-l="wiringPrice" type="number" value="${data.wiringPrice}" /></label>
+      <label>Nama kit kelistrikan<input data-l="wiringLabel" value="${esc(data.wiringLabel)}" /></label>
+      <div class="mks-grid2">
+        <label>Produksi preset/berstok<input data-l="leadTime.preset" value="${esc(data.leadTime.preset)}" /></label>
+        <label>Produksi custom<input data-l="leadTime.custom" value="${esc(data.leadTime.custom)}" /></label>
+      </div>
+      <label>Preset "Paling populer" (dibuka pertama)<select data-l="popularPreset">${data.presets.map((p, i) => `<option value="${i}"${i === data.popularPreset ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>
 
       <h4>Paket</h4>
       <table class="mks-table"><thead><tr><th>Bagian</th><th>Nama</th><th>Diskon %</th><th>Tinggi</th></tr></thead><tbody>
@@ -125,6 +132,7 @@
       const k = path[0];
       let v = t.type === "number" ? +t.value || 0 : t.value;
       if (k === "disc") v = v / 100;
+      if (k === "popularPreset") v = +t.value || 0;
       cur[k] = v;
       changed();
     });

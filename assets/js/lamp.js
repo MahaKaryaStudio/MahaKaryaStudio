@@ -55,34 +55,52 @@
     const pkg = D().packages[n] || { name: `${n} bagian`, disc: 0, cm: "—" };
     // Harga paket dibulatkan ke ribuan; potongan = selisih dari harga satuan
     const disc = sum - roundK(sum * (1 - pkg.disc));
-    const total = sum - disc + (cfg.led ? D().ledPrice : 0);
-    return { lines, parts: sum, n, pkg, disc, total };
+    const wiring = cfg.wiring === false ? 0 : D().wiringPrice;
+    const led = cfg.led ? D().ledPrice : 0;
+    const total = sum - disc + wiring + led;
+    return { lines, parts: sum, n, pkg, disc, wiring, led, total };
   }
-  // Harga paket termurah untuk n bagian: {anchor: jumlah harga satuan, price: harga paket}
+  // Harga paket termurah untuk n bagian, termasuk kit kelistrikan:
+  // {anchor: jumlah harga satuan + kit, price: harga paket + kit}
   function minPackagePrice(n) {
     const min = (list) => Math.min(...list.map((x) => x.price));
-    const anchor = min(D().heads) + min(D().bodies) * (n - 2) + min(D().bases);
-    return { anchor, price: roundK(anchor * (1 - D().packages[n].disc)) };
+    const parts = min(D().heads) + min(D().bodies) * (n - 2) + min(D().bases);
+    const w = D().wiringPrice;
+    return { anchor: parts + w, price: roundK(parts * (1 - D().packages[n].disc)) + w };
   }
   function code(cfg) {
     const k = (s) => s.slice(0, 3).toUpperCase();
     const arr = [k(cfg.head.shape) + k(cfg.head.color), ...cfg.body.map((b) => k(b.shape) + k(b.color)), k(cfg.base.shape) + k(cfg.base.color)];
-    return "MK-" + arr.join("-") + (cfg.led ? "-LED" : "");
+    return "MK-" + arr.join("-") + (cfg.wiring === false ? "-TK" : "") + (cfg.led ? "-LED" : "");
   }
+  // Indeks preset yang sama persis dengan konfigurasi, atau -1
+  function presetIndex(cfg) {
+    const same = (a, b) => a.shape === b.shape && a.color === b.color;
+    return D().presets.findIndex((p) => same(p.head, cfg.head) && same(p.base, cfg.base) && p.body.length === cfg.body.length && p.body.every((b, i) => same(b, cfg.body[i])));
+  }
+  const leadTimeOf = (cfg) => (presetIndex(cfg) >= 0 ? D().leadTime.preset : D().leadTime.custom);
+  const zoneOf = (cfg) => (C.shipping && C.shipping.zones.find((z) => z.id === cfg.zone)) || (C.shipping && C.shipping.zones[0]) || null;
   function waText(cfg) {
     const p = price(cfg);
+    const z = zoneOf(cfg);
     return (
       `Halo ${C.brand}, saya mau pesan lampu rakitan:\nKode: ${code(cfg)}\n` +
       p.lines.map((l) => `• ${l.label} — ${l.color.name}`).join("\n") +
-      `\n• Bola LED 5 W hangat: ${cfg.led ? "ya" : "tidak"}\nPaket ${p.pkg.name} (${p.n} bagian) — ${rp(p.total)}\nTinggi ≈ ${A.totalCm(cfg).toFixed(0)} cm\n\nNama: \nAlamat kirim: `
+      `\n• Kelistrikan: ${cfg.wiring === false ? "tanpa (hanya bagian cetak)" : "kit ber-SNI/K3L"}` +
+      `\n• Bola LED 5 W hangat: ${cfg.led ? "ya" : "tidak"}` +
+      `\nPaket ${p.pkg.name} (${p.n} bagian) — ${rp(p.total)}` +
+      (z ? `\nKirim ke ${z.label}, perkiraan ongkir ${rp(z.price)} → total ±${rp(p.total + z.price)}` : "") +
+      `\nTinggi ≈ ${A.totalCm(cfg).toFixed(0)} cm · produksi ${leadTimeOf(cfg)}\n\nNama: \nAlamat kirim: `
     );
   }
   const waLink = (msg) => `https://wa.me/${C.whatsapp}?text=${encodeURIComponent(msg)}`;
 
   /* ---------- State ---------- */
-  const state = sanitize(clone(D().presets[1] || D().presets[0]));
-  state.led = true;
+  const state = sanitize(clone(D().presets[D().popularPreset] || D().presets[0]));
+  state.led = false; // bohlam adalah tambahan berbayar
+  state.wiring = true; // kit kelistrikan ber-SNI/K3L, bisa dilepas
   state.on = true;
+  state.zone = C.shipping && C.shipping.zones[0] ? C.shipping.zones[0].id : null;
   const hero = { cfg: sanitize(clone(D().presets[0])), on: true, dim: 1 };
   const catColor = {};
 
@@ -135,7 +153,9 @@
       `<div><div class="lbl">Bentuk</div>${shapesHtml("base", d.bases, state.base.shape, 'data-part="base"')}</div>` +
       `<div><div class="lbl">Warna</div>${swatchesHtml(d.colors, state.base.color, 'data-part="base"')}</div></div>`;
     h +=
-      `<div class="ctrl"><div class="toggle-row"><div class="desc"><b>Bola LED 5 W warna hangat</b><small>2700 K, E27. Tanpa ini, lampu dikirim tanpa bola.</small></div><button class="switch" type="button" id="led-switch" role="switch" aria-checked="${state.led}"><i></i>${rp(d.ledPrice)}</button></div>` +
+      `<div class="ctrl"><div class="ctrl-head"><h3>Kelistrikan <small>opsional</small></h3></div>` +
+      `<div class="toggle-row"><div class="desc"><b>${esc(d.wiringLabel)}</b><small>Komponen dari produsen terdaftar. Tanpa kit ini, Anda menerima bagian cetak saja dan memasang kelistrikan sendiri.</small></div><button class="switch" type="button" id="wiring-switch" role="switch" aria-checked="${state.wiring !== false}"><i></i>${rp(d.wiringPrice)}</button></div>` +
+      `<div class="toggle-row"><div class="desc"><b>Bola LED 5 W warna hangat</b><small>2700 K, E27. Maksimal 5 W agar kap tetap dingin.</small></div><button class="switch" type="button" id="led-switch" role="switch" aria-checked="${state.led}"><i></i>${rp(d.ledPrice)}</button></div>` +
       `<div class="row-wrap"><button class="ghost" type="button" id="random"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h3l6 8h3M2 12h3l1.5-2M9.5 6L11 4h3M12 2l2 2-2 2M12 10l2 2-2 2"/></svg>Acak kombinasi</button></div></div>`;
     $("#controls").innerHTML = h;
   }
@@ -147,17 +167,32 @@
       .join("");
     rows += `<div class="row"><span>Harga satuan ${p.n} bagian</span><span class="num"><s>${rp(p.parts)}</s></span></div>`;
     if (p.disc) rows += `<div class="row row-disc"><span>Potongan paket ${esc(p.pkg.name)} (${Math.round(p.pkg.disc * 100)}%)</span><span class="num">− ${rp(p.disc)}</span></div>`;
-    if (state.led) rows += `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(D().ledPrice)}</span></div>`;
+    rows += p.wiring
+      ? `<div class="row"><span>Kit kelistrikan ber-SNI/K3L</span><span class="num">${rp(p.wiring)}</span></div>`
+      : `<div class="row"><span>Tanpa kelistrikan (hanya bagian cetak)</span><span class="num">Rp0</span></div>`;
+    if (state.led) rows += `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(p.led)}</span></div>`;
+    const anchorTotal = p.parts + p.wiring + p.led;
+    const pi = presetIndex(state);
+    const popular = pi >= 0 && pi === D().popularPreset;
+    const z = zoneOf(state);
+    const zones = C.shipping ? C.shipping.zones : [];
     $("#summary").innerHTML =
-      `<span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span><div class="rows">${rows}</div>` +
-      `<div class="total"><div><small>Total termasuk fitting, kabel &amp; saklar</small>${p.disc ? `<s class="was num">${rp(p.parts + (state.led ? D().ledPrice : 0))}</s>` : ""}<b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
+      `<div class="badges"><span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span>${popular ? '<span class="badge badge--pop">Paling populer</span>' : pi >= 0 ? `<span class="badge">Preset ${esc(D().presets[pi].name)}</span>` : '<span class="badge badge--custom">Rakitan custom</span>'}</div>` +
+      `<div class="rows">${rows}</div>` +
+      `<div class="total"><div><small>${p.wiring ? "Total termasuk kit kelistrikan" : "Total bagian cetak"}${p.led ? " + bohlam" : ""}</small>${p.disc ? `<s class="was num">${rp(anchorTotal)}</s>` : ""}<b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
       (p.disc ? `<div class="save">Hemat <b>${rp(p.disc)}</b> dibanding beli ${p.n} bagian satuan</div>` : "") +
+      (zones.length
+        ? `<div class="ship"><label for="zone-select">Kirim ke</label><select id="zone-select">${zones.map((x) => `<option value="${esc(x.id)}"${z && x.id === z.id ? " selected" : ""}>${esc(x.label)} · ±${rp(x.price)}</option>`).join("")}</select><div class="ship__total"><span>Perkiraan total dengan ongkir</span><b class="num">±${rp(p.total + (z ? z.price : 0))}</b></div><small>${esc(C.shipping.note || "")}</small></div>`
+        : "") +
       `<div class="acts"><a class="btn btn--wa" id="wa-link" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
-      `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
-      `<p class="note">Cetak 3–5 hari kerja. Ongkir dihitung saat konfirmasi di WhatsApp.</p>`;
+      `<small class="reply">${esc(C.replyPromise || "")}</small>` +
+      `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button>` +
+      (pi < 0 ? `<button class="btn btn--ghost-dark" type="button" id="back-preset">Kembali ke preset populer</button>` : "") +
+      `</div>` +
+      `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (preset, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>`;
     // Bilah pesan di HP
     $("#orderbar").innerHTML =
-      `<div class="orderbar__info"><span>${p.disc ? `<s class="num">${rp(p.parts + (state.led ? D().ledPrice : 0))}</s>` : ""}<small>${p.disc ? `Hemat ${rp(p.disc)}` : `Paket ${esc(p.pkg.name)}`}</small></span><b class="num">${rp(p.total)}</b></div>` +
+      `<div class="orderbar__info"><span>${p.disc ? `<s class="num">${rp(anchorTotal)}</s>` : ""}<small>${p.disc ? `Hemat ${rp(p.disc)}` : `Paket ${esc(p.pkg.name)}`}</small></span><b class="num">${rp(p.total)}</b></div>` +
       `<a class="btn btn--wa" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>`;
     // Strip bagian terpilih: foto asli bila ada
     $("#parts-strip").innerHTML = p.lines
@@ -200,8 +235,9 @@
       D()
         .presets.map((p, i) => {
           const n = p.body.length + 2;
-          const pr = price(sanitize(clone(p)));
-          return `<button class="preset" type="button" data-preset="${i}">${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.parts - pr.disc)}${pr.disc ? ` <s>${rp(pr.parts)}</s>` : ""}</span></button>`;
+          const pr = price(Object.assign(sanitize(clone(p)), { wiring: true, led: false }));
+          const pop = i === D().popularPreset;
+          return `<button class="preset${pop ? " preset--pop" : ""}" type="button" data-preset="${i}">${pop ? '<span class="preset__flag">Paling populer</span>' : ""}${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.total)}${pr.disc ? ` <s>${rp(pr.parts + pr.wiring)}</s>` : ""}</span></button>`;
         })
         .join("");
   }
@@ -215,7 +251,7 @@
         const m = minPackagePrice(n);
         return (
           `<div class="pkg${hot ? " hot" : ""}">${hot ? '<span class="pkg__flag">Paling laris</span>' : ""}<div class="top"><div class="n">${n}<small>bagian</small></div><span class="badge">hemat ${Math.round(pk.disc * 100)}%</span></div><h3>Paket ${esc(pk.name)}</h3>` +
-          `<ul><li>1 kap + ${n - 2} badan + 1 alas</li><li>Tinggi ± ${esc(pk.cm)} cm</li><li>${esc(pk.note || "")}</li></ul>` +
+          `<ul><li>1 kap + ${n - 2} badan + 1 alas + kit kelistrikan</li><li>Tinggi ± ${esc(pk.cm)} cm</li><li>${esc(pk.note || "")}</li></ul>` +
           `<div class="from"><small>mulai dari</small><b class="num">${rp(m.price)}</b>${m.price < m.anchor ? `<s class="num">${rp(m.anchor)} beli satuan</s><em>Hemat ${rp(m.anchor - m.price)}</em>` : ""}</div><button class="btn ${hot ? "btn--primary" : "btn--ghost"}" type="button" data-pkg="${n}">Rakit paket ini</button></div>`
         );
       })
@@ -241,6 +277,8 @@
   function renderStatic() {
     $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "lavender" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
     $("#led-price-note").textContent = rp(D().ledPrice);
+    $("#wiring-price-note").textContent = rp(D().wiringPrice);
+    $("#wiring-label-note").textContent = D().wiringLabel;
   }
 
   /* ---------- Events ---------- */
@@ -252,6 +290,13 @@
     if (t.id === "hero-switch") { hero.on = !hero.on; return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; return renderPreview(); }
     if (t.id === "led-switch") { state.led = !state.led; return renderAll(); }
+    if (t.id === "wiring-switch") { state.wiring = state.wiring === false; return renderAll(); }
+    if (t.id === "back-preset") {
+      const p = sanitize(clone(D_.presets[D_.popularPreset] || D_.presets[0]));
+      Object.assign(state, { head: p.head, body: p.body, base: p.base });
+      renderAll();
+      return toast(`Kembali ke ${p.name}`);
+    }
     if (t.id === "add-body") {
       if (state.body.length < D_.maxBodies) state.body.push({ shape: pick(D_.bodies), color: pick(D_.colors) });
       return renderAll();
@@ -298,6 +343,12 @@
     if (t.id === "copy-summary") return copyText(waText(state), "Ringkasan disalin");
     if (d.copy) return copyText(d.copy, "Nomor disalin");
   });
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "zone-select") {
+      state.zone = e.target.value;
+      renderSummary();
+    }
+  });
   document.addEventListener("input", (e) => {
     if (e.target.id === "hero-dim") {
       hero.dim = e.target.value / 100;
@@ -343,6 +394,9 @@
     document.querySelectorAll("[data-wa-copy]").forEach((el) => (el.dataset.copy = "+" + C.whatsapp));
     document.querySelectorAll("[data-ig]").forEach((el) => (el.textContent = "@" + C.instagram));
     document.querySelectorAll("[data-city]").forEach((el) => (el.textContent = C.city));
+    document.querySelectorAll("[data-reply]").forEach((el) => (el.textContent = C.replyPromise || ""));
+    document.querySelectorAll("[data-address]").forEach((el) => { el.textContent = C.address || ""; el.closest(".contact-line").hidden = !C.address; });
+    document.querySelectorAll("[data-nib]").forEach((el) => { el.textContent = C.nib ? "NIB " + C.nib : ""; el.closest(".contact-line").hidden = !C.nib; });
     document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
   }
   // Data terstruktur produk + rentang harga paket, selalu mengikuti data terkini
@@ -351,7 +405,7 @@
     const lows = ns.map((n) => minPackagePrice(n).price);
     const max = (list) => Math.max(...list.map((x) => x.price));
     const nMax = Math.max(...ns);
-    const high = roundK((max(D().heads) + max(D().bodies) * (nMax - 2) + max(D().bases)) * (1 - D().packages[nMax].disc)) + D().ledPrice;
+    const high = roundK((max(D().heads) + max(D().bodies) * (nMax - 2) + max(D().bases)) * (1 - D().packages[nMax].disc)) + D().wiringPrice + D().ledPrice;
     let el = document.getElementById("schema-product");
     if (!el) {
       el = document.createElement("script");
@@ -377,8 +431,13 @@
         document.body.classList.toggle("has-orderbar", e.isIntersecting);
       },
       { rootMargin: "-120px 0px 0px 0px" }
-    ).observe($("#controls"));
+    ).observe($("#ctrl-wrap"));
   }
+  // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
+  const wide = window.matchMedia("(min-width: 901px)");
+  const syncCtrl = () => { if (wide.matches) $("#ctrl-wrap").open = true; };
+  syncCtrl();
+  wide.addEventListener("change", syncCtrl);
   function refresh() {
     sanitize(state);
     sanitize(hero.cfg);

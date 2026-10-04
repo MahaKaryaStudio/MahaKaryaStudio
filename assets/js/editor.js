@@ -405,6 +405,15 @@
       ${f("tokopedia", "Link toko Tokopedia", "url")}
       ${f("shopee", "Link toko Shopee", "url")}
       ${f("city", "Kota (footer)")}
+      ${f("replyPromise", "Janji waktu balas (tampil di bawah tombol pesan)")}
+      ${f("address", "Alamat studio (kosongkan bila belum mau ditampilkan)")}
+      ${f("nib", "NIB (kosongkan bila belum ada)")}
+      <h4>Perkiraan ongkir lampu per zona (Rp)</h4>
+      <p class="mks-help mks-muted">Angka contoh; samakan dengan tarif kurir untuk kemasan ±25×25×25 cm.</p>
+      <table class="mks-table"><thead><tr><th>Zona</th><th>Ongkir (Rp)</th></tr></thead><tbody>
+      ${((config.shipping && config.shipping.zones) || []).map((z, i) => `<tr><td><input data-s="zones.${i}.label" value="${esc(z.label)}"/></td><td><input data-s="zones.${i}.price" type="number" value="${z.price}"/></td></tr>`).join("")}
+      </tbody></table>
+      <label>Catatan ongkir<input data-s="note" value="${esc((config.shipping && config.shipping.note) || "")}"/></label>
       ${f("freeShippingMin", "Minimal belanja gratis ongkir (Rp, halaman koleksi)", "number", 'min="0" step="10000"')}
       <p class="mks-help mks-muted">Estimator di bawah dipakai halaman <b>koleksi.html</b> (pesanan custom dekorasi).</p>
       ${table("Estimator — ukuran", "sizes", [{ k: "label", label: "Label" }, { k: "base", label: "Harga dasar (Rp)", type: "number" }, { k: "hours", label: "Jam cetak", type: "number", attrs: 'step="0.5"' }])}
@@ -421,6 +430,14 @@
       const c = e.target.closest("[data-c]");
       if (c) {
         config[c.dataset.c] = c.type === "number" ? +c.value || 0 : c.value.trim();
+        return configChanged();
+      }
+      const sh = e.target.closest("[data-s]");
+      if (sh) {
+        const path = sh.dataset.s.split(".");
+        let cur = config.shipping;
+        while (path.length > 1) cur = cur[path.shift()];
+        cur[path[0]] = sh.type === "number" ? +sh.value || 0 : sh.value;
         return configChanged();
       }
       const t = e.target.closest("[data-e]");
