@@ -260,7 +260,7 @@
 /* Preset populer, panel kontrol lipat, ongkir, keamanan */
 .preset { position: relative; }
 .preset--pop { border-color: var(--amber); }
-.preset__flag { position: absolute; top: -10px; left: 8px; background: var(--amber); color: var(--amber-ink); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+.preset__flag { position: absolute; top: 14px; left: 14px; z-index: 1; white-space: nowrap; background: var(--amber); color: var(--amber-ink); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
 .summary .badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .badge--pop { background: var(--amber); color: var(--amber-ink); }
 .badge--custom { background: rgba(242, 231, 213, 0.1); color: var(--dark-fg); }
