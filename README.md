@@ -59,7 +59,7 @@ Salin satu objek di `assets/js/products.js`, ubah `id` (unik), `name`, `category
 
 ## Deploy ke GitHub Pages
 
-Settings → Pages → Source: *Deploy from a branch* → pilih branch dan folder `/ (root)`.
+Otomatis: workflow `.github/workflows/pages.yml` men-deploy isi repo ke GitHub Pages setiap push ke `main` (dan bisa dijalankan manual dari tab Actions). Pastikan Settings → Pages → Source = **GitHub Actions**. Alamat: `https://mahakaryastudio.github.io/MahaKaryaStudio/`.
 
 ## Batasan yang perlu diketahui
 
