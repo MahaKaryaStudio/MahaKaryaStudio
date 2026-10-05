@@ -566,7 +566,7 @@
         draw(ctx, t) {
           backdrop(ctx, F, t);
           const zoom = 1 + 0.04 * clamp(t / this.dur);
-          drawLamp(ctx, F, lamp, { t, dim: 1, lineup, w: rowBox.w * zoom, dy: F.portrait ? F.H * (o.noText ? 0.66 : 0.68) - lamp.floorY : 0 });
+          drawLamp(ctx, F, lamp, { t, dim: 1, lineup, w: rowBox.w * zoom, dx: rowBox.x + rowBox.w / 2 - lamp.cx, dy: F.portrait ? F.H * (o.noText ? 0.66 : 0.68) - lamp.floorY : 0 });
           headline(ctx, t, `*${lineup.length} preset* siap kirim, atau susun sendiri`, `Produksi ${D.leadTime.preset} untuk preset, ${D.leadTime.custom} untuk rakitan sendiri.`);
         },
       });
