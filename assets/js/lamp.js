@@ -73,6 +73,41 @@
     const arr = [k(cfg.head.shape) + k(cfg.head.color), ...cfg.body.map((b) => k(b.shape) + k(b.color)), k(cfg.base.shape) + k(cfg.base.color)];
     return "MK-" + arr.join("-") + (cfg.wiring === false ? "-TK" : "") + (cfg.led ? "-LED" : "");
   }
+  // Kebalikan code(): "MK-KERGAD-KUBBAT-KOTBAT[-TK][-LED]" → konfigurasi, atau null
+  function decodeCode(str) {
+    const parts = String(str || "").trim().toUpperCase().split("-").filter(Boolean);
+    if (parts[0] !== "MK") return null;
+    const led = parts.includes("LED"), wiring = !parts.includes("TK");
+    const segs = parts.slice(1).filter((x) => x !== "LED" && x !== "TK");
+    if (segs.length < 3 || segs.length > 2 + D().maxBodies) return null;
+    const k = (x) => x.slice(0, 3).toUpperCase();
+    const pick3 = (list, pre) => list.find((x) => k(x.id) === pre);
+    const part = (kind, seg) => {
+      const sh = pick3(listOf(kind), seg.slice(0, 3)), co = pick3(colorsOf(kind), seg.slice(3, 6));
+      return sh && co ? { shape: sh.id, color: co.id } : null;
+    };
+    const head = part("head", segs[0]), base = part("base", segs[segs.length - 1]);
+    const body = segs.slice(1, -1).map((x) => part("body", x));
+    if (!head || !base || body.some((b) => !b)) return null;
+    return { head, body, base, led, wiring };
+  }
+  // Tautan yang membuka konfigurator dengan rakitan ini
+  const shareUrl = (cfg) => {
+    const u = new URL(location.href);
+    u.search = "";
+    u.searchParams.set("kode", code(cfg));
+    if (cfg.zone) u.searchParams.set("zona", cfg.zone);
+    u.hash = "rakit";
+    return u.toString();
+  };
+  // Simpan rakitan di browser supaya bisa dilanjutkan nanti
+  const SAVE_KEY = "mks-rakit-v1";
+  let touched = false;
+  function persist() {
+    if (!touched) return;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ head: state.head, body: state.body, base: state.base, led: state.led, wiring: state.wiring, zone: state.zone, gift: state.gift, t: Date.now() })); } catch {}
+    try { history.replaceState(null, "", shareUrl(state).replace(/#rakit$/, location.hash || "")); } catch {}
+  }
   // Indeks preset yang sama persis dengan konfigurasi, atau -1
   function presetIndex(cfg) {
     const same = (a, b) => a.shape === b.shape && a.color === b.color;
@@ -90,7 +125,13 @@
       `\n• Bola LED 5 W hangat: ${cfg.led ? "ya" : "tidak"}` +
       `\nPaket ${p.pkg.name} (${p.n} bagian) — ${rp(p.total)}` +
       (z ? `\nKirim ke ${z.label}, perkiraan ongkir ${rp(z.price)} → total ±${rp(p.total + z.price)}` : "") +
-      `\nTinggi ≈ ${A.totalCm(cfg).toFixed(0)} cm · produksi ${leadTimeOf(cfg)}\n\nNama: \nAlamat kirim: `
+      `\nTinggi ≈ ${A.totalCm(cfg).toFixed(0)} cm · produksi ${leadTimeOf(cfg)}` +
+      (cfg.gift && cfg.gift.on
+        ? `\n\n🎁 Kirim sebagai kado untuk: ${cfg.gift.to || "(nama penerima)"}` +
+          `\nPesan kartu: "${cfg.gift.msg || "(isi pesan)"}"` +
+          `\nTanpa harga di paket: ${cfg.gift.hide === false ? "tidak" : "ya"}` +
+          `\n\nNama pemesan: \nAlamat kirim (penerima): `
+        : `\n\nNama: \nAlamat kirim: `)
     );
   }
   const waLink = (msg) => `https://wa.me/${C.whatsapp}?text=${encodeURIComponent(msg)}`;
@@ -101,6 +142,7 @@
   state.wiring = true; // kit kelistrikan ber-SNI/K3L, bisa dilepas
   state.on = true;
   state.zone = C.shipping && C.shipping.zones[0] ? C.shipping.zones[0].id : null;
+  state.gift = { on: false, to: "", msg: "", hide: true };
   const hero = { cfg: sanitize(clone(D().presets[0])), on: true, dim: 1 };
   const catColor = {};
 
@@ -184,9 +226,15 @@
       (zones.length
         ? `<div class="ship"><label for="zone-select">Kirim ke</label><select id="zone-select">${zones.map((x) => `<option value="${esc(x.id)}"${z && x.id === z.id ? " selected" : ""}>${esc(x.label)} · ±${rp(x.price)}</option>`).join("")}</select><div class="ship__total"><span>Perkiraan total dengan ongkir</span><b class="num">±${rp(p.total + (z ? z.price : 0))}</b></div><small>${esc(C.shipping.note || "")}</small></div>`
         : "") +
+      `<div class="gift${state.gift.on ? " is-on" : ""}"><label class="gift__head"><input type="checkbox" id="gift-on" ${state.gift.on ? "checked" : ""}/> <span>🎁 Kirim sebagai kado</span><small>Kartu ucapan gratis, dikemas rapi, tanpa harga di paket</small></label>` +
+      (state.gift.on
+        ? `<div class="gift__fields"><input id="gift-to" type="text" maxlength="40" placeholder="Nama penerima" value="${esc(state.gift.to)}" /><textarea id="gift-msg" rows="2" maxlength="120" placeholder="Pesan di kartu (maks 120 huruf)">${esc(state.gift.msg)}</textarea><label class="gift__opt"><input type="checkbox" id="gift-hide" ${state.gift.hide === false ? "" : "checked"}/> Tanpa harga di paket</label></div>`
+        : "") +
+      `</div>` +
       `<div class="acts"><a class="btn btn--wa" id="wa-link" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
       `<small class="reply">${esc(C.replyPromise || "")}</small>` +
-      `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button>` +
+      `<div class="acts__row"><button class="btn btn--ghost-dark" type="button" id="share-link">Bagikan rakitan</button>` +
+      `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
       (pi < 0 ? `<button class="btn btn--ghost-dark" type="button" id="back-preset">Kembali ke preset populer</button>` : "") +
       `</div>` +
       `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (preset, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>`;
@@ -215,7 +263,14 @@
     renderControls();
     renderSummary();
     renderPreview();
+    persist();
   };
+  // Hanya perbarui tautan WA tanpa merender ulang (agar fokus di kolom kado tidak hilang)
+  function refreshWaLinks() {
+    const href = waLink(waText(state));
+    const a = $("#wa-link"); if (a) a.href = href;
+    const b = $("#orderbar a.btn--wa"); if (b) b.href = href;
+  }
 
   function renderHero() {
     $("#hero-lamp").innerHTML = A.renderLamp(hero.cfg, { uid: "hero", on: hero.on, dim: hero.dim, cover: true });
@@ -289,6 +344,13 @@
     const D_ = D();
     if (t.id === "hero-switch") { hero.on = !hero.on; return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; return renderPreview(); }
+    if (t.closest("#rakit, #paket, #bagian")) touched = true;
+    if (t.id === "share-link") {
+      const url = shareUrl(state);
+      const text = `Lihat lampu rakitan ${code(state)} di ${C.brand}`;
+      if (navigator.share) return navigator.share({ title: C.brand, text, url }).catch(() => {});
+      return copyText(url, "Tautan rakitan disalin");
+    }
     if (t.id === "led-switch") { state.led = !state.led; return renderAll(); }
     if (t.id === "wiring-switch") { state.wiring = state.wiring === false; return renderAll(); }
     if (t.id === "back-preset") {
@@ -345,11 +407,27 @@
   });
   document.addEventListener("change", (e) => {
     if (e.target.id === "zone-select") {
+      touched = true;
       state.zone = e.target.value;
       renderSummary();
+      persist();
     }
+    if (e.target.id === "gift-on") {
+      touched = true;
+      state.gift.on = e.target.checked;
+      renderSummary();
+      persist();
+      if (state.gift.on) $("#gift-to")?.focus();
+    }
+    if (e.target.id === "gift-hide") { state.gift.hide = e.target.checked; refreshWaLinks(); persist(); }
   });
   document.addEventListener("input", (e) => {
+    if (e.target.id === "gift-to" || e.target.id === "gift-msg") {
+      touched = true;
+      state.gift[e.target.id === "gift-to" ? "to" : "msg"] = e.target.value;
+      refreshWaLinks();
+      persist();
+    }
     if (e.target.id === "hero-dim") {
       hero.dim = e.target.value / 100;
       hero.on = true;
@@ -479,5 +557,30 @@
     renderAll();
   }
   refresh();
-  window.MKSLamp = { refresh, state, price, code };
+  // Buka dari tautan bagikan (?kode=…) atau pulihkan rakitan terakhir
+  (function restore() {
+    const q = new URLSearchParams(location.search);
+    const fromLink = q.get("kode") && decodeCode(q.get("kode"));
+    if (fromLink) {
+      Object.assign(state, fromLink);
+      const z = q.get("zona"); if (z && C.shipping.zones.some((x) => x.id === z)) state.zone = z;
+      touched = true;
+      refresh();
+      toast("Rakitan dari tautan dimuat");
+      setTimeout(() => $("#rakit").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+      return;
+    }
+    if (q.get("kode")) history.replaceState(null, "", location.pathname + location.hash);
+    try {
+      const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      if (saved && saved.head && saved.base && Array.isArray(saved.body)) {
+        const before = code(state);
+        Object.assign(state, { head: saved.head, body: saved.body, base: saved.base, led: !!saved.led, wiring: saved.wiring !== false, zone: saved.zone || state.zone, gift: { on: false, to: "", msg: "", hide: true, ...(saved.gift || {}) } });
+        sanitize(state);
+        refresh();
+        if (code(state) !== before) toast("Rakitan terakhirmu dipulihkan");
+      }
+    } catch {}
+  })();
+  window.MKSLamp = { refresh, state, price, code, decodeCode, shareUrl };
 })();
