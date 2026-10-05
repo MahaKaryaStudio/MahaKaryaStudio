@@ -291,4 +291,7 @@ section { padding: clamp(56px, 8vw, 96px) 0; }
 @media (max-width: 1040px) {
   .nav__links { display: none; }
   .menu { display: block; }
+  /* Tanpa daftar tautan, tombol CTA merapat ke tombol menu di kanan */
+  .nav__inner > .btn, .nav__inner > .cart-btn { margin-left: auto; }
+  .nav__inner { gap: 12px; }
 }
