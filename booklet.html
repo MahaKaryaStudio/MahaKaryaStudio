@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Booklet Katalog — MahaKarya Studio</title>
-  <meta name="description" content="Booklet katalog A5 lampu meja rakitan MahaKarya Studio: 12 bentuk, 5 warna, paket, cara pesan, dan koleksi Nusantara. Siap cetak 16 halaman." />
+  <meta name="description" content="Booklet katalog interaktif MahaKarya Studio: balik halaman, rakit lampu dan lihat harganya, hitung pesanan custom. 16 halaman A5, siap cetak." />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/nyala-icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,8 +18,14 @@
       <svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#f2a33a" stroke-width="5" stroke-linecap="round"><line x1="35" y1="16" x2="65" y2="16"/><line x1="31" y1="24" x2="69" y2="24"/><line x1="27" y1="32" x2="73" y2="32"/><line x1="23" y1="40" x2="77" y2="40"/><line x1="19" y1="48" x2="81" y2="48"/></g><circle cx="50" cy="66" r="9" fill="#f2e7d5"/><line x1="30" y1="88" x2="70" y2="88" stroke="#a89a85" stroke-width="5" stroke-linecap="round"/></svg>
       <span>MahaKarya<em>Studio</em></span><small>Booklet · A5 · 16 hal.</small>
     </div>
+    <div class="nav" id="nav">
+      <button type="button" id="nav-prev" aria-label="Halaman sebelumnya">‹</button>
+      <span id="nav-label">Sampul</span>
+      <button type="button" id="nav-next" aria-label="Halaman berikutnya">›</button>
+    </div>
     <div class="toolbar__actions">
-      <span class="toolbar__hint">Cetak A5 bolak-balik, lipat tengah</span>
+      <span class="toolbar__hint">← → atau ketuk tepi halaman</span>
+      <button class="tbtn" type="button" id="mode-btn">Gulir</button>
       <a class="tbtn" href="assets/booklet/MahaKarya-Booklet-Edisi-01.pdf" download>Unduh PDF</a>
       <button class="tbtn tbtn--primary" type="button" onclick="window.print()">Cetak</button>
     </div>

@@ -47,28 +47,35 @@ async function buildPdf() {
   await page.evaluate(() => document.fonts.ready);
   const n = await page.evaluate(() => document.querySelectorAll(".page").length);
   if (n % 4) console.warn(`Peringatan: ${n} halaman; booklet jilid tengah perlu kelipatan 4.`);
-  // Deteksi isi yang meluap keluar halaman (akan terpotong saat cetak)
-  const overflow = await page.evaluate(() =>
-    [...document.querySelectorAll(".page")].flatMap((pg, i) => {
-      const r = pg.getBoundingClientRect(), bad = [];
-      pg.querySelectorAll(".folio, .back__legal, .cover__meta").forEach((el) => {});
-      for (const el of pg.querySelectorAll("*")) {
-        if (el.closest(".cover__lamp, .cover__grid, .cover__vert, svg")) continue;
-        const b = el.getBoundingClientRect();
-        if (b.height && (b.bottom > r.bottom + 1 || b.right > r.right + 1)) { bad.push(`${i + 1}:${el.className || el.tagName}`); break; }
-      }
-      return bad;
-    })
-  );
-  if (overflow.length) console.warn("Isi meluap di halaman:", overflow.join(", "));
+  // Deteksi isi yang meluap keluar halaman, untuk versi layar (interaktif) dan versi cetak
+  const checkOverflow = () =>
+    page.evaluate(() => {
+      document.body.classList.add("check-overflow");
+      const out = [...document.querySelectorAll(".page")].flatMap((pg, i) => {
+        const r = pg.getBoundingClientRect(), bad = [];
+        for (const el of pg.querySelectorAll("*")) {
+          if (el.closest("svg, .photo, .only-print, .only-screen") && !el.matches(".only-print, .only-screen")) continue;
+          if (getComputedStyle(el).display === "none") continue;
+          const b = el.getBoundingClientRect();
+          if (b.height && (b.bottom > r.bottom + 1 || b.right > r.right + 1)) { bad.push(`${i + 1}:${el.className || el.tagName}`); break; }
+        }
+        return bad;
+      });
+      return out;
+    });
+  await page.addStyleTag({ content: ".book{display:block!important;width:148mm!important;height:auto!important;transform:none!important;margin:0!important;perspective:none}.sheet,.sheet__face{position:static!important;transform:none!important;height:auto!important;width:auto!important}.sheet__face{backface-visibility:visible!important}" });
+  const ovScreen = await checkOverflow();
+  if (ovScreen.length) console.warn("Isi meluap (layar) di halaman:", ovScreen.join(", "));
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   await page.emulateMedia({ media: "print" });
+  const ovPrint = await checkOverflow();
+  if (ovPrint.length) console.warn("Isi meluap (cetak) di halaman:", ovPrint.join(", "));
   await page.pdf({ path: OUT, preferCSSPageSize: true, printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
   console.log(`PDF: ${path.relative(ROOT, OUT)} (${n} halaman, ${(fs.statSync(OUT).size / 1024).toFixed(0)} KB)`);
   if (pngDir) {
     fs.mkdirSync(pngDir, { recursive: true });
     await page.emulateMedia({ media: "screen" });
-    await page.addStyleTag({ content: ".toolbar{display:none}.book-wrap{padding:0}.book{display:block!important;width:148mm!important;transform:none!important}.page{box-shadow:none;margin:0}" });
+    await page.addStyleTag({ content: ".toolbar{display:none}.book-wrap{padding:0}.page{box-shadow:none;margin:0}.sheet__face::after{display:none}" });
     const handles = await page.$$(".page");
     for (let i = 0; i < handles.length; i++) await handles[i].screenshot({ path: path.join(pngDir, `hal-${String(i + 1).padStart(2, "0")}.png`), scale: "css" });
     console.log(`PNG: ${handles.length} halaman di ${pngDir}`);

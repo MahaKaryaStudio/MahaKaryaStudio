@@ -41,9 +41,12 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 
 ## Booklet katalog (`booklet.html`)
 
-Katalog cetak A5, 16 halaman (kelipatan 4, siap jilid tengah / saddle stitch): sampul, cara kerja tiga bagian, 12 bentuk + harga satuan, palet warna, paket Trio/Kuarto/Kuinto, lima kombinasi populer dengan kode rakitan, cara pesan + QR konfigurator, spesifikasi & keamanan, koleksi Nusantara, custom & bisnis, material, FAQ, ajakan konsultasi + QR WhatsApp, sampul belakang.
+Katalog A5, 16 halaman (kelipatan 4, siap jilid tengah), dengan dua wajah:
 
-Semua angka dibaca dari `config.js`, `lamp-data.js`, dan `products.js` (gambar lampu dari `lamp-art.js`, ilustrasi koleksi dari `art.js`), jadi booklet otomatis mengikuti perubahan harga/bentuk/warna di website. Buka `booklet.html` di browser untuk pratinjau spread; tombol **Cetak** memakai ukuran halaman A5 tanpa margin.
+- **Di layar**: flipbook. Lembar dibalik dengan animasi 3D (tombol ‹ ›, panah keyboard, geser di layar sentuh, atau ketuk tepi halaman); tombol **Gulir** mengubahnya menjadi spread berdampingan. Halaman 7 adalah **konfigurator**: ketuk kombinasi populer, ganti bentuk/warna tiap bagian, tambah/kurangi badan, nyalakan lampu; harga, tinggi, dan kode rakitan berubah seketika dan tombol WhatsApp membawa ringkasannya. Halaman 12 adalah **kalkulator pesanan custom** dengan rumus yang sama dengan website. QR dan kontak bisa diklik.
+- **Dicetak / PDF**: halaman statis satu per lembar A5 tanpa margin; konfigurator diganti lima kombinasi populer, kalkulator diganti tabel harga.
+
+Semua angka dibaca dari `config.js`, `lamp-data.js`, dan `products.js` (gambar lampu dari `lamp-art.js`, ilustrasi koleksi dari `art.js`), jadi booklet otomatis mengikuti perubahan harga/bentuk/warna di website. Foto di `assets/img/booklet/` adalah frame dari video konsep (`assets/video/`), berlabel "gambar konsep" karena warnanya bukan palet katalog; ganti dengan foto produk asli bernama sama sebelum cetak massal (resolusi frame 960×540 / 540×720 cukup untuk layar, lunak untuk cetak).
 
 PDF siap cetak: `assets/booklet/MahaKarya-Booklet-Edisi-01.pdf`. Buat ulang setelah mengubah data:
 
@@ -53,7 +56,7 @@ node tools/build-booklet.js --qr       # juga memperbarui QR code bila nomor WA 
 node tools/build-booklet.js --png dir  # PNG tiap halaman untuk pratinjau / Instagram
 ```
 
-Skrip memperingatkan bila ada isi yang meluap keluar halaman. Untuk percetakan: kirim PDF apa adanya (satu halaman per lembar); mereka yang menyusun imposisi lipat tengah. Ganti ilustrasi lampu dengan foto produk asli sebelum cetak massal; keterangan "ilustrasi, bukan foto produk" ada di halaman 4, 11, dan sampul belakang.
+Skrip memperingatkan bila ada isi yang meluap keluar halaman, untuk versi layar maupun cetak. Untuk percetakan: kirim PDF apa adanya (satu halaman per lembar); mereka yang menyusun imposisi lipat tengah.
 
 ## Admin WA (`admin.html`)
 
