@@ -39,6 +39,22 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 3. **Foto produk**: lampu → unggah per bagian lewat Mode Edit tab "Lampu" (atau isi `photos` di `lamp-data.js`); koleksi → field `image` di `products.js`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
 4. **Kebijakan** (garansi, DP 50%, lead time, daur ulang produk lama): pastikan semuanya memang sanggup Anda jalankan.
 
+## Booklet katalog (`booklet.html`)
+
+Katalog cetak A5, 16 halaman (kelipatan 4, siap jilid tengah / saddle stitch): sampul, cara kerja tiga bagian, 12 bentuk + harga satuan, palet warna, paket Trio/Kuarto/Kuinto, lima kombinasi populer dengan kode rakitan, cara pesan + QR konfigurator, spesifikasi & keamanan, koleksi Nusantara, custom & bisnis, material, FAQ, ajakan konsultasi + QR WhatsApp, sampul belakang.
+
+Semua angka dibaca dari `config.js`, `lamp-data.js`, dan `products.js` (gambar lampu dari `lamp-art.js`, ilustrasi koleksi dari `art.js`), jadi booklet otomatis mengikuti perubahan harga/bentuk/warna di website. Buka `booklet.html` di browser untuk pratinjau spread; tombol **Cetak** memakai ukuran halaman A5 tanpa margin.
+
+PDF siap cetak: `assets/booklet/MahaKarya-Booklet-Edisi-01.pdf`. Buat ulang setelah mengubah data:
+
+```
+node tools/build-booklet.js            # PDF (perlu Playwright + Chromium, dan internet untuk Google Fonts)
+node tools/build-booklet.js --qr       # juga memperbarui QR code bila nomor WA / alamat website berubah (perlu `npm i qrcode`)
+node tools/build-booklet.js --png dir  # PNG tiap halaman untuk pratinjau / Instagram
+```
+
+Skrip memperingatkan bila ada isi yang meluap keluar halaman. Untuk percetakan: kirim PDF apa adanya (satu halaman per lembar); mereka yang menyusun imposisi lipat tengah. Ganti ilustrasi lampu dengan foto produk asli sebelum cetak massal; keterangan "ilustrasi, bukan foto produk" ada di halaman 4, 11, dan sampul belakang.
+
 ## Admin WA (`admin.html`)
 
 Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
