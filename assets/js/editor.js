@@ -163,6 +163,7 @@
     pill.addEventListener("click", () => {
       panel.hidden = false;
       pill.hidden = true;
+      document.body.classList.add("mks-has-panel");
     });
     statusEl = $("[data-status]", panel);
 
@@ -175,6 +176,8 @@
       if (e.target.closest("[data-hide]")) {
         panel.hidden = true;
         pill.hidden = false;
+        // Lepaskan ruang 400px di kanan agar halaman kembali selebar jendela
+        document.body.classList.remove("mks-has-panel");
       }
       const t = e.target.closest("[data-tab]");
       if (t) {

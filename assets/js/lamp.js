@@ -275,7 +275,7 @@
     $("#catalog").innerHTML = h;
   }
   function renderStatic() {
-    $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "lavender" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
+    $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "zaitun" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
     $("#led-price-note").textContent = rp(D().ledPrice);
     $("#wiring-price-note").textContent = rp(D().wiringPrice);
     $("#wiring-label-note").textContent = D().wiringLabel;
@@ -433,6 +433,34 @@
       { rootMargin: "-120px 0px 0px 0px" }
     ).observe($("#ctrl-wrap"));
   }
+  // Video proses: baru dimuat & diputar saat masuk layar; dihentikan saat keluar.
+  // Pengguna dengan "kurangi gerakan" mendapat tombol putar manual.
+  (function reel() {
+    const v = $("#reel-video"), btn = $("#reel-play");
+    if (!v || !("IntersectionObserver" in window)) return;
+    // HP: pakai potongan tegak 3:4 agar subjek tidak terpotong oleh object-fit: cover
+    const narrow = window.matchMedia("(max-width: 860px)");
+    const useCut = () => {
+      const base = narrow.matches ? v.dataset.portrait : v.dataset.landscape;
+      if (!base || v.dataset.cut === base) return;
+      v.dataset.cut = base;
+      v.poster = base + "-poster.jpg";
+      v.querySelectorAll("source").forEach((s) => { s.src = base + (s.type === "video/webm" ? ".webm" : ".mp4"); });
+      const was = !v.paused;
+      v.load();
+      if (was) v.play().catch(() => {});
+    };
+    useCut();
+    narrow.addEventListener("change", useCut);
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) { btn.hidden = false; btn.addEventListener("click", () => { v.play(); btn.hidden = true; }); return; }
+    new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { if (v.preload === "none") v.preload = "auto"; v.play().catch(() => { btn.hidden = false; }); }
+      else v.pause();
+    }), { threshold: 0.35 }).observe(v);
+    btn.addEventListener("click", () => { v.play(); btn.hidden = true; });
+  })();
+
   // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
   const wide = window.matchMedia("(min-width: 901px)");
   const syncCtrl = () => { if (wide.matches) $("#ctrl-wrap").open = true; };

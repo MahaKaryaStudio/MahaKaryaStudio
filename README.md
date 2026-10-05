@@ -10,6 +10,8 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 | `index.html` | **Lampu rakitan**: hero dengan lampu menyala, penjelasan 3 bagian, konfigurator (bentuk + warna per bagian, harga & tinggi langsung terhitung, kode rakitan, pesan via WhatsApp), paket 3/4/5 bagian, katalog bagian satuan, cara pesan, spesifikasi, FAQ |
 | `koleksi.html` | **Koleksi Nusantara**: katalog vas/lampu/pot/panel, keranjang → WhatsApp, estimator pesanan custom, B2B, material, FAQ |
 
+Video proses di bagian "Cara pesan": `assets/video/proses-lampu.webm` + `.mp4` (8 detik, tanpa suara, 960×540) dan poster `.jpg`. Saat ini video ilustrasi buatan AI dan diberi label demikian di halaman; ganti dengan rekaman produk asli dengan nama file yang sama, lalu hapus kalimat labelnya lewat Mode Edit tab Teks.
+
 Data: `assets/js/config.js` (kontak, janji waktu balas, alamat/NIB, perkiraan ongkir per zona, gratis ongkir, estimator), `assets/js/lamp-data.js` (bentuk, warna, harga, paket, kit kelistrikan, waktu produksi, preset populer, foto bagian lampu), `assets/js/products.js` (katalog koleksi).
 
 Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
