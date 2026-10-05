@@ -36,8 +36,8 @@ Aturan tetap:
 - **Semua pesanan punya kode rakitan.** Kalau pembeli memesan lewat teks bebas, minta mereka merakit di website atau rakitkan untuk mereka lalu kirim kodenya.
 - **Ongkir** selalu disebut "perkiraan" sampai resi keluar.
 - **Foto rakitan sebelum kirim** wajib. Ini janji di website dan pencegah retur paling murah.
-- Satu pesan masuk = satu baris di `admin.html`. Tiap Sabtu: *Unduh CSV* → tempel ke tab **Pesanan** di `ops/Pesanan_MahaKarya.xlsx`, lalu *Unduh JSON* sebagai cadangan.
-- Cek dua angka tiap Senin di tab **Laporan**: konversi chat → bayar (target ≥ 40%) dan rata-rata bayar → kirim (target ≤ 6 hari preset).
+- Satu pesan masuk = satu baris di `admin.html`. Tiap Sabtu: *Unduh CSV* → tempel ke tab **Pesanan** di `ops/Operasional_MahaKarya.xlsx`, lalu *Unduh JSON* sebagai cadangan.
+- Cek dua angka tiap Senin di tab **Dashboard**: konversi chat → bayar (target ≥ 40%) dan rata-rata bayar → kirim (target ≤ 6 hari preset).
 
 ## 3. Teks
 
