@@ -46,7 +46,23 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 
 ## Admin WA (`admin.html`)
 
-Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
+Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk tab Pesanan di `ops/MahaKarya_Ops.xlsx` (sheet operasional, lihat bawah), unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
+
+## Sheet operasional (`ops/MahaKarya_Ops.xlsx` → Google Sheets)
+
+Satu workbook untuk semua pencatatan, dibuat oleh `python3 tools/build-ops-sheet.py ops/MahaKarya_Ops.xlsx` (openpyxl). Unggah ke Google Drive → buka dengan Google Spreadsheet → simpan sebagai Google Spreadsheet; semua rumus, dropdown, dan warna terbawa.
+
+| Tab | Isi | Diisi |
+|---|---|---|
+| Dashboard | KPI bulan ini, daftar yang harus dikerjakan hari ini, peringatan stok, tren 6 bulan | otomatis |
+| Pesanan | kolom A–Q = CSV dari `admin.html`; kolom R–AO rumus (total, keterlambatan, uraian kode rakitan, gram filamen, HPP, laba kotor) | mingguan (tempel CSV) |
+| Stok filamen / Stok bahan | sisa gram per warna & sisa bahan kemasan/kelistrikan; pemakaian untuk pesanan dihitung otomatis dari kode rakitan, status PESAN bila di bawah minimum | otomatis |
+| Stok bagian jadi | bagian preset yang sudah dicetak | mingguan (opname) |
+| Mutasi stok | pembelian, pemakaian manual (gagal cetak), koreksi opname | harian |
+| Kas | uang masuk/keluar, saldo berjalan | harian |
+| Laporan bulanan | pesanan, konversi, omzet, HPP, laba kotor, arus kas per bulan | otomatis |
+| Rutinitas | checklist harian / mingguan / bulanan dan di mana mengisinya | – |
+| Resep, Pengaturan | gram per bentuk, kode warna, asumsi biaya (ganti dengan angka nyata) | sekali |
 
 ## Mode Edit (ubah isi website tanpa coding)
 
