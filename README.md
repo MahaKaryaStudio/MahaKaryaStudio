@@ -55,6 +55,7 @@ Satu workbook untuk semua pencatatan, dibuat oleh `python3 tools/build-ops-sheet
 | Tab | Isi | Diisi |
 |---|---|---|
 | Dashboard | KPI bulan ini, daftar yang harus dikerjakan hari ini, peringatan stok, tren 6 bulan | otomatis |
+| Data dasbor | ringkasan datar (tanpa data pembeli) yang dibaca `dasbor.html`; satu-satunya tab yang dipublikasikan ke web | otomatis |
 | Pesanan | kolom A–Q = CSV dari `admin.html`; kolom R–AO rumus (total, keterlambatan, uraian kode rakitan, gram filamen, HPP, laba kotor) | mingguan (tempel CSV) |
 | Stok filamen / Stok bahan | sisa gram per warna & sisa bahan kemasan/kelistrikan; pemakaian untuk pesanan dihitung otomatis dari kode rakitan, status PESAN bila di bawah minimum | otomatis |
 | Stok bagian jadi | bagian preset yang sudah dicetak | mingguan (opname) |
@@ -63,6 +64,10 @@ Satu workbook untuk semua pencatatan, dibuat oleh `python3 tools/build-ops-sheet
 | Laporan bulanan | pesanan, konversi, omzet, HPP, laba kotor, arus kas per bulan | otomatis |
 | Rutinitas | checklist harian / mingguan / bulanan dan di mana mengisinya | – |
 | Resep, Pengaturan | gram per bentuk, kode warna, asumsi biaya (ganti dengan angka nyata) | sekali |
+
+### Dasbor web (`dasbor.html`)
+
+Versi web dari tab Dashboard: KPI bulan ini, tugas hari ini, stok filamen/bahan/bagian jadi, grafik 6 bulan, pesanan aktif, kas. Halaman statis (noindex, dilarang di `robots.txt`) yang membaca tab **Data dasbor** dari Google Sheet operasional yang dipublikasikan sebagai CSV (File → Bagikan → Publikasikan ke web → pilih tab *Data dasbor* + CSV). Tab itu hanya berisi ringkasan, tanpa nama/HP/alamat pembeli. Tautan CSV disimpan di browser (localStorage); tombol *Sumber data* untuk mengaturnya, *Lihat contoh* untuk data demo. Memuat ulang otomatis tiap 5 menit. Kode: `assets/js/dasbor.js`, `assets/css/dasbor.css`.
 
 ## Mode Edit (ubah isi website tanpa coding)
 

@@ -1,0 +1,83 @@
+/* Dasbor operasional: melengkapi admin.css */
+:root {
+  --surface: #ffffff; --grid: #ece6db; --text-2: #5b524a; --text-3: #8a7a68;
+  --s1: #c8794a; /* pesanan terbayar / omzet */
+  --s2: #1c8fbf; /* pesanan masuk / laba kotor */
+  --ok: #5c8040; --warn: #c98500; --bad: #b3412a;
+  --ok-bg: #e9f0e4; --warn-bg: #fbefd9; --bad-bg: #f8e3df;
+}
+.upd { font: 500 12.5px var(--sans); color: var(--muted); }
+.steps { margin: 8px 0 12px; padding-left: 20px; font-size: 14px; }
+.steps li { margin: 4px 0; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 820px) { .cols { grid-template-columns: 1fr; } }
+
+/* Stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--paper); min-height: 92px; display: flex; flex-direction: column; gap: 4px; }
+.tile__label { font: 500 12.5px var(--sans); color: var(--text-2); }
+.tile__value { font: 600 28px/1.1 var(--sans); color: var(--ink); letter-spacing: -0.01em; }
+.tile__note { font: 400 12px var(--sans); color: var(--text-3); margin-top: auto; display: flex; align-items: center; gap: 6px; }
+.tile--ok { border-color: #c9dcc0; background: var(--ok-bg); }
+.tile--warn { border-color: #ecd4a8; background: var(--warn-bg); }
+.tile--bad { border-color: #ecc3ba; background: var(--bad-bg); }
+.tile__note .ic { width: 14px; height: 14px; flex: none; }
+
+/* Charts */
+.viz { margin: 10px 0 0; position: relative; }
+.viz svg { display: block; width: 100%; height: auto; font-family: var(--sans); }
+.viz .axis text { font-size: 11px; fill: var(--text-3); }
+.viz .grid line { stroke: var(--grid); stroke-width: 1; }
+.viz .lbl { font-size: 11px; font-weight: 600; fill: var(--text-2); }
+.viz .bar { transition: opacity 0.12s; }
+.viz .bar:hover, .viz .bar:focus { opacity: 0.8; outline: none; }
+.viz .hit { fill: transparent; cursor: default; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font: 500 12.5px var(--sans); color: var(--text-2); margin: 8px 0 0; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.legend i.line { height: 3px; width: 16px; border-radius: 2px; vertical-align: 3px; }
+.viz table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.viz th, .viz td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+.viz th:first-child, .viz td:first-child { text-align: left; font-family: var(--mono); }
+.empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+/* Tooltip */
+.tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: #fff; border-radius: 8px; padding: 8px 10px; font: 12.5px/1.4 var(--sans); box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.4); max-width: 240px; }
+.tip b { font-size: 14px; }
+.tip .row { display: flex; justify-content: space-between; gap: 14px; }
+.tip .row i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 6px; }
+
+/* Meters (stok filamen) */
+.meters { display: grid; gap: 10px; margin-top: 12px; }
+.meter { display: grid; grid-template-columns: 14px 120px 1fr 90px; gap: 10px; align-items: center; font-size: 13.5px; }
+.meter .sw { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.12); }
+.meter .name { font-weight: 500; }
+.meter .name small { display: block; font: 400 11.5px var(--sans); color: var(--text-3); }
+.meter .track { position: relative; height: 10px; border-radius: 5px; background: var(--paper-2); overflow: hidden; }
+.meter .fill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--ok); }
+.meter .min { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: 0.5; }
+.meter.is-bad .fill { background: var(--bad); }
+.meter.is-warn .fill { background: var(--warn); }
+.meter .val { text-align: right; font-family: var(--mono); font-size: 12.5px; color: var(--text-2); }
+.meter .val b { color: var(--ink); }
+@media (max-width: 520px) { .meter { grid-template-columns: 14px 1fr; } .meter .track { grid-column: 1 / -1; } .meter .val { grid-column: 1 / -1; text-align: left; } }
+
+/* Lists */
+.list { display: grid; gap: 6px; margin-top: 12px; }
+.list h3 { font: 600 12.5px var(--sans); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin: 8px 0 2px; }
+.item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 8px; background: var(--paper); font-size: 13.5px; }
+.item .n { font-family: var(--mono); font-size: 12.5px; color: var(--text-2); }
+.item.is-bad { background: var(--bad-bg); }
+.item.is-warn { background: var(--warn-bg); }
+.badge { font: 600 11px var(--sans); padding: 2px 8px; border-radius: 999px; background: var(--paper-2); color: var(--text-2); white-space: nowrap; }
+.badge--bad { background: var(--bad); color: #fff; }
+.badge--warn { background: var(--warn); color: #fff; }
+.badge--ok { background: var(--ok); color: #fff; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; margin-top: 12px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th { text-align: left; font: 600 12px var(--sans); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl td.mono { font-family: var(--mono); font-size: 12.5px; }
+.tbl tr.is-bad td { background: var(--bad-bg); }
+.tbl tr.is-warn td { background: var(--warn-bg); }

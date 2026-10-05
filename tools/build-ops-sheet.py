@@ -164,6 +164,7 @@ r += 1
 header(ws_r, r, ["Dipakai di", "Kode", "Warna", "Hex", ""])
 colors = [("Badan/Alas", "KRE", "Krem", "#efe3cb"), ("Badan/Alas", "HIT", "Hitam arang", "#2b2622"), ("Badan/Alas", "BAT", "Merah bata", "#c4522f"),
           ("Badan/Alas", "ZAI", "Zaitun", "#5c8040"), ("Badan/Alas", "SAL", "Salmon", "#e8836f"), ("Kap", "GAD", "Gading", "#f3e8d1"), ("Kap", "PUT", "Putih", "#f8f5ee")]
+COLOR_ROW0 = r + 1
 for i, (kind, kode, nama, hx) in enumerate(colors, start=r + 1):
     for col, v in enumerate([kind, kode, nama, hx], 1):
         c = ws_r.cell(row=i, column=col, value=v); c.border = border
@@ -182,7 +183,7 @@ HEAD = ["ID", "Tanggal", "Status", "Nama", "No WA", "Kode rakitan", "Harga lampu
         "Kurir", "Resi", "Perkiraan tiba", "Tgl selesai", "Catatan",
         "Total", "Hari bayar→tiba", "Terlambat?", "Bulan pesan", "Bulan bayar", "Terbayar?",
         "Kode bersih", "Jml segmen", "Kap", "Badan 1", "Badan 2", "Badan 3", "Alas", "Kit?", "LED?",
-        "g kap", "g badan 1", "g badan 2", "g badan 3", "g alas", "Total gram", "HPP", "Laba kotor", "Margin"]
+        "g kap", "g badan 1", "g badan 2", "g badan 3", "g alas", "Total gram", "HPP", "Laba kotor", "Margin", "No. aktif"]
 header(ws_o, 1, HEAD)
 for i in range(1, 18): ws_o.cell(row=1, column=i).fill = PatternFill("solid", fgColor="9C5730")
 samples = [
@@ -219,6 +220,7 @@ for r in range(2, N_ORD + 1):
         39: f'=IF(X{r}="","",AL{r}*({S["filamen"]}+{S["mesin"]})+{S["kemasan"]}+AE{r}*{S["kit"]}+AF{r}*{S["led"]})',
         40: f'=IF(X{r}="","",N(G{r})-AM{r})',
         41: f'=IF(OR(X{r}="",N(G{r})=0),"",AN{r}/G{r})',
+        42: f'=IF(AND(A{r}<>"",C{r}<>"Selesai",C{r}<>"Batal"),COUNTIFS($A$2:A{r},"?*",$C$2:C{r},"<>Selesai",$C$2:C{r},"<>Batal"),"")',
     }
     for col, formula in f.items():
         c = ws_o.cell(row=r, column=col, value=formula)
@@ -235,7 +237,7 @@ ws_o.add_data_validation(dv_status); ws_o.add_data_validation(dv_zone)
 dv_status.add(f"C2:C{N_ORD}"); dv_zone.add(f"H2:H{N_ORD}")
 ws_o.conditional_formatting.add(f"A2:Q{N_ORD}", FormulaRule(formula=[f'$T2="YA"'], fill=fill_warn))
 ws_o.conditional_formatting.add(f"A2:Q{N_ORD}", FormulaRule(formula=[f'$C2="Baru"'], fill=fill_amber))
-widths(ws_o, [12, 11, 13, 20, 14, 38, 12, 13, 10, 30, 11, 11, 8, 12, 11, 11, 24, 12, 10, 9, 10, 10, 9, 36, 8, 9, 9, 9, 9, 9, 6, 6, 7, 8, 8, 8, 7, 9, 12, 12, 8])
+widths(ws_o, [12, 11, 13, 20, 14, 38, 12, 13, 10, 30, 11, 11, 8, 12, 11, 11, 24, 12, 10, 9, 10, 10, 9, 36, 8, 9, 9, 9, 9, 9, 6, 6, 7, 8, 8, 8, 7, 9, 12, 12, 8, 8])
 ws_o["A1"].comment = Comment("Kolom A–Q = tempel dari CSV admin.html (Unduh CSV, pemisah ;). Kolom R ke kanan = rumus.", "MahaKarya")
 
 # ======================================================================
@@ -635,8 +637,69 @@ for i, t in enumerate(guide, start=3):
     ws_p.row_dimensions[i].height = 32
 widths(ws_p, [140])
 
+# ======================================================================
+# DATA DASBOR (ringkasan datar untuk dasbor web; tanpa nama/HP/alamat pembeli)
+# ======================================================================
+ws_x = sheet("Data dasbor")
+ws_x["A1"] = "bagian"; ws_x["B1"] = "kunci"
+for i, h in enumerate(["nilai1", "nilai2", "nilai3", "nilai4", "nilai5", "nilai6", "nilai7"], 3): ws_x.cell(row=1, column=i, value=h)
+header(ws_x, 1, ["bagian", "kunci", "nilai1", "nilai2", "nilai3", "nilai4", "nilai5", "nilai6", "nilai7"], height=20)
+xr = 2
+def xrow(bag, key, *vals):
+    global xr
+    ws_x.cell(row=xr, column=1, value=bag); ws_x.cell(row=xr, column=2, value=key)
+    for i, v in enumerate(vals, 3):
+        c = ws_x.cell(row=xr, column=i, value=v); c.fill = fill_calc
+    xr += 1
+MX = '"' + '"'  # placeholder
+MB = 'TEXT(TODAY(),"yyyy-mm")'
+xrow("meta", "bulan", f"={MB}")
+xrow("meta", "catatan", "Tab ini dibaca dasbor web (dasbor.html). Publikasikan HANYA tab ini ke web sebagai CSV. Tidak berisi nama/HP/alamat.")
+kpi = [
+    ("pesanan_masuk", f'=COUNTIFS({PES("U")},{MB})'),
+    ("terbayar", f'=SUMPRODUCT(({PES("U")}={MB})*{PES("W")})'),
+    ("konversi", f'=IF(COUNTIFS({PES("U")},{MB})=0,"",SUMPRODUCT(({PES("U")}={MB})*{PES("W")})/COUNTIFS({PES("U")},{MB}))'),
+    ("omzet", f'=SUMIFS({PES("G")},{PES("V")},{MB},{PES("W")},1)'),
+    ("laba_kotor", f'=SUMIFS({PES("AN")},{PES("V")},{MB},{PES("W")},1)'),
+    ("hari_bayar_tiba", f'=IF(COUNTIFS({PES("V")},{MB},{PES("S")},">=0")=0,"",SUMIFS({PES("S")},{PES("V")},{MB})/COUNTIFS({PES("V")},{MB},{PES("S")},">=0"))'),
+    ("belum_dibalas", f'=COUNTIF({PES("C")},"Baru")'),
+    ("tunggu_bayar_1hari", f'=SUMPRODUCT(({PES("C")}="Tunggu bayar")*({PES("B")}<TODAY()-1)*({PES("B")}<>""))'),
+    ("antrean_cetak", f'=COUNTIF({PES("C")},"Cetak")'),
+    ("terlambat", f'=COUNTIF({PES("T")},"YA")'),
+    ("dikirim", f'=COUNTIF({PES("C")},"Dikirim")'),
+    ("aktif", f'=COUNTIF({PES("A")},"?*")-COUNTIF({PES("C")},"Selesai")-COUNTIF({PES("C")},"Batal")'),
+    ("filamen_pesan", f"=COUNTIF('Stok filamen'!$M${F0}:$M${F1},\"PESAN\")"),
+    ("bahan_pesan", f"=COUNTIF('Stok bahan'!$K${B0}:$K${B1},\"PESAN\")"),
+    ("jadi_cetak", f"=COUNTIF('Stok bagian jadi'!$G${J0}:$G${J1 + 29},\"CETAK\")"),
+    ("kas_masuk_bulan", f'=SUMIFS({KAS("D")},{KAS("B")},"Masuk",{KAS("G")},{MB})'),
+    ("kas_keluar_bulan", f'=SUMIFS({KAS("D")},{KAS("B")},"Keluar",{KAS("G")},{MB})'),
+    ("saldo_kas", f'=SUMIFS({KAS("D")},{KAS("B")},"Masuk")-SUMIFS({KAS("D")},{KAS("B")},"Keluar")'),
+    ("target_konversi", f"={S['tkonv']}"), ("target_hari", f"={S['thari']}"),
+]
+for k, f in kpi: xrow("kpi", k, f)
+for i in range(18):
+    r = L0 + i
+    xrow("tren", f"='Laporan bulanan'!A{r}", f"='Laporan bulanan'!B{r}", f"='Laporan bulanan'!C{r}", f"='Laporan bulanan'!E{r}", f"='Laporan bulanan'!H{r}", f"='Laporan bulanan'!L{r}", f"=IF('Laporan bulanan'!M{r}=\"\",\"\",'Laporan bulanan'!M{r})", f"='Laporan bulanan'!G{r}")
+CR0 = r_colors0 = None
+for i in range(len(colors)):
+    r = F0 + i
+    xrow("filamen", f"='Stok filamen'!A{r}", f"='Stok filamen'!B{r}", f"='Stok filamen'!I{r}", f"={S['minfil']}", f"=IF('Stok filamen'!L{r}=\"\",\"\",'Stok filamen'!L{r})", f"='Stok filamen'!M{r}", f"=IFERROR(INDEX(Resep!$D${COLOR_ROW0}:$D${COLOR_ROW0 + len(colors) - 1},MATCH('Stok filamen'!A{r},Resep!$B${COLOR_ROW0}:$B${COLOR_ROW0 + len(colors) - 1},0)),\"\")", f"='Stok filamen'!K{r}")
+for i in range(len(bahan)):
+    r = B0 + i
+    xrow("bahan", f"='Stok bahan'!A{r}", f"='Stok bahan'!I{r}", f"='Stok bahan'!J{r}", f"='Stok bahan'!K{r}", f"='Stok bahan'!B{r}")
+for i in range(J0, J1 + 30):
+    xrow("jadi", f"=IF('Stok bagian jadi'!A{i}=\"\",\"\",'Stok bagian jadi'!D{i})", f"='Stok bagian jadi'!A{i}", f"='Stok bagian jadi'!B{i}", f"='Stok bagian jadi'!C{i}", f"='Stok bagian jadi'!E{i}", f"='Stok bagian jadi'!F{i}", f"='Stok bagian jadi'!G{i}")
+for n in range(1, 41):
+    def pick(col):
+        return f"=IFERROR(INDEX({PES(col)},MATCH({n},{PES('AP')},0)),\"\")"
+    xrow("aktif", pick("A"), pick("C"), f"=IFERROR(TEXT(INDEX({PES('B')},MATCH({n},{PES('AP')},0)),\"yyyy-mm-dd\"),\"\")", f"=IFERROR(IF(INDEX({PES('L')},MATCH({n},{PES('AP')},0))=\"\",\"\",TEXT(INDEX({PES('L')},MATCH({n},{PES('AP')},0)),\"yyyy-mm-dd\")),\"\")", pick("T"), pick("F"), pick("H"))
+for r in range(2, xr):
+    ws_x.cell(row=r, column=2).fill = fill_calc
+widths(ws_x, [10, 22, 16, 14, 14, 14, 12, 12, 12])
+ws_x.freeze_panes = "A2"
+
 # urutan tab
-order = ["Dashboard", "Pesanan", "Stok filamen", "Stok bahan", "Stok bagian jadi", "Mutasi stok", "Kas", "Laporan bulanan", "Rutinitas", "Resep", "Pengaturan", "Panduan"]
+order = ["Dashboard", "Pesanan", "Stok filamen", "Stok bahan", "Stok bagian jadi", "Mutasi stok", "Kas", "Laporan bulanan", "Rutinitas", "Resep", "Pengaturan", "Panduan", "Data dasbor"]
 wb._sheets = [wb[n] for n in order]
 wb.remove(wb["Sheet"]) if "Sheet" in wb.sheetnames else None
 for ws in wb.worksheets:
@@ -648,5 +711,6 @@ wb["Dashboard"].sheet_properties.tabColor = "F2A33A"
 wb["Pesanan"].sheet_properties.tabColor = "9C5730"
 for n in ("Stok filamen", "Stok bahan", "Stok bagian jadi", "Mutasi stok"): wb[n].sheet_properties.tabColor = "3DB4DE"
 wb["Kas"].sheet_properties.tabColor = "4F6B45"
+wb["Data dasbor"].sheet_properties.tabColor = "8A7A68"
 wb.save(OUT)
 print("ok", OUT)

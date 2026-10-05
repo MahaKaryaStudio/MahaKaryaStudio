@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Dasbor · MahaKarya Studio</title>
+  <link rel="icon" href="assets/brand/nyala-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+  <link rel="stylesheet" href="assets/css/dasbor.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top__inner">
+      <a class="logo" href="index.html"><img src="assets/brand/nyala-icon.svg" alt="" width="28" height="28" /> <b>MahaKarya Studio</b> <span>Dasbor</span></a>
+      <nav class="top__nav">
+        <span class="upd" id="upd"></span>
+        <a class="btn btn--sm" href="admin.html">Admin WA</a>
+        <button class="btn btn--sm" type="button" id="reload">Muat ulang</button>
+        <button class="btn btn--sm" type="button" id="setup-btn">Sumber data</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel setup" id="setup" hidden>
+      <h2>Sumber data</h2>
+      <p class="muted">Dasbor ini membaca tab <b>Data dasbor</b> dari Google Sheet operasional. Tab itu hanya berisi ringkasan (tidak ada nama, nomor WA, atau alamat pembeli), jadi aman dipublikasikan.</p>
+      <ol class="steps">
+        <li>Di Google Sheets: <b>File → Bagikan → Publikasikan ke web</b>.</li>
+        <li>Pilih tab <b>Data dasbor</b> (bukan "Seluruh dokumen") dan format <b>Nilai yang dipisahkan koma (.csv)</b>, lalu <b>Publikasikan</b>.</li>
+        <li>Salin tautannya dan tempel di bawah. Tautan disimpan di browser ini saja.</li>
+      </ol>
+      <label>Tautan CSV tab "Data dasbor"<input id="csv-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?gid=…&single=true&output=csv" /></label>
+      <div class="acts">
+        <button class="btn btn--primary" type="button" id="save-url">Simpan & muat</button>
+        <button class="btn" type="button" id="demo">Lihat contoh (data demo)</button>
+        <span class="muted small">Google memperbarui CSV terpublikasi ±5 menit setelah sheet diubah. Dasbor memuat ulang otomatis tiap 5 menit.</span>
+      </div>
+    </section>
+
+    <p class="notice" id="msg" hidden></p>
+
+    <section class="panel">
+      <div class="panel__head"><h2>Harus dikerjakan hari ini</h2><span class="muted small">semua bulan</span></div>
+      <div class="tiles" id="todo"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head"><h2>Penjualan <small id="bulan"></small></h2></div>
+      <div class="tiles" id="kpi"></div>
+    </section>
+
+    <div class="cols">
+      <section class="panel">
+        <div class="panel__head"><h2>Pesanan per bulan</h2><button class="chip" type="button" data-table="c-pesanan">Tabel</button></div>
+        <figure class="viz" id="c-pesanan"></figure>
+      </section>
+      <section class="panel">
+        <div class="panel__head"><h2>Omzet & laba kotor</h2><button class="chip" type="button" data-table="c-omzet">Tabel</button></div>
+        <figure class="viz" id="c-omzet"></figure>
+      </section>
+    </div>
+
+    <div class="cols">
+      <section class="panel">
+        <div class="panel__head"><h2>Stok filamen</h2><span class="muted small" id="fil-note"></span></div>
+        <div class="meters" id="filamen"></div>
+      </section>
+      <section class="panel">
+        <div class="panel__head"><h2>Bahan & bagian jadi</h2></div>
+        <div id="bahan"></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel__head"><h2>Pesanan aktif <small id="aktif-n"></small></h2><span class="muted small">detail & nomor WA ada di admin.html</span></div>
+      <div class="tbl-wrap"><table class="tbl" id="aktif"></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head"><h2>Kas</h2></div>
+      <div class="tiles" id="kas"></div>
+    </section>
+  </main>
+
+  <div class="tip" id="tip" role="status" aria-live="polite" hidden></div>
+  <script src="assets/js/dasbor.js"></script>
+</body>
+</html>
