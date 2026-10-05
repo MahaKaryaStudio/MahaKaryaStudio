@@ -27,6 +27,7 @@
   const THEMES = {
     dark: { bg: "#15100c", bg2: "#1e1712", fg: "#f2e7d5", muted: "#a89a85", accent: "#f2a33a", accent2: "#c8794a", table: "#2b1f15", tableLine: "#4a3625", wa: "#25d366", waInk: "#0b3d1f", card: "rgba(255,255,255,0.06)" },
     light: { bg: "#faf6ef", bg2: "#f2ebdf", fg: "#1f1a16", muted: "#5b524a", accent: "#c8794a", accent2: "#9c5730", table: "#e6dccb", tableLine: "#d2c4ab", wa: "#25d366", waInk: "#0b3d1f", card: "rgba(31,26,22,0.06)" },
+    studio: { bg: "#efede8", bg2: "#e6e3dd", fg: "#1f1a16", muted: "#5b524a", accent: "#c8794a", accent2: "#9c5730", table: "#d8d6d1", tableLine: "#c6c4bf", wa: "#25d366", waInk: "#0b3d1f", card: "rgba(31,26,22,0.06)" },
   };
   const FORMATS = {
     "9:16": { full: [1080, 1920], light: [720, 1280], label: "Tegak 9:16 (Reels, TikTok, Status WA)" },
@@ -305,7 +306,7 @@
         center: { x: m, y: H * 0.14, w: W - 2 * m, h: H * 0.7 },
       };
     }
-    return { W, H, s, c, theme: opts.theme === "light" ? "light" : "dark", lay, portrait, landscape, m };
+    return { W, H, s, c, theme: THEMES[opts.theme] ? opts.theme : "dark", lay, portrait, landscape, m };
   }
 
   /* ---------- Lampu: lapisan → gambar ---------- */
@@ -330,41 +331,43 @@
       const z = st.zoom || 1;
       const scale = ctx.getTransform().a || 1;
       const room = st.table !== false;
-      const cv = window.MKSLamp3D.render({ cfg: lamp.cfg, W: F.W, H: F.H, scale, cx: lamp.cx + (st.dx || 0), bottom: lamp.floorY + (st.dy || 0), h: lamp.h * z, dim, build, t: st.t || 0, theme: F.theme, room });
+      const cv = window.MKSLamp3D.render({ cfg: lamp.cfg, lineup: st.lineup, W: F.W, H: F.H, scale, cx: lamp.cx + (st.dx || 0), bottom: lamp.floorY + (st.dy || 0), h: lamp.h * z, w: st.w || F.W * 0.9, dim, build, t: st.t || 0, theme: F.theme, room });
       const L = window.MKSLamp3D.last;
       ctx.save();
       ctx.globalAlpha *= st.alpha == null ? 1 : st.alpha;
       ctx.drawImage(cv, 0, 0, F.W, F.H);
       if (dim > 0.01) {
         // Pendar cahaya di sekitar kap dan kolam hangat di meja (efek 2D aditif)
-        const r = lamp.h * z * 0.55;
         ctx.globalCompositeOperation = "lighter";
-        let g = ctx.createRadialGradient(L.headCy.x, L.headCy.y, 0, L.headCy.x, L.headCy.y, r);
-        const k = (F.theme === "light" ? 0.35 : 0.75) * dim;
-        g.addColorStop(0, `rgba(255,200,120,${0.45 * k})`);
-        g.addColorStop(0.35, `rgba(255,170,80,${0.16 * k})`);
-        g.addColorStop(1, "rgba(255,160,70,0)");
-        ctx.fillStyle = g;
-        ctx.fillRect(L.headCy.x - r, L.headCy.y - r, 2 * r, 2 * r);
-        if (!room) {
-          const rx = lamp.h * z * 0.6, ry = rx * 0.22;
-          ctx.save();
-          ctx.translate(L.floor.x, L.floor.y);
-          ctx.scale(1, ry / rx);
-          g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-          g.addColorStop(0, `rgba(255,190,110,${0.35 * dim})`);
-          g.addColorStop(1, "rgba(255,190,110,0)");
+        const k = (F.theme === "dark" ? 0.75 : F.theme === "studio" ? 0.22 : 0.35) * dim;
+        L.lamps.forEach((lp) => {
+          const r = lp.hPx * 0.55;
+          let g = ctx.createRadialGradient(lp.head.x, lp.head.y, 0, lp.head.x, lp.head.y, r);
+          g.addColorStop(0, `rgba(255,200,120,${0.45 * k})`);
+          g.addColorStop(0.35, `rgba(255,170,80,${0.16 * k})`);
+          g.addColorStop(1, "rgba(255,160,70,0)");
           ctx.fillStyle = g;
-          ctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
-          ctx.restore();
-        }
+          ctx.fillRect(lp.head.x - r, lp.head.y - r, 2 * r, 2 * r);
+          if (!room) {
+            const rx = lp.hPx * 0.6, ry = rx * 0.22;
+            ctx.save();
+            ctx.translate(lp.floor.x, lp.floor.y);
+            ctx.scale(1, ry / rx);
+            g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+            g.addColorStop(0, `rgba(255,190,110,${0.35 * dim})`);
+            g.addColorStop(1, "rgba(255,190,110,0)");
+            ctx.fillStyle = g;
+            ctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
+            ctx.restore();
+          }
+        });
       }
       if (room) {
         // Vignette tipis agar terasa seperti foto
         ctx.globalCompositeOperation = "source-over";
         const v = ctx.createRadialGradient(F.W / 2, F.H / 2, Math.min(F.W, F.H) * 0.35, F.W / 2, F.H / 2, Math.max(F.W, F.H) * 0.75);
         v.addColorStop(0, "rgba(0,0,0,0)");
-        v.addColorStop(1, F.theme === "light" ? "rgba(40,30,20,0.18)" : "rgba(0,0,0,0.45)");
+        v.addColorStop(1, F.theme === "dark" ? "rgba(0,0,0,0.45)" : F.theme === "studio" ? "rgba(40,35,30,0.12)" : "rgba(40,30,20,0.18)");
         ctx.fillStyle = v;
         ctx.fillRect(0, 0, F.W, F.H);
       }
@@ -551,6 +554,20 @@
           drawLamp(ctx, F, prev, { t, dim: 1, alpha: 1 - f });
           drawLamp(ctx, F, cur, { t, dim: 1, alpha: f });
           headline(ctx, t, `*${D.heads.length + D.bodies.length + D.bases.length} bentuk* · ${D.colors.length} warna filamen · ${D.shadeColors.length} warna kap`, "Ganti bagian kapan saja. Bagian lama bisa ditukar warna atau bentuk lain.");
+        },
+      });
+    }
+    if (lamp.mode3d && D.presets.length > 1) {
+      const lineup = D.presets.slice(0, F.portrait ? 3 : 7);
+      const rowBox = o.noText ? { x: F.W * 0.05, w: F.W * 0.9 } : F.landscape ? { x: F.W * 0.05, w: F.W * 0.9 } : { x: F.m, w: F.W - 2 * F.m };
+      scenes.push({
+        id: "deretan",
+        dur: 3.6,
+        draw(ctx, t) {
+          backdrop(ctx, F, t);
+          const zoom = 1 + 0.04 * clamp(t / this.dur);
+          drawLamp(ctx, F, lamp, { t, dim: 1, lineup, w: rowBox.w * zoom, dy: F.portrait ? F.H * (o.noText ? 0.66 : 0.68) - lamp.floorY : 0 });
+          headline(ctx, t, `*${lineup.length} preset* siap kirim, atau susun sendiri`, `Produksi ${D.leadTime.preset} untuk preset, ${D.leadTime.custom} untuk rakitan sendiri.`);
         },
       });
     }

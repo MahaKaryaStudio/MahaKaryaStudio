@@ -29,7 +29,7 @@
     template: "lampu",
     format: "9:16",
     size: "full",
-    theme: "dark",
+    theme: "studio",
     pace: 1,
     quality: "sedang",
     container: "mp4",
