@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin WA · MahaKarya Studio</title>
+  <link rel="icon" href="assets/brand/nyala-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top__inner">
+      <a class="logo" href="index.html"><img src="assets/brand/nyala-icon.svg" alt="" width="28" height="28" /> <b id="brand">MahaKarya Studio</b> <span>Admin WA</span></a>
+      <nav class="top__nav">
+        <button class="btn btn--sm" type="button" id="csv" title="Untuk sheet Pesanan">Unduh CSV</button>
+        <button class="btn btn--sm" type="button" id="json">Unduh JSON</button>
+        <label class="btn btn--sm">Pulihkan JSON<input type="file" id="restore" accept="application/json" hidden /></label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="notice">Halaman ini hanya untuk admin. Data tersimpan di browser ini saja (tidak ada server), jadi unduh cadangan JSON seminggu sekali dan jangan buka di komputer umum.</p>
+
+    <section class="panel">
+      <h2>Pesanan masuk</h2>
+      <p class="muted">Tempel pesan WhatsApp dari pembeli (yang dikirim lewat tombol “Pesan via WhatsApp” di website). Kode, rincian, harga, dan zona terbaca otomatis; harga dihitung ulang dari data website.</p>
+      <textarea id="paste" rows="7" placeholder="Halo MahaKarya Studio, saya mau pesan lampu rakitan:&#10;Kode: MK-PLIGAD-BOLZAI-CINKRE-KUBSAL-BULHIT&#10;…"></textarea>
+      <div class="acts">
+        <button class="btn btn--primary" type="button" id="parse">Baca pesan</button>
+        <button class="btn" type="button" id="manual">Isi manual (tanpa pesan)</button>
+      </div>
+      <div id="draft"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <h2>Daftar pesanan <small id="count"></small></h2>
+        <input id="q" type="search" placeholder="Cari nama / kode / resi" />
+      </div>
+      <div class="filters">
+        <button class="chip is-on" type="button" data-filter="aktif">Aktif</button>
+        <button class="chip" type="button" data-filter="baru">Baru</button>
+        <button class="chip" type="button" data-filter="konfirmasi">Konfirmasi</button>
+        <button class="chip" type="button" data-filter="bayar">Tunggu bayar</button>
+        <button class="chip" type="button" data-filter="cetak">Cetak</button>
+        <button class="chip" type="button" data-filter="kirim">Dikirim</button>
+        <button class="chip" type="button" data-filter="selesai">Selesai</button>
+        <button class="chip" type="button" data-filter="semua">Semua</button>
+      </div>
+      <div id="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Ringkasan 30 hari</h2>
+      <div class="stats" id="stats"></div>
+      <p class="muted small">Rata-rata “bayar → kirim” dihitung dari pesanan yang punya tanggal bayar dan sudah berstatus Dikirim. Laporan lebih lengkap ada di sheet Pesanan (unduh CSV lalu tempel ke tab “Pesanan”).</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/lamp-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
