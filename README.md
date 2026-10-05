@@ -18,6 +18,7 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 - Harga paket lampu diposisikan Rp375–465 ribu (di antara lampu IKEA dan pesaing lokal 3D print), bagian satuan Rp65–229 ribu, diskon paket 15/22/28%. Bohlam LED (≤5 W) dan **kit kelistrikan ber-SNI/K3L** adalah baris terpisah; lampu bisa dipesan "hanya bagian cetak". Website tidak pernah menyebut lampu rakitan "ber-SNI".
 - Konfigurator dibuka dengan preset "Paling populer"; di HP panel ubah bentuk dilipat. Waktu produksi tampil per varian: preset/berstok vs custom.
 - Perkiraan ongkir per zona dan perkiraan total tampil sebelum tombol WhatsApp; angkanya contoh, samakan dengan tarif kurir.
+- Rakitan tersimpan di browser dan dipulihkan saat kembali; tombol **Bagikan rakitan** membuat tautan `?kode=MK-…&zona=…` yang membuka konfigurator dengan rakitan itu (alamat halaman ikut berubah saat merakit). **Kirim sebagai kado**: nama penerima, pesan kartu, tanpa harga di paket, ikut terkirim di pesan WhatsApp dan terbaca oleh `admin.html`.
 
 ## Isi halaman koleksi
 

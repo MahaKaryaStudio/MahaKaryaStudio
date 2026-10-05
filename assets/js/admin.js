@@ -100,10 +100,13 @@
     const zoneLabel = grab(/Kirim ke ([^,\n]+)/i);
     const zone = C.shipping.zones.find((z) => z.label.toLowerCase() === zoneLabel.toLowerCase());
     const stated = grab(/Paket [^—\n]+— Rp([\d.]+)/i).replace(/\./g, "");
+    const giftTo = grab(/Kirim sebagai kado untuk:\s*([^\n]*)/i);
+    const giftMsg = grab(/Pesan kartu:\s*"([^"\n]*)"/i);
     return {
       code,
-      nama: grab(/Nama:\s*([^\n]*)/i),
-      alamat: grab(/Alamat kirim:\s*([^\n]*)/i),
+      catatan: giftTo ? `KADO untuk ${giftTo}${giftMsg ? ` · kartu: "${giftMsg}"` : ""} · tanpa harga di paket: ${grab(/Tanpa harga di paket:\s*(\w+)/i) || "ya"}` : "",
+      nama: grab(/Nama(?: pemesan)?:\s*([^\n]*)/i),
+      alamat: grab(/Alamat kirim(?: \(penerima\))?:\s*([^\n]*)/i),
       zone: zone ? zone.id : C.shipping.zones[0].id,
       statedTotal: stated ? +stated : null,
     };
@@ -199,7 +202,7 @@
   $("#parse").addEventListener("click", () => {
     const txt = $("#paste").value;
     if (!txt.trim()) return toast("Tempel pesan WA dulu");
-    draft = { ...parseMessage(txt), hp: "", ongkir: "", catatan: "" };
+    draft = { hp: "", ongkir: "", ...parseMessage(txt) };
     renderDraft();
   });
   $("#manual").addEventListener("click", () => { draft = { code: "MK-", nama: "", alamat: "", zone: C.shipping.zones[0].id, statedTotal: null, hp: "", ongkir: "", catatan: "" }; renderDraft(); $("#draft input[name=nama]").focus(); });
