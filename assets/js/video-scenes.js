@@ -310,6 +310,8 @@
 
   /* ---------- Lampu: lapisan → gambar ---------- */
   async function loadLamp(cfg, F, box) {
+    const L3 = window.MKSLamp3D;
+    if (L3 && (await L3.ready) && L3.ok) return { mode3d: true, cfg, box, cx: box.x + box.w / 2, floorY: box.y + box.h, h: box.h };
     const A = window.LampArt;
     const probe = A.renderLayers(cfg, { px: 10, table: false });
     const lampTop = (probe.geom.headTop - probe.vy) / probe.vh, lampBot = (probe.geom.floor - probe.vy) / probe.vh;
@@ -324,6 +326,51 @@
   /* st: {dim 0..1, alpha, build (0..1 kemajuan perakitan, 1 = utuh), dx, dy, zoom} */
   function drawLamp(ctx, F, lamp, st = {}) {
     const dim = st.dim == null ? 1 : st.dim, build = st.build == null ? 1 : st.build;
+    if (lamp.mode3d) {
+      const z = st.zoom || 1;
+      const scale = ctx.getTransform().a || 1;
+      const room = st.table !== false;
+      const cv = window.MKSLamp3D.render({ cfg: lamp.cfg, W: F.W, H: F.H, scale, cx: lamp.cx + (st.dx || 0), bottom: lamp.floorY + (st.dy || 0), h: lamp.h * z, dim, build, t: st.t || 0, theme: F.theme, room });
+      const L = window.MKSLamp3D.last;
+      ctx.save();
+      ctx.globalAlpha *= st.alpha == null ? 1 : st.alpha;
+      ctx.drawImage(cv, 0, 0, F.W, F.H);
+      if (dim > 0.01) {
+        // Pendar cahaya di sekitar kap dan kolam hangat di meja (efek 2D aditif)
+        const r = lamp.h * z * 0.55;
+        ctx.globalCompositeOperation = "lighter";
+        let g = ctx.createRadialGradient(L.headCy.x, L.headCy.y, 0, L.headCy.x, L.headCy.y, r);
+        const k = (F.theme === "light" ? 0.35 : 0.75) * dim;
+        g.addColorStop(0, `rgba(255,200,120,${0.45 * k})`);
+        g.addColorStop(0.35, `rgba(255,170,80,${0.16 * k})`);
+        g.addColorStop(1, "rgba(255,160,70,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(L.headCy.x - r, L.headCy.y - r, 2 * r, 2 * r);
+        if (!room) {
+          const rx = lamp.h * z * 0.6, ry = rx * 0.22;
+          ctx.save();
+          ctx.translate(L.floor.x, L.floor.y);
+          ctx.scale(1, ry / rx);
+          g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+          g.addColorStop(0, `rgba(255,190,110,${0.35 * dim})`);
+          g.addColorStop(1, "rgba(255,190,110,0)");
+          ctx.fillStyle = g;
+          ctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
+          ctx.restore();
+        }
+      }
+      if (room) {
+        // Vignette tipis agar terasa seperti foto
+        ctx.globalCompositeOperation = "source-over";
+        const v = ctx.createRadialGradient(F.W / 2, F.H / 2, Math.min(F.W, F.H) * 0.35, F.W / 2, F.H / 2, Math.max(F.W, F.H) * 0.75);
+        v.addColorStop(0, "rgba(0,0,0,0)");
+        v.addColorStop(1, F.theme === "light" ? "rgba(40,30,20,0.18)" : "rgba(0,0,0,0.45)");
+        ctx.fillStyle = v;
+        ctx.fillRect(0, 0, F.W, F.H);
+      }
+      ctx.restore();
+      return;
+    }
     const parts = lamp.L.layers.filter((l) => !["glow", "pool", "head", "headLit"].includes(l.id)).map((l) => l.id).concat(["head"]);
     const n = parts.length;
     const each = (id) => {
@@ -420,14 +467,14 @@
         const e1 = seg(t, 0.1, 0.7), e2 = seg(t, 0.5, 1.1), e3 = seg(t, 0.9, 1.5);
         let y = L.y;
         // Lampu sebagai pengingat produk: penuh di kanan (16:9), kecil di sudut (1:1, 9:16)
-        if (lamp && F.landscape) drawLamp(ctx, F, lamp, { dim: 0.85 + 0.15 * Math.sin(t * 1.5), alpha: e1 * 0.95, table: false });
+        if (lamp && F.landscape) drawLamp(ctx, F, lamp, { t, dim: 0.85 + 0.15 * Math.sin(t * 1.5), alpha: e1 * 0.95, table: false });
         const w = F.landscape ? F.lay.title.w : L.w;
         y += text(ctx, F, o.headline || "Pesan lewat WhatsApp", { x: L.x, y, w, size: (F.landscape ? 64 : 68) * F.s, fam: "serif", weight: 600, alpha: e1, lh: 1.08 }) + 24 * F.s;
         if (cta.wa) { pill(ctx, F, waPretty(cta.wa), L.x, y, { size: 32 * F.s, bg: F.c.wa, icon: "wa", alpha: e2, fam: "mono" }); y += 32 * 1.9 * F.s + 18 * F.s; }
         if (cta.ig) { pill(ctx, F, "@" + cta.ig.replace(/^@/, ""), L.x, y, { size: 28 * F.s, bg: F.c.card, color: F.c.fg, icon: "ig", alpha: e2 }); y += 28 * 1.9 * F.s + 18 * F.s; }
         if (cta.site) y += text(ctx, F, cta.site, { x: L.x, y: y + 6 * F.s, w, size: 26 * F.s, fam: "mono", weight: 500, color: F.c.muted, alpha: e3 }) + 16 * F.s;
         if (cta.trust) text(ctx, F, cta.trust, { x: L.x, y: y + 10 * F.s, w, size: 24 * F.s, weight: 500, color: F.c.muted, alpha: e3, lh: 1.35 });
-        if (lamp && !F.landscape) drawLamp(ctx, F, lamp, { dim: 0.85 + 0.15 * Math.sin(t * 1.5), alpha: e1 * 0.9, table: false, zoom: 0.5, dy: F.H * (F.portrait ? 0.1 : 0.1), dx: F.W * 0.28 });
+        if (lamp && !F.landscape) drawLamp(ctx, F, lamp, { t, dim: 0.85 + 0.15 * Math.sin(t * 1.5), alpha: e1 * 0.9, table: false, zoom: 0.5, dy: F.H * (F.portrait ? 0.1 : 0.1), dx: F.W * 0.28 });
         logo(ctx, F, F.W - F.m - logoWidth(ctx, F, 56 * F.s), F.H - F.m * 0.9 - 56 * F.s, 56 * F.s, { alpha: e3 * 0.9 });
       },
     };
@@ -460,7 +507,7 @@
       draw(ctx, t) {
         backdrop(ctx, F, t);
         const build = clamp(t / (0.5 * n));
-        drawLamp(ctx, F, lamp, { dim: 0, build });
+        drawLamp(ctx, F, lamp, { t, dim: 0, build });
         headline(ctx, t, o.text.headline || "Lampu yang kamu *susun sendiri.*", o.text.sub || "Pilih kap, badan, dan alas satu per satu. Tiap bagian punya bentuk dan warnanya sendiri.");
         if (!o.noText) {
           const Fo = F.lay.foot;
@@ -484,7 +531,7 @@
       fadeOut: false,
       draw(ctx, t) {
         backdrop(ctx, F, t);
-        drawLamp(ctx, F, lamp, { dim: E.inOut(seg(t, 0.15, 1.1)) });
+        drawLamp(ctx, F, lamp, { t, dim: E.inOut(seg(t, 0.15, 1.1)) });
         headline(ctx, t, name, `Tinggi ≈ ${cm} cm · Paket ${pr.pkg.name} (${pr.n} bagian) · bohlam LED E27`, o.showCode ? codeOf(cfg) : "");
       },
     });
@@ -501,8 +548,8 @@
           const prev = k === 1 ? lamp : variants[k - 2];
           const cur = variants[k - 1];
           const f = E.inOut(seg(t - (k - 1) * each, 0, 0.45));
-          drawLamp(ctx, F, prev, { dim: 1, alpha: 1 - f });
-          drawLamp(ctx, F, cur, { dim: 1, alpha: f });
+          drawLamp(ctx, F, prev, { t, dim: 1, alpha: 1 - f });
+          drawLamp(ctx, F, cur, { t, dim: 1, alpha: f });
           headline(ctx, t, `*${D.heads.length + D.bodies.length + D.bases.length} bentuk* · ${D.colors.length} warna filamen · ${D.shadeColors.length} warna kap`, "Ganti bagian kapan saja. Bagian lama bisa ditukar warna atau bentuk lain.");
         },
       });
@@ -514,7 +561,7 @@
         draw(ctx, t) {
           backdrop(ctx, F, t, { glowY: 0.5 });
           const L = F.landscape ? F.lay.title : F.lay.center;
-          if (F.landscape) drawLamp(ctx, F, lamp, { dim: 1, alpha: seg(t, 0, 0.5), table: false });
+          if (F.landscape) drawLamp(ctx, F, lamp, { t, dim: 1, alpha: seg(t, 0, 0.5), table: false });
           let y = L.y;
           y += text(ctx, F, `Paket ${pr.pkg.name} · ${pr.n} bagian`, { x: L.x, y, w: L.w, size: 26 * F.s, weight: 600, color: F.c.accent, alpha: seg(t, 0, 0.4) }) + 14 * F.s;
           const e = E.outCubic(seg(t, 0.15, 0.8));
@@ -540,7 +587,7 @@
           y += 30 * 1.9 * F.s + 10 * F.s;
           y += text(ctx, F, `Termasuk kit kelistrikan ber-SNI/K3L (fitting E27, kabel 1,5 m, saklar, steker). Bohlam LED 5 W +${rp(D.ledPrice)}.`, { x: L.x, y, w: L.w, size: 24 * F.s, weight: 500, color: F.c.muted, alpha: seg(t, 1, 1.5), lh: 1.35 }) + 10 * F.s;
           text(ctx, F, `Produksi ${o.presetIndex >= 0 ? D.leadTime.preset : D.leadTime.custom} · garansi 30 hari cacat cetak`, { x: L.x, y, w: L.w, size: 24 * F.s, weight: 500, color: F.c.muted, alpha: seg(t, 1.2, 1.7), lh: 1.35 });
-          if (!F.landscape) drawLamp(ctx, F, lamp, { dim: 1, alpha: seg(t, 0.2, 0.8) * 0.9, table: false, zoom: 0.55, dy: F.H * (F.portrait ? 0.14 : 0.1), dx: F.W * 0.26 });
+          if (!F.landscape) drawLamp(ctx, F, lamp, { t, dim: 1, alpha: seg(t, 0.2, 0.8) * 0.9, table: false, zoom: 0.55, dy: F.H * (F.portrait ? 0.14 : 0.1), dx: F.W * 0.26 });
         },
       });
     }

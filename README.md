@@ -50,14 +50,14 @@ Halaman admin kedua (tidak ditautkan dari halaman publik, `noindex`, dilarang di
 
 | Template | Isi video |
 |---|---|
-| Lampu rakitan | Logo → bagian lampu jatuh satu per satu (alas, badan, kap) dengan nama bentuk & warna → lampu menyala (nama preset, tinggi, paket, kode rakitan) → variasi preset lain → harga paket (dengan harga satuan dicoret dan persentase hemat, dihitung dari `lamp-data.js` persis seperti konfigurator) → ajakan WhatsApp/Instagram. Pilih preset atau susun sendiri (bentuk + warna tiap bagian) |
+| Lampu rakitan | Logo → bagian lampu jatuh satu per satu (alas, badan, kap) dengan nama bentuk & warna → lampu menyala (nama preset, tinggi, paket, kode rakitan) → variasi preset lain → harga paket (dengan harga satuan dicoret dan persentase hemat, dihitung dari `lamp-data.js` persis seperti konfigurator) → ajakan WhatsApp/Instagram. Pilih preset atau susun sendiri (bentuk + warna tiap bagian). Lampu digambar **3D realistis** (`assets/js/video-3d.js`, three.js): material PLA matte dengan garis lapisan halus, kap bercahaya hangat dari dalam, bayangan lembut cahaya jendela, meja kayu, dan dinding yang ikut menyala; dimensi mengikuti proporsi ilustrasi SVG website. Browser tanpa WebGL otomatis memakai ilustrasi SVG |
 | Koleksi | Satu adegan per produk dari `products.js`: ilustrasi SVG (atau foto bila `image` terisi), nama, koleksi, harga, label, spesifikasi |
 | Foto | Slideshow foto asli yang diunggah (gerak zoom pelan), keterangan per foto. Foto tidak dikirim ke mana pun |
 | Pengumuman | Judul + keterangan + angka sorotan (mis. gratis ongkir, pre-order) |
 
 Format: 9:16 (Reels/TikTok/Status WA, dengan penanda area yang tertutup antarmuka), 1:1 (feed/marketplace), 16:9 dan 3:4 (latar hero website; centang **Tanpa teks**, ukuran dan kualitas "Ringan", lalu simpan sebagai `assets/video/proses-lampu.*` / `proses-lampu-tegak.*` plus poster JPG dari tombol "Unduh poster"). Tema gelap/terang, tempo, kualitas, dan semua teks/kontak bisa diubah; edit dari Mode Edit (harga, warna, produk, kontak) ikut dipakai.
 
-Teknis: adegan digambar ke canvas (`assets/js/video-scenes.js`), lampu diambil dari `LampArt.renderLayers` (satu SVG per bagian), lalu di-encode dengan WebCodecs + `mp4-muxer`/`webm-muxer` (`assets/js/vendor/`, MIT) menjadi MP4 H.264 atau WebM VP9 30 fps, lebih cepat dari durasi video. Browser tanpa encoder H.264 otomatis jatuh ke WebM; browser tanpa WebCodecs merekam waktu nyata lewat MediaRecorder. Pakai Chrome/Edge terbaru untuk MP4 (Instagram/TikTok tidak menerima WebM). Video tanpa suara: tambahkan musik dari pustaka aplikasi saat mengunggah.
+Teknis: adegan digambar ke canvas (`assets/js/video-scenes.js`), lampu dirender WebGL per frame oleh `video-3d.js` (cadangan: `LampArt.renderLayers`, satu SVG per bagian), lalu di-encode dengan WebCodecs + `mp4-muxer`/`webm-muxer` (`assets/js/vendor/`, MIT; three.js dibundel di `vendor/three.bundle.min.js`) menjadi MP4 H.264 atau WebM VP9 30 fps, lebih cepat dari durasi video. Browser tanpa encoder H.264 otomatis jatuh ke WebM; browser tanpa WebCodecs merekam waktu nyata lewat MediaRecorder. Pakai Chrome/Edge terbaru untuk MP4 (Instagram/TikTok tidak menerima WebM). Video tanpa suara: tambahkan musik dari pustaka aplikasi saat mengunggah.
 
 ## Mode Edit (ubah isi website tanpa coding)
 
