@@ -41,7 +41,7 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 
 ## Admin WA (`admin.html`)
 
-Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
+Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk tab Pesanan di `ops/Operasional_MahaKarya.xlsx` (satu workbook: Dashboard, Pesanan, Kas, Stok, Kartu_Stok, Panduan; impor ke Google Sheets lewat File → Import), unduh JSON sebagai cadangan. Ritme harian/mingguan/bulanan ada di tab Panduan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
 
 ## Mode Edit (ubah isi website tanpa coding)
 
