@@ -433,6 +433,20 @@
       { rootMargin: "-120px 0px 0px 0px" }
     ).observe($("#ctrl-wrap"));
   }
+  // Video proses: baru dimuat & diputar saat masuk layar; dihentikan saat keluar.
+  // Pengguna dengan "kurangi gerakan" mendapat tombol putar manual.
+  (function reel() {
+    const v = $("#reel-video"), btn = $("#reel-play");
+    if (!v || !("IntersectionObserver" in window)) return;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) { btn.hidden = false; btn.addEventListener("click", () => { v.play(); btn.hidden = true; }); return; }
+    new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { if (v.preload === "none") v.preload = "auto"; v.play().catch(() => { btn.hidden = false; }); }
+      else v.pause();
+    }), { threshold: 0.35 }).observe(v);
+    btn.addEventListener("click", () => { v.play(); btn.hidden = true; });
+  })();
+
   // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
   const wide = window.matchMedia("(min-width: 901px)");
   const syncCtrl = () => { if (wide.matches) $("#ctrl-wrap").open = true; };
