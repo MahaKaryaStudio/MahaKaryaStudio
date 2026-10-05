@@ -39,6 +39,11 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 3. **Foto produk**: lampu → unggah per bagian lewat Mode Edit tab "Lampu" (atau isi `photos` di `lamp-data.js`); koleksi → field `image` di `products.js`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
 4. **Kebijakan** (garansi, DP 50%, lead time, daur ulang produk lama): pastikan semuanya memang sanggup Anda jalankan.
 
+## Logo MK & kemasan
+
+- **Logo MK Studio** (monogram MK biru muda + titik cahaya amber + wordmark Fraunces yang sama dengan website): `assets/brand/mk/` (SVG) dan `assets/brand/mk/png/` (pratinjau, termasuk `perbandingan-sebelum-sesudah.png`). Dibuat ulang dengan `node tools/build-logo-mk.js assets/brand/mk` lalu `node tools/render-svg-png.js assets/brand/mk assets/brand/mk/png` (butuh `opentype.js`, `@fontsource/fraunces`, `@fontsource/inter`, Playwright). Motto: *Redefining where colours & sustainability take shapes*.
+- **Kemasan LAMP 01 · Dhiyanra**: spesifikasi ukuran, bahan, cetak, dan biaya di `ops/kemasan.md`; panel cetak SVG ukuran sebenarnya, gambar insert, stiker kode rakitan, dan mockup di `ops/kemasan/` (`tools/build-kemasan.js`, `tools/render-kemasan.js`).
+
 ## Admin WA (`admin.html`)
 
 Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
