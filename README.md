@@ -39,6 +39,10 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 3. **Foto produk**: lampu → unggah per bagian lewat Mode Edit tab "Lampu" (atau isi `photos` di `lamp-data.js`); koleksi → field `image` di `products.js`. Foto asli jauh lebih meyakinkan daripada ilustrasi.
 4. **Kebijakan** (garansi, DP 50%, lead time, daur ulang produk lama): pastikan semuanya memang sanggup Anda jalankan.
 
+## Admin WA (`admin.html`)
+
+Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
+
 ## Mode Edit (ubah isi website tanpa coding)
 
 Buka halaman mana pun dengan `#edit` di akhir alamat, misalnya `https://mahakaryastudio.github.io/MahaKaryaStudio/#edit` atau `.../koleksi.html#edit`. Muncul panel di kanan:
