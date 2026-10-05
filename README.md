@@ -9,6 +9,7 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 |---|---|
 | `index.html` | **Lampu rakitan**: hero dengan lampu menyala, penjelasan 3 bagian, konfigurator (bentuk + warna per bagian, harga & tinggi langsung terhitung, kode rakitan, pesan via WhatsApp), paket 3/4/5 bagian, katalog bagian satuan, cara pesan, spesifikasi, FAQ |
 | `koleksi.html` | **Koleksi Nusantara**: katalog vas/lampu/pot/panel, keranjang → WhatsApp, estimator pesanan custom, B2B, material, FAQ |
+| `admin.html`, `video.html` | Halaman admin (tidak ditautkan dari halaman publik): pencatatan pesanan WhatsApp dan generator video promo, lihat bagian masing-masing di bawah |
 
 Video proses di bagian "Cara pesan": `assets/video/proses-lampu.webm` + `.mp4` (8 detik, tanpa suara, 960×540) dan poster `.jpg`. Saat ini video ilustrasi buatan AI dan diberi label demikian di halaman; ganti dengan rekaman produk asli dengan nama file yang sama, lalu hapus kalimat labelnya lewat Mode Edit tab Teks.
 
@@ -42,6 +43,21 @@ Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
 ## Admin WA (`admin.html`)
 
 Halaman khusus admin (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`). Tempel pesan WhatsApp dari pembeli → kode rakitan diurai, harga dihitung ulang dari `lamp-data.js`, pesanan disimpan di browser (localStorage) dengan alur status Baru → Konfirmasi → Tunggu bayar → Cetak → Dikirim → Selesai, tiap status punya balasan siap salin / buka chat WA. Unduh CSV untuk `ops/Pesanan_MahaKarya.xlsx`, unduh JSON sebagai cadangan. Pengaturan WhatsApp Business, label, alur, dan teks quick reply ada di `ops/wa-quick-replies.md`.
+
+## Generator video promo (`video.html`)
+
+Halaman admin kedua (tidak ditautkan dari halaman publik, `noindex`, dilarang di `robots.txt`; ada tombolnya di `admin.html`). Membuat video promo **sepenuhnya di browser** dari data website, tanpa server, tanpa API berbayar.
+
+| Template | Isi video |
+|---|---|
+| Lampu rakitan | Logo → bagian lampu jatuh satu per satu (alas, badan, kap) dengan nama bentuk & warna → lampu menyala (nama preset, tinggi, paket, kode rakitan) → variasi preset lain → harga paket (dengan harga satuan dicoret dan persentase hemat, dihitung dari `lamp-data.js` persis seperti konfigurator) → ajakan WhatsApp/Instagram. Pilih preset atau susun sendiri (bentuk + warna tiap bagian) |
+| Koleksi | Satu adegan per produk dari `products.js`: ilustrasi SVG (atau foto bila `image` terisi), nama, koleksi, harga, label, spesifikasi |
+| Foto | Slideshow foto asli yang diunggah (gerak zoom pelan), keterangan per foto. Foto tidak dikirim ke mana pun |
+| Pengumuman | Judul + keterangan + angka sorotan (mis. gratis ongkir, pre-order) |
+
+Format: 9:16 (Reels/TikTok/Status WA, dengan penanda area yang tertutup antarmuka), 1:1 (feed/marketplace), 16:9 dan 3:4 (latar hero website; centang **Tanpa teks**, ukuran dan kualitas "Ringan", lalu simpan sebagai `assets/video/proses-lampu.*` / `proses-lampu-tegak.*` plus poster JPG dari tombol "Unduh poster"). Tema gelap/terang, tempo, kualitas, dan semua teks/kontak bisa diubah; edit dari Mode Edit (harga, warna, produk, kontak) ikut dipakai.
+
+Teknis: adegan digambar ke canvas (`assets/js/video-scenes.js`), lampu diambil dari `LampArt.renderLayers` (satu SVG per bagian), lalu di-encode dengan WebCodecs + `mp4-muxer`/`webm-muxer` (`assets/js/vendor/`, MIT) menjadi MP4 H.264 atau WebM VP9 30 fps, lebih cepat dari durasi video. Browser tanpa encoder H.264 otomatis jatuh ke WebM; browser tanpa WebCodecs merekam waktu nyata lewat MediaRecorder. Pakai Chrome/Edge terbaru untuk MP4 (Instagram/TikTok tidak menerima WebM). Video tanpa suara: tambahkan musik dari pustaka aplikasi saat mengunggah.
 
 ## Mode Edit (ubah isi website tanpa coding)
 

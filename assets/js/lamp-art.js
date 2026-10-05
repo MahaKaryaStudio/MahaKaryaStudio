@@ -113,38 +113,47 @@
     return k;
   }
 
-  /* cfg: {head:{shape,color}, body:[{shape,color}], base:{shape,color}}
-   * o: {uid, on, dim, explode, table, vb, dims, cover} */
-  function renderLamp(cfg, o = {}) {
-    const u = o.uid || "l";
+  /* Tata letak bagian: posisi vertikal tiap bagian dan potongan SVG-nya.
+   * Dipakai renderLamp (satu gambar utuh) dan renderLayers (satu gambar per bagian, untuk animasi video). */
+  function layout(cfg, o = {}) {
     const dim = o.on === false ? 0 : o.dim == null ? 1 : o.dim;
     const explode = o.explode ? 34 : 0;
-    const table = o.table == null ? true : o.table;
     const W = 320, H = 520, floor = 440;
     const parts = [];
     let y = floor;
     const b = baseShape(cfg.base.shape, y, hexOf(cfg.base.color));
-    parts.push(b.svg);
+    parts.push({ id: "base", svg: b.svg, top: y - b.h, bottom: y });
     const baseTop = y - b.h;
     y -= b.h + explode;
     const bodyBottom = y;
-    cfg.body.forEach((p) => {
+    cfg.body.forEach((p, i) => {
       const bs = bodyShape(p.shape, y, hexOf(p.color));
-      parts.push(bs.svg);
+      parts.push({ id: "body" + i, svg: bs.svg, top: y - bs.h, bottom: y });
       y -= bs.h;
     });
     const bodyTop = y;
     y -= explode;
-    parts.push(`<rect x="${CX - 10}" y="${y - 16}" width="20" height="16" rx="2" fill="#3a3129"/>`);
+    parts.push({ id: "socket", svg: `<rect x="${CX - 10}" y="${y - 16}" width="20" height="16" rx="2" fill="#3a3129"/>`, top: y - 16, bottom: y });
     y -= 16;
     const hs = headShape(cfg.head.shape, y, shadeHex(cfg.head.color), dim * 0.9);
     const headBottom = y, headTop = y - hs.h, headCy = y - hs.h / 2;
+    return { W, H, floor, dim, parts, head: hs, headBottom, headTop, headCy, baseTop, bodyTop, bodyBottom };
+  }
+
+  /* cfg: {head:{shape,color}, body:[{shape,color}], base:{shape,color}}
+   * o: {uid, on, dim, explode, table, vb, dims, cover} */
+  function renderLamp(cfg, o = {}) {
+    const u = o.uid || "l";
+    const table = o.table == null ? true : o.table;
+    const L = layout(cfg, o);
+    const { W, H, floor, dim, headBottom, headTop, headCy, baseTop, bodyTop, bodyBottom } = L;
+    const hs = L.head;
 
     let out = `<svg viewBox="${o.vb || `0 0 ${W} ${H}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pratinjau lampu"${o.cover ? ' style="overflow:visible"' : ""}>${defs(u)}`;
     if (dim > 0) out += `<ellipse cx="${CX}" cy="${headCy}" rx="230" ry="240" fill="url(#${u}-glow)" opacity="${dim}"/>`;
     if (table) out += `<rect x="-600" y="${floor}" width="1520" height="${H - floor + 200}" fill="#2b1f15"/><rect x="-600" y="${floor}" width="1520" height="3" fill="#4a3625"/>`;
     if (dim > 0 && table) out += `<ellipse cx="${CX}" cy="${floor + 6}" rx="150" ry="16" fill="url(#${u}-pool)" opacity="${dim}"/>`;
-    out += `<g>${parts.join("")}</g>${hs.svg}`;
+    out += `<g>${L.parts.map((p) => p.svg).join("")}</g>${hs.svg}`;
     if (dim > 0) out += `<ellipse cx="${CX}" cy="${headBottom - hs.h * 0.45}" rx="24" ry="30" fill="#fff" opacity="${dim * 0.28}"/>`;
     if (o.explode) {
       const lx = CX + 100;
@@ -172,6 +181,32 @@
     return scoped(out, u);
   }
 
+  /* Lampu sebagai tumpukan lapisan terpisah (untuk animasi di canvas, mis. generator video).
+   * Semua lapisan memakai viewBox dan ukuran piksel yang sama sehingga bisa digambar
+   * di kotak yang sama lalu digeser/dipudarkan per lapisan.
+   * o: {uid, table, px (lebar piksel gambar), vb}
+   * Hasil: {vb, width, height, geom, layers: [{id, svg, top, bottom}]} dengan urutan gambar:
+   *   glow (nyala) → table → pool (nyala) → base → body0… → socket → head (padam) → headLit (nyala)
+   * Lapisan "glow", "pool", dan "headLit" digambar dengan opasitas = kecerahan lampu. */
+  function renderLayers(cfg, o = {}) {
+    const u = o.uid || "v";
+    const L = layout(cfg, { on: true, dim: 1 });
+    const vb = o.vb || "-260 -140 840 760";
+    const [vx, vy, vw, vh] = vb.split(/\s+/).map(Number);
+    const width = Math.round(o.px || vw), height = Math.round((o.px || vw) * (vh / vw));
+    const wrap = (inner) => scoped(`<svg viewBox="${vb}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${defs(u)}${inner}</svg>`, u);
+    const hs = L.head;
+    const headOff = headShape(cfg.head.shape, L.headBottom, shadeHex(cfg.head.color), 0);
+    const layers = [];
+    layers.push({ id: "glow", svg: wrap(`<ellipse cx="${CX}" cy="${L.headCy}" rx="230" ry="240" fill="url(#${u}-glow)"/>`), top: L.headCy - 240, bottom: L.headCy + 240 });
+    if (o.table !== false) layers.push({ id: "table", svg: wrap(`<rect x="-600" y="${L.floor}" width="1520" height="${L.H - L.floor + 200}" fill="#2b1f15"/><rect x="-600" y="${L.floor}" width="1520" height="3" fill="#4a3625"/>`), top: L.floor, bottom: L.H });
+    layers.push({ id: "pool", svg: wrap(`<ellipse cx="${CX}" cy="${L.floor + 6}" rx="150" ry="16" fill="url(#${u}-pool)"/>`), top: L.floor - 10, bottom: L.floor + 22 });
+    L.parts.forEach((p) => layers.push({ id: p.id, svg: wrap(p.svg), top: p.top, bottom: p.bottom }));
+    layers.push({ id: "head", svg: wrap(headOff.svg), top: L.headTop, bottom: L.headBottom });
+    layers.push({ id: "headLit", svg: wrap(hs.svg + `<ellipse cx="${CX}" cy="${L.headBottom - hs.h * 0.45}" rx="24" ry="30" fill="#fff" opacity=".28"/>`), top: L.headTop, bottom: L.headBottom });
+    return { vb, vx, vy, vw, vh, width, height, geom: { floor: L.floor, headTop: L.headTop, headBottom: L.headBottom, headCy: L.headCy, baseTop: L.baseTop, cx: CX }, layers };
+  }
+
   const VB = {
     part: { head: "70 70 180 130", body: "90 100 140 90", base: "40 100 240 90" },
     icon: { head: "70 70 180 130", body: "96 104 128 80", base: "60 108 200 76" },
@@ -191,5 +226,5 @@
     return scoped(`<svg viewBox="${VB.icon[kind]}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${defs(u)}${shapeOf(kind, id, hex, 0)}</svg>`, u);
   }
 
-  window.LampArt = { renderLamp, partSvg, iconSvg, totalCm, totalKg, find, hexOf, shadeHex };
+  window.LampArt = { renderLamp, renderLayers, partSvg, iconSvg, totalCm, totalKg, find, hexOf, shadeHex };
 })();

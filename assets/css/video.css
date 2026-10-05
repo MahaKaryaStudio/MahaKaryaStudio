@@ -1,0 +1,40 @@
+/* Halaman generator video promo (video.html); token dasar dari admin.css */
+.studio { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 18px; align-items: start; }
+.controls .panel { margin-bottom: 14px; }
+.controls label + label, .controls .parts + .acts, .controls .acts + .check { margin-top: 10px; }
+.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; margin-top: 10px; }
+.check input { width: auto; }
+.inline { flex-direction: row; align-items: center; gap: 8px; }
+.inline select { width: auto; }
+.parts { display: grid; gap: 6px; margin-top: 10px; }
+.part { display: grid; grid-template-columns: 64px 1fr 1fr 32px; gap: 6px; align-items: center; }
+.part b { font-size: 12.5px; color: var(--ink-2); }
+.part select { padding: 7px 8px; font-size: 13px; }
+.part .chip { padding: 4px 0; text-align: center; }
+.plist { display: grid; gap: 2px; margin-top: 8px; }
+.plist .check { margin-top: 0; font-weight: 500; }
+.photos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.photo { border: 1px solid var(--line); border-radius: 10px; padding: 6px; background: var(--paper); }
+.photo img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; display: block; }
+.photo input { margin-top: 6px; font-size: 12.5px; padding: 6px 8px; }
+.photo .acts { margin-top: 6px; gap: 4px; }
+code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-2); padding: 1px 5px; border-radius: 4px; }
+
+.preview { position: sticky; top: 72px; }
+.stage { background: #0e0a07; border-radius: 12px; padding: 12px; display: grid; place-items: center; margin-top: 10px; }
+.stage canvas { max-width: 100%; max-height: 62vh; width: auto; height: auto; border-radius: 6px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+.transport { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.transport input[type="range"] { flex: 1; padding: 0; border: 0; background: transparent; }
+.transport .num { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.progress progress { flex: 1; height: 10px; accent-color: var(--accent); }
+#out { margin-top: 12px; }
+#out video { width: 100%; max-height: 420px; background: #000; border-radius: 10px; display: block; }
+#out .acts { align-items: center; }
+.toast.bad { background: var(--bad); }
+
+@media (max-width: 900px) {
+  .studio { grid-template-columns: 1fr; }
+  .preview { position: static; }
+  .stage canvas { max-height: 70vh; }
+}

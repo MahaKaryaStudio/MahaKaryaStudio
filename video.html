@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Video promo · MahaKarya Studio</title>
+  <link rel="icon" href="assets/brand/nyala-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+  <link rel="stylesheet" href="assets/css/video.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top__inner">
+      <a class="logo" href="index.html"><img src="assets/brand/nyala-icon.svg" alt="" width="28" height="28" /> <b>MahaKarya Studio</b> <span>Video promo</span></a>
+      <nav class="top__nav">
+        <a class="btn btn--sm" href="admin.html">Admin WA</a>
+        <a class="btn btn--sm" href="index.html#edit">Mode Edit</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="notice">Generator video promo: video dibuat sepenuhnya di browser ini dari data website (bentuk, warna, harga, katalog, kontak) tanpa server dan tanpa biaya. Pakai Chrome atau Edge terbaru untuk hasil MP4. Semua lampu masih ilustrasi SVG; bila sudah ada foto asli, pakai template <b>Foto</b> atau isi foto lewat Mode Edit.</p>
+    <p class="notice" id="file-warn" hidden>Halaman dibuka langsung dari file. Fitur dasar jalan, tetapi foto produk dari <code>products.js</code> tidak bisa dipakai; buka lewat alamat website (GitHub Pages) untuk itu.</p>
+    <p class="notice" id="font-warn" hidden>Font Fraunces/Inter belum termuat (tidak ada internet?). Video tetap bisa dibuat dengan font cadangan.</p>
+
+    <div class="studio">
+      <aside class="controls">
+        <section class="panel">
+          <h2>Template</h2>
+          <div class="filters" id="tabs">
+            <button class="chip is-on" type="button" data-t="lampu">Lampu rakitan</button>
+            <button class="chip" type="button" data-t="koleksi">Koleksi</button>
+            <button class="chip" type="button" data-t="foto">Foto</button>
+            <button class="chip" type="button" data-t="teks">Pengumuman</button>
+          </div>
+          <div data-tpl="lampu" id="tpl-lampu"></div>
+          <div data-tpl="koleksi" id="tpl-koleksi" hidden></div>
+          <div data-tpl="foto" id="tpl-foto" hidden></div>
+          <div data-tpl="teks" id="tpl-teks" hidden><p class="muted small">Isi judul, keterangan, dan angka sorotan di bagian “Teks” di bawah. Cocok untuk promo gratis ongkir, pre-order, atau jam operasional.</p></div>
+        </section>
+
+        <section class="panel">
+          <h2>Format</h2>
+          <div class="grid2">
+            <label class="span2">Rasio <select id="format"></select></label>
+            <label>Ukuran <select id="size"><option value="full">Penuh (1080p, media sosial)</option><option value="light">Ringan (720p, latar website)</option></select></label>
+            <label>Tema <select id="theme"><option value="dark">Gelap (seperti hero)</option><option value="light">Terang (seperti katalog)</option></select></label>
+            <label>Tempo <select id="pace"><option value="1">Normal</option><option value="0.75">Cepat</option><option value="1.3">Santai</option></select></label>
+            <label>Kualitas <select id="quality"><option value="tinggi">Tinggi (file besar)</option><option value="sedang" selected>Sedang</option><option value="ringan">Ringan (untuk website)</option></select></label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Teks</h2>
+          <div class="grid2">
+            <div class="span2" id="lampu-only">
+              <label>Judul utama (pakai *bintang* untuk aksen miring) <input type="text" id="t-headline" placeholder="Lampu yang kamu *susun sendiri.*" /></label>
+              <label>Keterangan <input type="text" id="t-sub" placeholder="Pilih kap, badan, dan alas satu per satu…" /></label>
+            </div>
+            <div class="span2" id="teks-only" hidden>
+              <label>Judul <input type="text" id="t-headline-teks" placeholder="Gratis ongkir Jabodetabek" /></label>
+              <label>Angka/kalimat sorotan <input type="text" id="t-highlight" placeholder="Rp0 ongkir" /></label>
+              <label>Rincian sorotan <input type="text" id="t-detail" placeholder="Untuk pesanan di atas Rp500.000 sampai 31 Desember" /></label>
+            </div>
+            <label class="span2">Judul penutup (ajakan) <input type="text" id="t-cta" placeholder="Pesan lewat *WhatsApp*, kami cetak dan rakit untukmu." /></label>
+            <label>WhatsApp <input type="text" id="c-wa" /></label>
+            <label>Instagram <input type="text" id="c-ig" /></label>
+            <label class="span2">Alamat website <input type="text" id="c-site" /></label>
+            <label class="span2">Baris kepercayaan <input type="text" id="c-trust" /></label>
+          </div>
+        </section>
+      </aside>
+
+      <section class="preview">
+        <div class="panel">
+          <div class="panel__head">
+            <h2>Pratinjau <small id="dims"></small></h2>
+            <label class="check"><input type="checkbox" id="safe" checked /> Tandai area tertutup antarmuka Reels/TikTok</label>
+          </div>
+          <div class="stage"><canvas id="cv" width="360" height="640"></canvas></div>
+          <div class="transport">
+            <button class="btn btn--sm" type="button" id="play">Jeda</button>
+            <input type="range" id="scrub" min="0" max="10" step="0.02" value="0" aria-label="Posisi waktu" />
+            <span class="num" id="time">0.0 / 0.0</span>
+          </div>
+          <p class="muted small" id="status">Menyusun adegan…</p>
+        </div>
+
+        <div class="panel">
+          <h2>Render <small id="dur"></small></h2>
+          <div class="acts">
+            <label class="inline">Berkas <select id="container"><option value="mp4">MP4 (H.264) — Instagram, TikTok, WhatsApp</option><option value="webm">WebM (VP9) — latar website</option></select></label>
+            <button class="btn btn--primary" type="button" id="render">Buat video</button>
+            <button class="btn btn--sm" type="button" id="cancel" hidden>Batal</button>
+            <button class="btn btn--sm" type="button" id="poster" title="Simpan frame pratinjau saat ini sebagai JPG">Unduh poster</button>
+          </div>
+          <div class="progress"><progress id="bar" value="0" max="1"></progress><span class="num" id="pct"></span></div>
+          <div id="out"></div>
+          <p class="muted small" id="support"></p>
+          <p class="muted small">Video tanpa suara (sama seperti video hero). Tambahkan musik dari pustaka bebas royalti di aplikasi Instagram/TikTok saat mengunggah. Untuk latar hero website, pilih rasio 16:9 (dan 3:4 untuk HP), ukuran “Ringan”, kualitas “Ringan”, dan centang “Tanpa teks”.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/lamp-data.js"></script>
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/lamp-art.js"></script>
+  <script src="assets/js/art.js"></script>
+  <script src="assets/js/vendor/mp4-muxer.js"></script>
+  <script src="assets/js/vendor/webm-muxer.js"></script>
+  <script src="assets/js/video-scenes.js"></script>
+  <script src="assets/js/video.js"></script>
+</body>
+</html>
