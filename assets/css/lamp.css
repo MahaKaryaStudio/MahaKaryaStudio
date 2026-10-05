@@ -181,15 +181,17 @@
 .pcard .ghost:hover { background: var(--ink); color: var(--paper); }
 
 /* Cara pesan + spesifikasi */
-/* Video proses (di atas langkah pesan) */
-.reel { margin: 0 0 clamp(28px, 4vw, 48px); position: relative; border-radius: 20px; overflow: hidden; background: #1a130d; box-shadow: var(--shadow); }
-.reel__video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-.reel__play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 22px; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+/* Video latar hero: dipetakan penuh, digelapkan agar teks tetap terbaca */
+.lhero { position: relative; isolation: isolate; overflow: hidden; }
+.lhero__bg { position: absolute; inset: 0; z-index: -1; background: var(--dark-bg); }
+.lhero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.7; filter: saturate(0.9); }
+.lhero__bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 14, 9, 0.9) 0%, rgba(20, 14, 9, 0.72) 45%, rgba(20, 14, 9, 0.42) 100%), linear-gradient(180deg, rgba(20, 14, 9, 0.35) 0%, rgba(20, 14, 9, 0) 30%, rgba(20, 14, 9, 0.6) 100%); }
+.lhero .lead { color: #d9cdb9; }
+.lhero .stage { box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); }
+.lhero__note { position: absolute; right: 14px; bottom: 10px; margin: 0; font-size: 11.5px; color: rgba(242, 231, 213, 0.55); z-index: 1; }
+.reel__play { position: absolute; right: 16px; top: 16px; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--dark-line); background: rgba(0, 0, 0, 0.45); color: #fff; font-size: 16px; cursor: pointer; }
 .reel__play[hidden] { display: none; }
-.reel__cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 18px 14px; color: #fff; font-size: 14px; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%); }
-.reel__cap b { font-family: var(--serif); font-weight: 600; font-size: 17px; margin-right: 6px; }
-.reel__note { display: block; color: rgba(255, 255, 255, 0.72); font-size: 12.5px; margin-top: 2px; }
-@media (max-width: 600px) { .reel { border-radius: 14px; } .reel__cap { padding: 28px 12px 10px; font-size: 13px; } }
+@media (max-width: 860px) { .lhero__bg::after { background: linear-gradient(180deg, rgba(20, 14, 9, 0.88) 0%, rgba(20, 14, 9, 0.72) 60%, rgba(20, 14, 9, 0.85) 100%); } .lhero__note { top: 8px; right: 14px; bottom: auto; } }
 .how { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(24px, 5vw, 64px); align-items: start; }
 .steps-l .step { display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 20px 0; border-top: 1px solid var(--line); }
 .steps-l .step:last-child { border-bottom: 1px solid var(--line); }
