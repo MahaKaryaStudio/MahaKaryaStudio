@@ -275,7 +275,7 @@
     $("#catalog").innerHTML = h;
   }
   function renderStatic() {
-    $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "lavender" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
+    $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "zaitun" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
     $("#led-price-note").textContent = rp(D().ledPrice);
     $("#wiring-price-note").textContent = rp(D().wiringPrice);
     $("#wiring-label-note").textContent = D().wiringLabel;
