@@ -1,0 +1,48 @@
+/* Transisi saat scroll. Hanya aktif bila html.motion-on (prefers-reduced-motion: no-preference). */
+
+/* Header: sembunyi/muncul + bayangan setelah scroll */
+.motion-on .nav { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s; will-change: transform; }
+.motion-on .nav--hide { transform: translateY(-110%); }
+.motion-on .nav--scrolled { box-shadow: 0 6px 24px rgba(31, 26, 22, 0.08); }
+
+/* Garis progres baca */
+.scroll-progress { position: fixed; left: 0; top: 0; height: 3px; width: 100%; background: linear-gradient(90deg, var(--accent), var(--amber, #f0a73a)); transform-origin: 0 50%; transform: scaleX(0); z-index: 60; pointer-events: none; }
+.motion-off .scroll-progress { display: none; }
+
+/* Reveal elemen tunggal */
+.motion-on [data-rv] { opacity: 0; transform: translateY(22px); transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); will-change: opacity, transform; }
+.motion-on [data-rv].in { opacity: 1; transform: none; }
+.motion-on h1[data-rv] { transition-duration: 0.9s; }
+.motion-on .section-sub[data-rv], .motion-on .lead[data-rv] { transition-delay: 0.08s; }
+.motion-on .lhero__cta[data-rv], .motion-on .chips[data-rv] { transition-delay: 0.16s; }
+.motion-on .trust[data-rv] { transition-delay: 0.24s; }
+
+/* Reveal grup: anak-anaknya muncul berjenjang */
+.motion-on [data-rv-group] > * { opacity: 0; transform: translateY(26px); transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1); }
+.motion-on [data-rv-group].in > * { opacity: 1; transform: none; }
+.motion-on [data-rv-group].in > :nth-child(2) { transition-delay: 0.07s; }
+.motion-on [data-rv-group].in > :nth-child(3) { transition-delay: 0.14s; }
+.motion-on [data-rv-group].in > :nth-child(4) { transition-delay: 0.21s; }
+.motion-on [data-rv-group].in > :nth-child(5) { transition-delay: 0.28s; }
+.motion-on [data-rv-group].in > :nth-child(6) { transition-delay: 0.35s; }
+.motion-on [data-rv-group].in > :nth-child(n + 7) { transition-delay: 0.4s; }
+/* Elemen di dalam grup yang juga ditandai tunggal: biarkan grup yang mengatur */
+.motion-on [data-rv-group] > [data-rv] { transition-delay: inherit; }
+.motion-on [data-rv-group].in > [data-rv] { opacity: 1; transform: none; }
+
+/* Parallax hero */
+.motion-on .lhero__bg, .motion-on .lhero .stage, .motion-on .hero__stage { will-change: transform; }
+
+/* Cerita gulir "Tiga bagian": ilustrasi menempel, baris menyala bergantian */
+.motion-on .parts-grid.story { align-items: start; }
+.motion-on .parts-grid.story .exploded { position: sticky; top: 96px; }
+.motion-on .parts-grid.story .part-row { transition: opacity 0.4s, transform 0.4s; opacity: 0.42; transform: translateX(0); border-left: 2px solid transparent; padding-left: 14px; margin-left: -16px; }
+.motion-on .parts-grid.story .part-row.is-active { opacity: 1; transform: translateX(4px); border-left-color: var(--accent); }
+.motion-on .parts-grid.story .part-row.is-active .tag { background: var(--accent); color: #fff; }
+
+/* Preset & kartu: sedikit terangkat saat disentuh */
+.motion-on .preset, .motion-on .pkg, .motion-on .pcard, .motion-on .safety__card, .motion-on .product { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s, opacity 0.65s, border-color 0.2s; }
+.motion-on .preset:hover, .motion-on .pkg:hover, .motion-on .pcard:hover, .motion-on .product:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(31, 26, 22, 0.12); }
+
+/* Saat Mode Edit aktif, jangan sembunyikan apa pun yang sedang diedit */
+body.mks-has-panel [data-rv], body.mks-has-panel [data-rv-group] > * { opacity: 1 !important; transform: none !important; }
