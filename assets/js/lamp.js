@@ -335,9 +335,10 @@
   }
   /* ---------- Marketplace: Tokopedia, Shopee, TikTok Shop ---------- */
   const MARKETS = [
-    { id: "tokopedia", name: "Tokopedia", re: /\/\/(www\.)?(tokopedia)\.[a-z.]+\/[^/?#]+/i, bg: "#03ac0e" },
-    { id: "shopee", name: "Shopee", re: /\/\/(www\.)?(shopee)\.[a-z.]+\/[^/?#]+/i, bg: "#ee4d2d" },
-    { id: "tiktok", name: "TikTok Shop", re: /\/\/(www\.|vt\.|vm\.)?(tiktok)\.[a-z.]+\/[^/?#]+/i, bg: "#111" },
+    // Menerima link toko penuh maupun link pendek dari tombol Bagikan (shp.ee, tk.tokopedia, vt.tiktok)
+    { id: "tokopedia", name: "Tokopedia", re: /\/\/([a-z0-9-]+\.)*tokopedia\.[a-z.]+\/[^/?#]+/i, bg: "#03ac0e" },
+    { id: "shopee", name: "Shopee", re: /\/\/([a-z0-9-]+\.)*(shopee\.[a-z.]+|shp\.ee)\/[^/?#]+/i, bg: "#ee4d2d" },
+    { id: "tiktok", name: "TikTok Shop", re: /\/\/([a-z0-9-]+\.)*tiktok\.[a-z.]+\/[^/?#]+/i, bg: "#111" },
   ];
   const storeUrl = (id) => { const m = MARKETS.find((x) => x.id === id); const u = C[id] || ""; return m && m.re.test(u) ? u : ""; };
   // Baris "Beli lewat marketplace": link per edisi (preset.shop) bila ada, kalau tidak link toko
