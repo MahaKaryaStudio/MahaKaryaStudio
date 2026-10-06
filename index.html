@@ -48,8 +48,8 @@
         <span>MahaKarya<em>Studio</em></span>
       </a>
       <nav class="nav__links" aria-label="Navigasi utama">
+        <a href="#edisi">Edisi</a>
         <a href="#rakit">Rakit</a>
-        <a href="#paket">Paket</a>
         <a href="#bagian">Bagian satuan</a>
         <a href="#cara">Cara pesan</a>
         <a href="#faq">FAQ</a>
@@ -60,8 +60,8 @@
       <details class="menu">
         <summary aria-label="Buka menu"><i></i><i></i><i></i></summary>
         <nav class="menu__links" aria-label="Menu">
+        <a href="#edisi">Edisi</a>
         <a href="#rakit">Rakit</a>
-        <a href="#paket">Paket</a>
         <a href="#bagian">Bagian satuan</a>
         <a href="#cara">Cara pesan</a>
         <a href="#faq">FAQ</a>
@@ -82,20 +82,21 @@
       </div>
       <button class="reel__play" id="reel-play" type="button" aria-label="Putar video latar" hidden>▶</button>
       <p class="lhero__note">Video latar: ilustrasi konsep (dibuat dengan AI)</p>
+      <p class="lhero__hint" id="hero-hint" aria-hidden="true"><span>↓</span> Gulir untuk menyalakan</p>
       <div class="wrap lhero__grid">
         <div>
           <p class="eyebrow">Lampu meja cetak 3D · dirakit sesuai pesanan · Jakarta</p>
           <h1>Lampu yang kamu <span>susun sendiri.</span></h1>
           <p class="lead">Pilih kap, badan, dan alas satu per satu. Tiap bagian punya bentuk dan warnanya sendiri. Kami cetak, rakit, lalu kirim ke rumahmu.</p>
           <div class="chips" data-dynamic-text>
-            <span class="chip-stat"><b>3</b> bagian</span>
-            <span class="chip-stat"><b id="chip-shapes">12</b> bentuk</span>
-            <span class="chip-stat"><b id="chip-colors">5</b> warna filamen</span>
+            <span class="chip-stat"><b data-count>3</b> bagian</span>
+            <span class="chip-stat"><b id="chip-shapes" data-count>12</b> bentuk</span>
+            <span class="chip-stat"><b id="chip-colors" data-count>5</b> warna filamen</span>
             <span class="chip-stat">Mulai <b id="hero-from">Rp —</b></span>
           </div>
           <div class="lhero__cta">
-            <a class="btn btn--primary" href="#rakit">Mulai merakit</a>
-            <a class="btn btn--ghost" href="#paket">Lihat paket</a>
+            <a class="btn btn--primary" href="#edisi">Lihat lima edisi</a>
+            <a class="btn btn--ghost" href="#rakit">Rakit sendiri</a>
           </div>
           <ul class="trust trust--hero">
             <li>Garansi 30 hari cacat cetak</li>
@@ -103,7 +104,7 @@
             <li>Bagian bisa diganti kapan saja</li>
           </ul>
         </div>
-        <div class="stage" id="hero-stage" style="--dim:1">
+        <div class="stage" id="hero-stage" style="--dim:0.12">
           <div class="wall"></div>
           <div class="frames"><i></i><i></i><i></i></div>
           <div class="glow"></div>
@@ -116,6 +117,31 @@
       </div>
     </section>
 
+    <!-- KENAPA RAKITAN (terpaku, 3 kalimat) -->
+    <section class="story dark" id="kenapa" aria-label="Kenapa lampu rakitan">
+      <div class="story__pin">
+        <div class="story__bg" aria-hidden="true"><img src="assets/video/proses-lampu-poster.jpg" alt="" loading="lazy" decoding="async" /></div>
+        <div class="wrap story__wrap">
+          <p class="story__line is-on">Lampu di toko dibuat <em>satu bentuk</em> untuk semua orang.</p>
+          <p class="story__line">Padahal ruanganmu tidak seperti ruangan <em>orang lain</em>.</p>
+          <p class="story__line">Jadi kami tidak memilihkan. <em>Kamu susun</em>, kami cetak di Jakarta.</p>
+          <div class="story__card"><span class="story__ico">✦</span><div><b>Lima edisi siap pesan, atau rakit dari nol.</b><p>Kap, badan, dan alas bisa diganti kapan saja. Ulirnya sama di semua bagian.</p></div></div>
+          <ol class="story__dots" aria-hidden="true"><li class="is-on"></li><li></li><li></li></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIMA EDISI (terang) -->
+    <section id="edisi">
+      <div class="wrap">
+        <p class="eyebrow">Lima edisi</p>
+        <h2 class="section-title">Kombinasi yang sudah kami coba di ruangan sungguhan.</h2>
+        <p class="section-sub">Pilih satu, lalu pesan apa adanya atau ganti bagian mana pun di konfigurator. Harga sudah termasuk kit kelistrikan; bohlam LED opsional.</p>
+        <div class="edisi" id="edisi-app" data-dynamic style="margin-top:32px"></div>
+        <div class="ocard" data-ocard data-dynamic></div>
+      </div>
+    </section>
+
     <!-- TIGA BAGIAN (terang) -->
     <section id="tiga">
       <div class="wrap">
@@ -123,7 +149,13 @@
         <h2 class="section-title">Tiga bagian, satu ulir yang sama.</h2>
         <p class="section-sub">Kap, badan, dan alas disambung dengan ulir cetak M20 yang sama di semua bagian. Tanpa lem. Bagian apa pun bisa dilepas dan diganti kapan saja, termasuk yang kamu beli belakangan.</p>
         <div class="parts-grid" style="margin-top:36px">
-          <div class="exploded" id="exploded" data-dynamic></div>
+          <div class="exploded-wrap">
+            <div class="exploded" id="exploded" data-dynamic></div>
+            <div class="swipe" id="swipe">
+              <label for="swipe-range"><b>Tahan dan geser</b> untuk ganti warna badan <span class="swipe__name" id="swipe-name" data-dynamic></span></label>
+              <input type="range" id="swipe-range" min="0" max="1000" value="0" aria-label="Geser untuk mengganti warna badan" />
+            </div>
+          </div>
           <div>
             <div class="part-row"><span class="tag">Kap</span><div><h3>Head. Meredam dan mengarahkan cahaya.</h3><p>Silinder plisir, kerucut, atau kotak. Fitting E27 tertanam di leher kap, jadi bola lampu tinggal diputar masuk.</p></div></div>
             <div class="part-row"><span class="tag">Badan</span><div><h3>Body. Bagian yang membangun karakter lampu.</h3><p>Susun satu sampai tiga bentuk: bola, kubus, cincin, heksagon, silinder. Campur warna sesuka hati; kabel lewat di dalam.</p></div></div>
@@ -169,6 +201,40 @@
       <div class="orderbar" id="orderbar" data-dynamic hidden></div>
     </section>
 
+    <!-- BEGINI PESANANNYA BERJALAN -->
+    <section id="alur">
+      <div class="wrap">
+        <p class="eyebrow">Setelah tombol WhatsApp</p>
+        <h2 class="section-title">Begini pesananmu berjalan.</h2>
+        <p class="section-sub">Tidak ada akun, tidak ada keranjang. Tiga pesan dari kami yang akan kamu terima, persis seperti ini.</p>
+        <div class="alur" style="margin-top:32px">
+          <article class="phone">
+            <header><span class="phone__step">A</span><b>Konfirmasi &amp; total</b><small>&lt; 1 jam setelah kode diterima</small></header>
+            <div class="phone__chat">
+              <p class="bub bub--you">Halo MahaKarya Studio, saya mau pesan lampu rakitan:<br />Kode: <span class="mono" data-alur-code>MK-PLIGAD-BOLZAI-CINKRE-KUBSAL-BULHIT</span> …</p>
+              <p class="bub">Halo Rani, ini rinciannya:<br /><span data-alur-lines>• Kap · Silinder plisir — Gading<br />• Badan 1 · Bola — Zaitun<br />• Badan 2 · Cincin — Krem<br />• Badan 3 · Kubus — Salmon<br />• Alas · Bulat — Hitam arang</span><br />Paket <span data-alur-pkg>Kuinto</span>: <b data-alur-price>Rp447.000</b><br />Ongkir ke Jabodetabek: ±Rp20.000<br /><b>Total <span data-alur-total>Rp467.000</span></b><br />Produksi 3–5 hari kerja setelah pembayaran.</p>
+            </div>
+          </article>
+          <article class="phone">
+            <header><span class="phone__step">B</span><b>Foto rakitan sebelum dikirim</b><small>Hari ke 3–5</small></header>
+            <div class="phone__chat">
+              <p class="bub">Halo Rani, ini foto rakitan <span class="mono" data-alur-code>MK-…</span> sebelum dikemas. Kalau sudah oke, balas “OK” dan kami kirim hari ini.</p>
+              <div class="bub bub--img" data-alur-photo aria-label="Foto rakitan (ilustrasi)"></div>
+              <p class="bub bub--you">OK, cantik! 😍</p>
+            </div>
+          </article>
+          <article class="phone">
+            <header><span class="phone__step">C</span><b>Resi &amp; tips saat tiba</b><small>Hari yang sama</small></header>
+            <div class="phone__chat">
+              <p class="bub">Lampu sudah dikirim ✅<br />Kurir: JNE REG<br />Resi: <span class="mono">JP1234567890</span><br />Saat tiba, cek kardusnya dulu sebelum tanda tangan.</p>
+              <p class="bub">Sudah terpasang? Bohlam LED maksimal 5 W ya, supaya kap tetap dingin. Kalau berkenan, kirim fotonya di ruanganmu 🙂</p>
+            </div>
+          </article>
+        </div>
+        <p class="alur__note">Nama dan nomor resi di atas contoh. Balasan dikirim manusia, bukan bot: <span data-reply-inline></span>.</p>
+      </div>
+    </section>
+
     <!-- PAKET (terang) -->
     <section id="paket">
       <div class="wrap">
@@ -198,6 +264,7 @@
           </div>
           <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya sudah punya lampu rakitan dan mau beli bagian satuan: ">Pesan bagian satuan</a>
         </div>
+        <div class="ocard" data-ocard data-dynamic></div>
         <div class="bulk">
           <div>
             <h3>Pesan 10 lampu atau lebih?</h3>
@@ -206,6 +273,11 @@
           <a class="btn btn--primary" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
         </div>
       </div>
+    </section>
+
+    <!-- PITA TIPOGRAFI -->
+    <section class="band dark" aria-label="Dicetak satu per satu di Jakarta">
+      <div class="wrap"><p class="band__text"><span>Dicetak satu per satu.</span> <em>Di Jakarta.</em></p><p class="band__sub">Tidak ada stok gudang. Lampumu mulai dicetak setelah kamu memesan, dan kami kirim fotonya sebelum berangkat.</p></div>
     </section>
 
     <!-- CARA PESAN + SPESIFIKASI -->
@@ -301,6 +373,7 @@
         <a href="#bagian">Bagian satuan</a>
         <a href="#aman">Keamanan &amp; perawatan</a>
         <a href="koleksi.html">Koleksi lain</a>
+        <a data-wa="Halo MahaKarya Studio, kabari saya kalau ada edisi atau warna baru ya.">Kabari saya edisi baru</a>
       </div>
       <div data-marketplace-col>
         <h4 data-marketplace>Marketplace</h4>

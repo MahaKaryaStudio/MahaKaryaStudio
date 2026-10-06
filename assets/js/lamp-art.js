@@ -123,21 +123,24 @@
     const W = 320, H = 520, floor = 440;
     const parts = [];
     let y = floor;
-    const b = baseShape(cfg.base.shape, y, hexOf(cfg.base.color));
-    parts.push(b.svg);
+    const b = baseShape(cfg.base.shape, y, cfg.base.hex || hexOf(cfg.base.color));
+    parts.push(`<g class="lp-base">${b.svg}</g>`);
     const baseTop = y - b.h;
     y -= b.h + explode;
     const bodyBottom = y;
+    const bodySvgs = [];
     cfg.body.forEach((p) => {
-      const bs = bodyShape(p.shape, y, hexOf(p.color));
-      parts.push(bs.svg);
+      const bs = bodyShape(p.shape, y, p.hex || hexOf(p.color));
+      bodySvgs.push(bs.svg);
       y -= bs.h;
     });
+    parts.push(`<g class="lp-body">${bodySvgs.join("")}</g>`);
     const bodyTop = y;
     y -= explode;
     parts.push(`<rect x="${CX - 10}" y="${y - 16}" width="20" height="16" rx="2" fill="#3a3129"/>`);
     y -= 16;
-    const hs = headShape(cfg.head.shape, y, shadeHex(cfg.head.color), dim * 0.9);
+    const hs = headShape(cfg.head.shape, y, cfg.head.hex || shadeHex(cfg.head.color), dim * 0.9);
+    hs.svg = `<g class="lp-head">${hs.svg}</g>`;
     const headBottom = y, headTop = y - hs.h, headCy = y - hs.h / 2;
 
     let out = `<svg viewBox="${o.vb || `0 0 ${W} ${H}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pratinjau lampu"${o.cover ? ' style="overflow:visible"' : ""}>${defs(u)}`;

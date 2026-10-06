@@ -274,7 +274,10 @@
 
   function renderHero() {
     $("#hero-lamp").innerHTML = A.renderLamp(hero.cfg, { uid: "hero", on: hero.on, dim: hero.dim, cover: true });
-    $("#hero-stage").style.setProperty("--dim", hero.on ? hero.dim : 0);
+    // Saat motion aktif, nyala lampu hero dikendalikan scroll (motion.js) sampai pengguna menyentuh saklar/dimmer
+    const st = $("#hero-stage");
+    const byScroll = document.documentElement.classList.contains("motion-on") && hero.on && !st.dataset.auto && !st.dataset.off;
+    if (!byScroll) st.style.setProperty("--dim", hero.on ? hero.dim : 0);
     const sw = $("#hero-switch");
     sw.setAttribute("aria-checked", hero.on);
     sw.lastChild.nodeValue = hero.on ? "Nyala" : "Mati";
@@ -329,8 +332,73 @@
     D().bases.forEach((x) => card("base", x));
     $("#catalog").innerHTML = h;
   }
+  /* ---------- Lima edisi ---------- */
+  let edition = D().popularPreset || 0;
+  function presetCfg(i) { return Object.assign(sanitize(clone(D().presets[i])), { wiring: true, led: false }); }
+  function renderEditions() {
+    const el = $("#edisi-app"); if (!el) return;
+    const d = D();
+    const cfg = presetCfg(edition);
+    const pr = price(cfg);
+    const p = d.presets[edition];
+    el.innerHTML =
+      `<div class="edisi__stage stage" style="--dim:1"><div class="wall"></div><div class="glow"></div><div class="lamp">${A.renderLamp(cfg, { uid: "ed", on: true, dim: 0.95, dims: true, cover: true })}</div></div>` +
+      `<div class="edisi__side">` +
+      `<div class="edisi__list" role="radiogroup" aria-label="Pilih edisi">${d.presets.map((q, i) => {
+        const c = presetCfg(i), qp = price(c), n = q.body.length + 2;
+        return `<label class="edisi__opt${i === edition ? " is-on" : ""}"><input type="radio" name="edisi" value="${i}" ${i === edition ? "checked" : ""}/><span class="edisi__sw"><i style="background:${A.shadeHex(c.head.color)}"></i>${c.body.map((x) => `<i style="background:${A.hexOf(x.color)}"></i>`).join("")}<i style="background:${A.hexOf(c.base.color)}"></i></span><span class="edisi__name"><b>${esc(q.name)}</b>${i === d.popularPreset ? '<em class="badge badge--pop">Paling populer</em>' : ""}<small>${n} bagian · Paket ${esc((d.packages[n] || {}).name || "")}</small></span><span class="edisi__price num">${rp(qp.total)}${qp.disc ? `<s>${rp(qp.parts + qp.wiring)}</s>` : ""}</span></label>`;
+      }).join("")}</div>` +
+      `<div class="edisi__detail">` +
+      `<h3>Edisi ${esc(p.name)}</h3><p class="edisi__story">${esc(p.story || "")}</p>` +
+      `<dl class="edisi__specs"><div><dt>Tinggi</dt><dd>≈ ${A.totalCm(cfg).toFixed(0)} cm</dd></div><div><dt>Kap</dt><dd>Ø 20 cm</dd></div><div><dt>Bobot</dt><dd>≈ ${A.totalKg(cfg).toFixed(1)} kg</dd></div><div><dt>Cocok untuk</dt><dd>${esc(p.room || "meja kerja")}</dd></div></dl>` +
+      `<ul class="edisi__mat"><li>PLA matte, lapis 0,2 mm, dicetak sesuai pesanan</li><li>Ulir cetak M20 di semua bagian, tanpa lem</li><li>${esc(d.wiringLabel)} (bisa dilepas)</li></ul>` +
+      `<div class="edisi__total"><div><small>Harga edisi, termasuk kit</small>${pr.disc ? `<s class="num">${rp(pr.parts + pr.wiring)}</s>` : ""}<b class="num">${rp(pr.total)}</b></div><span class="pill">Produksi ${esc(d.leadTime.preset)}</span></div>` +
+      `<div class="edisi__acts"><button class="btn btn--primary" type="button" data-edisi-order="${edition}">Pesan edisi ini</button><button class="btn btn--ghost" type="button" data-edisi-edit="${edition}">Ubah bagian</button></div>` +
+      `</div></div>`;
+  }
+  // Kartu pesan ringkas yang diulang di beberapa bagian
+  function renderOrderCards() {
+    const d = D(); const i = d.popularPreset || 0; const cfg = presetCfg(i); const pr = price(cfg); const m = minPackagePrice(3);
+    document.querySelectorAll("[data-ocard]").forEach((el, k) => {
+      el.innerHTML =
+        `<div class="ocard__fig">${A.renderLamp(cfg, { uid: "oc" + k, on: true, dim: 0.8, table: false, vb: "50 60 220 400" })}</div>` +
+        `<div class="ocard__body"><small>Mulai dari</small><b class="num">${rp(m.price)}</b><span>Edisi ${esc(d.presets[i].name)} ${rp(pr.total)} · produksi ${esc(d.leadTime.preset)} · bayar setelah konfirmasi WA</span></div>` +
+        `<div class="ocard__acts"><button class="btn btn--primary" type="button" data-edisi-order="${i}">Pesan edisi ${esc(d.presets[i].name)}</button><a class="btn btn--ghost" href="#rakit">Rakit sendiri</a></div>`;
+    });
+  }
+  // Mockup alur WA mengikuti edisi populer
+  function renderAlur() {
+    const d = D(); const i = d.popularPreset || 0; const cfg = presetCfg(i); const pr = price(cfg);
+    const z = C.shipping && C.shipping.zones[0];
+    document.querySelectorAll("[data-alur-code]").forEach((el) => (el.textContent = code(cfg)));
+    const lines = $("[data-alur-lines]"); if (lines) lines.innerHTML = pr.lines.map((l) => `• ${esc(l.label)} — ${esc(l.color.name)}`).join("<br />");
+    const pk = $("[data-alur-pkg]"); if (pk) pk.textContent = pr.pkg.name;
+    const prc = $("[data-alur-price]"); if (prc) prc.textContent = rp(pr.total);
+    const tot = $("[data-alur-total]"); if (tot) tot.textContent = rp(pr.total + (z ? z.price : 0));
+    const ph = $("[data-alur-photo]"); if (ph) ph.innerHTML = A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.85, vb: "40 40 240 420" });
+    const rpl = $("[data-reply-inline]"); if (rpl) rpl.textContent = (C.replyPromise || "").toLowerCase();
+  }
+  // Geser untuk ganti warna badan di ilustrasi "Tiga bagian"
+  const EX = { head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "zaitun" }], base: { shape: "bulat", color: "hitam" } };
+  const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  function renderExploded(t) {
+    const cols = D().colors.filter((c) => c.stock !== false);
+    const cfg = sanitize(clone(EX));
+    if (t != null && cols.length > 1) {
+      const pos = t * (cols.length - 1), i = Math.min(cols.length - 2, Math.floor(pos)), f = pos - i;
+      cfg.body[0].hex = mix(hex2rgb(cols[i].hex), hex2rgb(cols[i + 1].hex), f);
+      const near = cols[Math.round(pos)];
+      const nm = $("#swipe-name"); if (nm) nm.textContent = `· ${near.name}`;
+    }
+    $("#exploded").innerHTML = A.renderLamp(cfg, { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
+  }
+
   function renderStatic() {
-    $("#exploded").innerHTML = A.renderLamp(sanitize({ head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "zaitun" }], base: { shape: "bulat", color: "hitam" } }), { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
+    renderExploded(null);
+    renderEditions();
+    renderOrderCards();
+    renderAlur();
     $("#led-price-note").textContent = rp(D().ledPrice);
     $("#wiring-price-note").textContent = rp(D().wiringPrice);
     $("#wiring-label-note").textContent = D().wiringLabel;
@@ -342,7 +410,7 @@
     if (!t) return;
     const d = t.dataset;
     const D_ = D();
-    if (t.id === "hero-switch") { hero.on = !hero.on; return renderHero(); }
+    if (t.id === "hero-switch") { hero.on = !hero.on; $("#hero-stage").dataset.auto = "1"; return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; return renderPreview(); }
     if (t.closest("#rakit, #paket, #bagian")) touched = true;
     if (t.id === "share-link") {
@@ -350,6 +418,17 @@
       const text = `Lihat lampu rakitan ${code(state)} di ${C.brand}`;
       if (navigator.share) return navigator.share({ title: C.brand, text, url }).catch(() => {});
       return copyText(url, "Tautan rakitan disalin");
+    }
+    if (d.edisiOrder != null || d.edisiEdit != null) {
+      const i = +(d.edisiOrder ?? d.edisiEdit);
+      const p = sanitize(clone(D_.presets[i]));
+      Object.assign(state, { head: p.head, body: p.body, base: p.base });
+      touched = true;
+      renderAll();
+      const target = d.edisiOrder != null ? $("#summary") : $("#rakit");
+      target.scrollIntoView({ behavior: "smooth", block: d.edisiOrder != null ? "center" : "start" });
+      if (d.edisiEdit != null) $("#ctrl-wrap").open = true;
+      return toast(d.edisiOrder != null ? `Edisi ${p.name} siap dipesan` : `Edisi ${p.name} dimuat, ubah bagian mana pun`);
     }
     if (t.id === "led-switch") { state.led = !state.led; return renderAll(); }
     if (t.id === "wiring-switch") { state.wiring = state.wiring === false; return renderAll(); }
@@ -406,6 +485,7 @@
     if (d.copy) return copyText(d.copy, "Nomor disalin");
   });
   document.addEventListener("change", (e) => {
+    if (e.target.name === "edisi") { edition = +e.target.value; renderEditions(); }
     if (e.target.id === "zone-select") {
       touched = true;
       state.zone = e.target.value;
@@ -422,6 +502,7 @@
     if (e.target.id === "gift-hide") { state.gift.hide = e.target.checked; refreshWaLinks(); persist(); }
   });
   document.addEventListener("input", (e) => {
+    if (e.target.id === "swipe-range") { renderExploded(+e.target.value / 1000); return; }
     if (e.target.id === "gift-to" || e.target.id === "gift-msg") {
       touched = true;
       state.gift[e.target.id === "gift-to" ? "to" : "msg"] = e.target.value;
@@ -431,6 +512,7 @@
     if (e.target.id === "hero-dim") {
       hero.dim = e.target.value / 100;
       hero.on = true;
+      $("#hero-stage").dataset.auto = "1";
       renderHero();
     }
   });

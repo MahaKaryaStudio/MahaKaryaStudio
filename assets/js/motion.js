@@ -108,7 +108,12 @@
         if (heroBg) heroBg.style.transform = `translate3d(0, ${y * 0.22}px, 0)`;
         if (heroStage) heroStage.style.transform = `translate3d(0, ${y * -0.06}px, 0) scale(${1 - p * 0.04})`;
         if (heroCopy) { heroCopy.style.opacity = String(1 - p * 1.1); heroCopy.style.transform = `translate3d(0, ${y * 0.12}px, 0)`; }
-        if (heroStageEl && !heroStageEl.dataset.off) heroStageEl.style.setProperty("--dim", String(clamp(1 - p * 1.6, 0.15, 1)));
+        if (heroStageEl && !heroStageEl.dataset.off) {
+          const lit = clamp(0.12 + p * 3.2, 0.12, 1); // menyala penuh setelah ±28% tinggi hero
+          heroStageEl.style.setProperty("--dim", String(Math.max(lit, heroStageEl.dataset.auto ? 1 : 0)));
+          if (lit >= 1) heroStageEl.dataset.auto = "1";
+          const hint = $("#hero-hint"); if (hint) hint.classList.toggle("is-off", lit > 0.5 || !!heroStageEl.dataset.auto);
+        }
       }
     }
     // garis langkah "Cara pesan" terisi mengikuti posisi scroll
@@ -124,12 +129,48 @@
   addEventListener("resize", () => requestAnimationFrame(frame));
   html.classList.add("scroll-down");
   frame();
+  // Kalau pengunjung tidak menggulir, lampu tetap menyala sendiri setelah 2,2 detik
+  if (heroStageEl) setTimeout(() => { if (!heroStageEl.dataset.auto && !heroStageEl.dataset.off) { heroStageEl.dataset.auto = "1"; heroStageEl.style.setProperty("--dim", "1"); $("#hero-hint")?.classList.add("is-off"); } }, 2200);
   // Jangan ubah --dim hero saat pengguna mematikan lampu lewat saklar
   if (heroStageEl) $("#hero-switch")?.addEventListener("click", () => { heroStageEl.dataset.off = heroStageEl.dataset.off ? "" : "1"; });
 
+  /* ---------- Cerita terpaku: kalimat bertukar mengikuti scroll ---------- */
+  const story = $(".story");
+  if (story) {
+    const lines = $$(".story__line", story), dots = $$(".story__dots li", story), card = $(".story__card", story), bg = $(".story__bg img", story);
+    let last = -1;
+    const storyFrame = () => {
+      const r = story.getBoundingClientRect();
+      const total = r.height - innerHeight;
+      const p = clamp(-r.top / Math.max(1, total), 0, 1);
+      const idx = Math.min(lines.length - 1, Math.floor(p * lines.length * 0.98));
+      if (bg) bg.style.setProperty("--zoom", (1 + p * 0.1).toFixed(3));
+      if (idx !== last) {
+        last = idx;
+        lines.forEach((l, i) => { l.classList.toggle("is-on", i === idx); l.classList.toggle("is-past", i < idx); });
+        dots.forEach((d, i) => d.classList.toggle("is-on", i === idx));
+        if (card) card.classList.toggle("is-on", idx === lines.length - 1);
+      }
+    };
+    addEventListener("scroll", () => requestAnimationFrame(storyFrame), { passive: true });
+    storyFrame();
+  }
+
+  /* ---------- Angka berjalan saat pertama terlihat ---------- */
+  const counted = new WeakSet();
+  function countUp(el) {
+    if (counted.has(el)) return; counted.add(el);
+    const txt = el.textContent.trim(); const n = parseInt(txt.replace(/\D/g, ""), 10); if (!n) return;
+    const suffix = txt.replace(/^[\d.,]+/, ""); const t0 = performance.now(), dur = 900;
+    const step = (t) => { const k = clamp((t - t0) / dur, 0, 1); const e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(n * e) + suffix; if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  const cio = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { countUp(e.target); cio.unobserve(e.target); } }), { threshold: 0.6 });
+  $$("[data-count]").forEach((el) => cio.observe(el));
+
   /* ---------- 3. Reveal dua arah ---------- */
-  const SINGLE = ".eyebrow, .section-title, .section-sub, .trust--hero, .part-row, .step, .spec, .final__inner, .faq__list details, .hero__points li, .custom__form, .b2b__copy, .material__copy";
-  const GROUP = "#presets, #pkgs, #catalog, .safety, .why__grid, .products, .process__grid, .material__cards, .b2b__grid, .footer__grid, .parts-grid > div:last-child";
+  const SINGLE = ".eyebrow, .section-title, .section-sub, .trust--hero, .part-row, .step, .spec, .final__inner, .faq__list details, .hero__points li, .custom__form, .b2b__copy, .material__copy, .ocard, .band__text, .band__sub, .alur__note, .swipe, .edisi__detail";
+  const GROUP = "#presets, #pkgs, #catalog, .safety, .why__grid, .products, .process__grid, .material__cards, .b2b__grid, .footer__grid, .parts-grid > div:last-child, .alur, .edisi__list";
   $$(SINGLE).forEach((el) => { if (!el.closest(".nav, .mks-editor, .lhero__grid")) el.setAttribute("data-rv", ""); });
   $$(GROUP).forEach((el) => el.setAttribute("data-rv-group", ""));
   const io = new IntersectionObserver((es) => es.forEach((e) => {
@@ -144,7 +185,10 @@
   if (rows.length && matchMedia("(min-width: 861px)").matches) {
     $("#tiga .parts-grid").classList.add("story");
     const ro = new IntersectionObserver((es) => es.forEach((e) => {
-      if (e.isIntersecting) rows.forEach((r) => r.classList.toggle("is-active", r === e.target));
+      if (e.isIntersecting) {
+        rows.forEach((r) => r.classList.toggle("is-active", r === e.target));
+        const ex = $("#exploded"); if (ex) ex.dataset.focus = ["head", "body", "base"][rows.indexOf(e.target)] || "";
+      }
     }), { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
     rows.forEach((r) => ro.observe(r));
   }
