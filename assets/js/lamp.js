@@ -237,7 +237,8 @@
       `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
       (pi < 0 ? `<button class="btn btn--ghost-dark" type="button" id="back-preset">Kembali ke preset populer</button>` : "") +
       `</div>` +
-      `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (preset, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>`;
+      `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (preset, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>` +
+      marketRow(pi >= 0 ? D().presets[pi] : null, "mkt--dark");
     // Bilah pesan di HP
     $("#orderbar").innerHTML =
       `<div class="orderbar__info"><span>${p.disc ? `<s class="num">${rp(anchorTotal)}</s>` : ""}<small>${p.disc ? `Hemat ${rp(p.disc)}` : `Paket ${esc(p.pkg.name)}`}</small></span><b class="num">${rp(p.total)}</b></div>` +
@@ -289,7 +290,7 @@
   }
   function renderPresets() {
     $("#presets").innerHTML =
-      "<p>Mulai dari kombinasi favorit:</p>" +
+      "<p>Mulai dari kombinasi favorit:</p><div class=\"presets__row\">" +
       D()
         .presets.map((p, i) => {
           const n = p.body.length + 2;
@@ -297,7 +298,7 @@
           const pop = i === D().popularPreset;
           return `<button class="preset${pop ? " preset--pop" : ""}" type="button" data-preset="${i}">${pop ? '<span class="preset__flag">Paling populer</span>' : ""}${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.total)}${pr.disc ? ` <s>${rp(pr.parts + pr.wiring)}</s>` : ""}</span></button>`;
         })
-        .join("");
+        .join("") + "</div>";
   }
   function renderPackages() {
     $("#pkgs").innerHTML = Object.keys(D().packages)
@@ -332,6 +333,20 @@
     D().bases.forEach((x) => card("base", x));
     $("#catalog").innerHTML = h;
   }
+  /* ---------- Marketplace: Tokopedia, Shopee, TikTok Shop ---------- */
+  const MARKETS = [
+    { id: "tokopedia", name: "Tokopedia", re: /\/\/(www\.)?(tokopedia)\.[a-z.]+\/[^/?#]+/i, bg: "#03ac0e" },
+    { id: "shopee", name: "Shopee", re: /\/\/(www\.)?(shopee)\.[a-z.]+\/[^/?#]+/i, bg: "#ee4d2d" },
+    { id: "tiktok", name: "TikTok Shop", re: /\/\/(www\.|vt\.|vm\.)?(tiktok)\.[a-z.]+\/[^/?#]+/i, bg: "#111" },
+  ];
+  const storeUrl = (id) => { const m = MARKETS.find((x) => x.id === id); const u = C[id] || ""; return m && m.re.test(u) ? u : ""; };
+  // Baris "Beli lewat marketplace": link per edisi (preset.shop) bila ada, kalau tidak link toko
+  function marketRow(preset, cls) {
+    const items = MARKETS.map((m) => ({ m, url: (preset && preset.shop && preset.shop[m.id]) || storeUrl(m.id) })).filter((x) => x.url);
+    if (!items.length) return "";
+    return `<div class="mkt ${cls || ""}"><small>Lebih nyaman lewat marketplace? Harga sama, stok warna dicek dulu di WhatsApp.</small><div class="mkt__row">${items.map((x) => `<a class="mkt__btn" href="${esc(x.url)}" target="_blank" rel="noopener" style="--mk:${x.m.bg}"><i></i>${esc(x.m.name)}</a>`).join("")}</div></div>`;
+  }
+
   /* ---------- Lima edisi ---------- */
   let edition = D().popularPreset || 0;
   function presetCfg(i) { return Object.assign(sanitize(clone(D().presets[i])), { wiring: true, led: false }); }
@@ -354,6 +369,7 @@
       `<ul class="edisi__mat"><li>PLA matte, lapis 0,2 mm, dicetak sesuai pesanan</li><li>Ulir cetak M20 di semua bagian, tanpa lem</li><li>${esc(d.wiringLabel)} (bisa dilepas)</li></ul>` +
       `<div class="edisi__total"><div><small>Harga edisi, termasuk kit</small>${pr.disc ? `<s class="num">${rp(pr.parts + pr.wiring)}</s>` : ""}<b class="num">${rp(pr.total)}</b></div><span class="pill">Produksi ${esc(d.leadTime.preset)}</span></div>` +
       `<div class="edisi__acts"><button class="btn btn--primary" type="button" data-edisi-order="${edition}">Pesan edisi ini</button><button class="btn btn--ghost" type="button" data-edisi-edit="${edition}">Ubah bagian</button></div>` +
+      marketRow(p, "mkt--light") +
       `</div></div>`;
   }
   // Kartu pesan ringkas yang diulang di beberapa bagian
@@ -543,11 +559,11 @@
       a.target = "_blank";
       a.rel = "noopener";
     });
-    const links = { instagram: `https://instagram.com/${C.instagram}`, email: `mailto:${C.email}`, tokopedia: C.tokopedia, shopee: C.shopee };
+    const links = { instagram: `https://instagram.com/${C.instagram}`, email: `mailto:${C.email}`, tokopedia: C.tokopedia, shopee: C.shopee, tiktok: C.tiktok };
     document.querySelectorAll("[data-link]").forEach((a) => {
       a.href = links[a.dataset.link] || "#";
       // Sembunyikan link marketplace yang masih mengarah ke beranda marketplace (belum ada toko)
-      if (["tokopedia", "shopee"].includes(a.dataset.link)) a.hidden = !/\/\/(www\.)?(tokopedia|shopee)\.[a-z.]+\/[^/?#]+/i.test(links[a.dataset.link] || "");
+      if (MARKETS.some((m) => m.id === a.dataset.link)) a.hidden = !storeUrl(a.dataset.link);
     });
     document.querySelectorAll("[data-marketplace]").forEach((el) => (el.hidden = [...el.querySelectorAll("a[data-link]")].every((a) => a.hidden)));
     document.querySelectorAll("[data-wa-text]").forEach((el) => (el.textContent = "+" + C.whatsapp));
