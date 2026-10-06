@@ -27,15 +27,24 @@
     const links = {
       tokopedia: C.tokopedia,
       shopee: C.shopee,
+      tiktok: C.tiktok,
       instagram: `https://instagram.com/${C.instagram}`,
       email: `mailto:${C.email}`,
     };
+    const MK_RE = {
+      tokopedia: /\/\/([a-z0-9-]+\.)*tokopedia\.[a-z.]+\/[^/?#]+/i,
+      shopee: /\/\/([a-z0-9-]+\.)*(shopee\.[a-z.]+|shp\.ee)\/[^/?#]+/i,
+      tiktok: /\/\/([a-z0-9-]+\.)*tiktok\.[a-z.]+\/[^/?#]+/i,
+    };
     $$("[data-link]").forEach((a) => {
       a.href = links[a.dataset.link] || "#";
-      // Sembunyikan link marketplace yang masih mengarah ke beranda marketplace (belum ada toko)
-      if (["tokopedia", "shopee"].includes(a.dataset.link)) a.hidden = !/\/\/(www\.)?(tokopedia|shopee)\.[a-z.]+\/[^/?#]+/i.test(links[a.dataset.link] || "");
+      // Sembunyikan link marketplace yang kosong / masih mengarah ke beranda marketplace (belum ada toko)
+      if (MK_RE[a.dataset.link]) a.hidden = !MK_RE[a.dataset.link].test(links[a.dataset.link] || "");
     });
-    $$("[data-marketplace]").forEach((el) => (el.hidden = [...el.querySelectorAll("a[data-link]")].every((a) => a.hidden)));
+    $$("[data-marketplace]").forEach((el) => {
+      const col = el.closest("[data-marketplace-col]") || el;
+      el.hidden = [...col.querySelectorAll("a[data-link]")].filter((a) => MK_RE[a.dataset.link]).every((a) => a.hidden);
+    });
     $$("[data-free-ship]").forEach((el) => (el.textContent = rp(C.freeShippingMin)));
     $$("[data-city]").forEach((el) => (el.textContent = C.city));
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));

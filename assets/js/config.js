@@ -10,7 +10,7 @@ window.MKS_CONFIG = {
   email: "mahakaryastudio99@gmail.com",
   instagram: "maha.karyastudioid",
   tokopedia: "https://www.tokopedia.com/",
-  shopee: "https://shopee.co.id/",
+  shopee: "https://id.shp.ee/XmX4RuvT",
   // Link toko TikTok Shop (mis. https://www.tiktok.com/@maha.karyastudioid atau link toko). Dikosongkan = tombol disembunyikan.
   tiktok: "",
   city: "Jakarta, Indonesia",
