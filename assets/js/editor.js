@@ -407,6 +407,7 @@
       ${f("instagram", "Instagram (tanpa @)")}
       ${f("tokopedia", "Link toko Tokopedia", "url")}
       ${f("shopee", "Link toko Shopee", "url")}
+      ${f("tiktok", "Link toko TikTok Shop / akun TikTok", "url")}
       ${f("city", "Kota (footer)")}
       ${f("replyPromise", "Janji waktu balas (tampil di bawah tombol pesan)")}
       ${f("address", "Alamat studio (kosongkan bila belum mau ditampilkan)")}

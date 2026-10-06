@@ -11,6 +11,8 @@ window.MKS_CONFIG = {
   instagram: "maha.karyastudioid",
   tokopedia: "https://www.tokopedia.com/",
   shopee: "https://shopee.co.id/",
+  // Link toko TikTok Shop (mis. https://www.tiktok.com/@maha.karyastudioid atau link toko). Dikosongkan = tombol disembunyikan.
+  tiktok: "",
   city: "Jakarta, Indonesia",
   // Alamat studio & NIB ditampilkan di footer bila diisi (menambah kepercayaan).
   address: "",
