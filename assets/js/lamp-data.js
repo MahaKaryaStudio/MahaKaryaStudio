@@ -71,11 +71,11 @@ window.MKS_LAMP = {
     5: { name: "Kuinto", disc: 0.28, cm: "36–46", note: "Paling tinggi, untuk sudut ruang tamu" },
   },
   presets: [
-    { name: "Senja", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "kubus", color: "bata" }, { shape: "heksa", color: "krem" }, { shape: "bola", color: "salmon" }], base: { shape: "kotak", color: "bata" } },
-    { name: "Kebun", head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "zaitun" }, { shape: "cincin", color: "krem" }, { shape: "kubus", color: "salmon" }], base: { shape: "bulat", color: "hitam" } },
-    { name: "Monokrom", head: { shape: "kotak", color: "putih" }, body: [{ shape: "bola", color: "krem" }, { shape: "cincin", color: "hitam" }, { shape: "bola", color: "krem" }], base: { shape: "bulat", color: "hitam" } },
-    { name: "Blush", head: { shape: "plisir", color: "gading" }, body: [{ shape: "cincin", color: "salmon" }, { shape: "bola", color: "krem" }], base: { shape: "bunga", color: "salmon" } },
-    { name: "Kayu manis", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "silinder", color: "krem" }], base: { shape: "segitiga", color: "bata" } },
+    { name: "Senja", story: "Merah bata dan salmon seperti langit jam lima sore. Untuk meja kerja yang ingin terasa hangat saat lembur.", room: "Meja kerja · ruang tamu", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "kubus", color: "bata" }, { shape: "heksa", color: "krem" }, { shape: "bola", color: "salmon" }], base: { shape: "kotak", color: "bata" } },
+    { name: "Kebun", story: "Zaitun, krem, dan salmon di atas alas hitam. Paling sering dipesan; cocok untuk kamar dengan banyak tanaman.", room: "Kamar tidur · sudut baca", head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "zaitun" }, { shape: "cincin", color: "krem" }, { shape: "kubus", color: "salmon" }], base: { shape: "bulat", color: "hitam" } },
+    { name: "Monokrom", story: "Krem dan hitam arang, kap putih. Untuk ruangan yang sudah ramai warna dan butuh satu benda yang tenang.", room: "Apartemen · meja konsol", head: { shape: "kotak", color: "putih" }, body: [{ shape: "bola", color: "krem" }, { shape: "cincin", color: "hitam" }, { shape: "bola", color: "krem" }], base: { shape: "bulat", color: "hitam" } },
+    { name: "Blush", story: "Salmon dan krem di alas bunga. Ringkas, tiga bagian, paling sering dijadikan kado housewarming.", room: "Meja samping tempat tidur", head: { shape: "plisir", color: "gading" }, body: [{ shape: "cincin", color: "salmon" }, { shape: "bola", color: "krem" }], base: { shape: "bunga", color: "salmon" } },
+    { name: "Kayu manis", story: "Satu badan silinder krem di alas segitiga merah bata. Yang paling rendah dan paling hemat.", room: "Rak · meja kecil", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "silinder", color: "krem" }], base: { shape: "segitiga", color: "bata" } },
   ],
   photos: {},
 };
