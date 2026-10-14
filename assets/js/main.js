@@ -15,7 +15,7 @@
     { id: "aksesori", label: "Aksesori" },
     { id: "dinding", label: "Dinding" },
   ];
-  const TAG_LABEL = { bestseller: "Terlaris", baru: "Baru", hadiah: "Ide hadiah" };
+  const TAG_LABEL = { bestseller: "Pilihan studio", baru: "Baru", hadiah: "Ide hadiah" };
 
   /* ---------- Static bindings ---------- */
   function bindStatic() {
@@ -120,6 +120,7 @@
         <p class="price price--lg">${rp(p.price)}</p>
         <p>${esc(p.desc)}</p>
         <ul class="specs">${(p.specs || []).map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+        ${p.category === "lampu" ? `<p class="specs specs--note">Pakai bohlam LED maksimal 5 W, bukan pijar atau halogen, supaya kap tetap dingin. Lampu cetak 3D ini bukan produk bersertifikat SNI.</p>` : ""}
         <div class="modal__actions">
           <div class="qty"><button type="button" data-q="-1" aria-label="Kurangi">−</button><input type="number" min="1" value="1" aria-label="Jumlah" data-mqty /><button type="button" data-q="1" aria-label="Tambah">+</button></div>
           <button class="btn btn--primary" data-madd="${esc(p.id)}">Tambah ke keranjang</button>

@@ -31,17 +31,23 @@
       ${table("bodies", [["name", "Badan"], ["price", "Harga", "number"], ["cm", "Tinggi cm", "number", 'step="0.5"'], ["kg", "Berat kg", "number", 'step="0.01"']])}
       ${table("bases", [["name", "Alas"], ["price", "Harga", "number"]])}
       <label>Bola LED 5 W hangat (Rp)<input data-l="ledPrice" type="number" value="${data.ledPrice}" /></label>
-      <label>Kit kelistrikan ber-SNI/K3L (Rp)<input data-l="wiringPrice" type="number" value="${data.wiringPrice}" /></label>
+      <label>Kit kelistrikan (Rp)<input data-l="wiringPrice" type="number" value="${data.wiringPrice}" /></label>
       <label>Nama kit kelistrikan<input data-l="wiringLabel" value="${esc(data.wiringLabel)}" /></label>
       <div class="mks-grid2">
         <label>Produksi preset/berstok<input data-l="leadTime.preset" value="${esc(data.leadTime.preset)}" /></label>
         <label>Produksi custom<input data-l="leadTime.custom" value="${esc(data.leadTime.custom)}" /></label>
       </div>
-      <label>Preset "Paling populer" (dibuka pertama)<select data-l="popularPreset">${data.presets.map((p, i) => `<option value="${i}"${i === data.popularPreset ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>
+      <label>Edisi "Pilihan studio" (dibuka pertama)<select data-l="popularPreset">${data.presets.map((p, i) => `<option value="${i}"${i === data.popularPreset ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>
 
       <h4>Paket</h4>
       <table class="mks-table"><thead><tr><th>Bagian</th><th>Nama</th><th>Diskon %</th><th>Tinggi</th></tr></thead><tbody>
       ${Object.keys(data.packages).map((n) => `<tr><td>${n}</td><td><input data-l="packages.${n}.name" value="${esc(data.packages[n].name)}"/></td><td><input data-l="packages.${n}.disc" type="number" value="${Math.round(data.packages[n].disc * 100)}"/></td><td><input data-l="packages.${n}.cm" value="${esc(data.packages[n].cm)}"/></td></tr>`).join("")}
+      </tbody></table>
+
+      <h4>Edisi</h4>
+      <p class="mks-help">Bentuk dan warna tiap edisi diubah di <code>assets/js/lamp-data.js</code>; di sini nama, cerita, ruangan, dan link produk per edisi di marketplace (kosong = pakai link toko dari tab Kontak).</p>
+      <table class="mks-table"><thead><tr><th>Nama</th><th>Cerita</th><th>Cocok untuk</th><th>Tokopedia</th><th>Shopee</th><th>TikTok</th></tr></thead><tbody>
+      ${data.presets.map((p, i) => `<tr><td><input data-l="presets.${i}.name" value="${esc(p.name)}"/></td><td><input data-l="presets.${i}.story" value="${esc(p.story || "")}"/></td><td><input data-l="presets.${i}.room" value="${esc(p.room || "")}"/></td><td><input data-l="presets.${i}.shop.tokopedia" type="url" value="${esc((p.shop || {}).tokopedia || "")}"/></td><td><input data-l="presets.${i}.shop.shopee" type="url" value="${esc((p.shop || {}).shopee || "")}"/></td><td><input data-l="presets.${i}.shop.tiktok" type="url" value="${esc((p.shop || {}).tiktok || "")}"/></td></tr>`).join("")}
       </tbody></table>
 
       <h4>Warna filamen (badan &amp; alas)</h4>
@@ -102,7 +108,12 @@
       const addColor = e.target.closest("[data-add-color]");
       if (addColor) {
         const list = addColor.dataset.addColor;
-        data[list].push({ id: "warna" + Date.now().toString(36).slice(-4), name: "Warna baru", hex: "#c8794a" });
+        // Kode rakitan memakai 3 huruf pertama id, jadi prefiksnya harus unik di daftar ini; id tidak boleh
+        // berubah lagi setelah dibuat (kode yang sudah dikirim ke pembeli dan kunci foto bergantung padanya).
+        const used = new Set(data[list].map((c) => String(c.id).slice(0, 3).toLowerCase()));
+        let id = "", n = 1;
+        do { id = "w" + String(n++).padStart(2, "0"); } while (used.has(id.slice(0, 3)));
+        data[list].push({ id, name: "Warna baru", hex: "#c8794a", sku: "" });
         changed();
         return render(body);
       }
@@ -128,7 +139,7 @@
       if (!t) return;
       const path = t.dataset.l.split(".");
       let cur = data;
-      while (path.length > 1) cur = cur[path.shift()];
+      while (path.length > 1) { const k0 = path.shift(); if (cur[k0] == null || typeof cur[k0] !== "object") cur[k0] = {}; cur = cur[k0]; }
       const k = path[0];
       let v = t.type === "number" ? +t.value || 0 : t.value;
       if (k === "disc") v = v / 100;

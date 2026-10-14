@@ -63,6 +63,10 @@
       if (!raf) { current = window.scrollY; }
       target = clamp(el.getBoundingClientRect().top + window.scrollY - pad, 0, maxY());
       if (!raf) raf = requestAnimationFrame(tick);
+      // Pindahkan titik fokus ke target (perilaku bawaan browser yang hilang karena preventDefault),
+      // supaya skip link dan Tab berikutnya masuk ke bagian yang dituju.
+      if (!el.matches("a, button, input, select, textarea, [tabindex]")) el.tabIndex = -1;
+      el.focus({ preventScroll: true });
       history.replaceState(null, "", a.getAttribute("href"));
       a.closest(".menu")?.removeAttribute("open");
     });
@@ -183,7 +187,7 @@
   /* ---------- 5. Cerita gulir "Tiga bagian" (desktop) ---------- */
   const rows = $$("#tiga .part-row");
   if (rows.length && matchMedia("(min-width: 861px)").matches) {
-    $("#tiga .parts-grid").classList.add("story");
+    $("#tiga .parts-grid").classList.add("parts-grid--story");
     const ro = new IntersectionObserver((es) => es.forEach((e) => {
       if (e.isIntersecting) {
         rows.forEach((r) => r.classList.toggle("is-active", r === e.target));

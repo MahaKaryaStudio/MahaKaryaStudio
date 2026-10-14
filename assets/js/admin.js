@@ -15,8 +15,12 @@
   const rp = (n) => "Rp" + Math.round(n || 0).toLocaleString("id-ID");
   const roundK = (n) => Math.round(n / 1000) * 1000;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const today = () => new Date().toISOString().slice(0, 10);
-  const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  // Tanggal lokal (WIB), bukan UTC: toISOString() menggeser hari untuk zona waktu +7
+  const isoLocal = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+  const today = () => isoLocal(new Date());
+  const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return isoLocal(d); };
+  // "25.000" / "Rp25.000" / 25000 → 25000
+  const num = (s) => +String(s ?? "").replace(/[^\d]/g, "") || 0;
   const fmtDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "—");
   const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
 
@@ -46,6 +50,7 @@
     stokhabis: "Halo {nama}, warna {warna} sedang kosong, restok sekitar 5 hari. Pilihannya: (1) tunggu restok, (2) ganti ke warna lain yang ready: {alternatif}, (3) batalkan tanpa potongan. Mau yang mana?",
     custom: "Kombinasi {kode} dicetak khusus, jadi produksinya 7–10 hari kerja (bukan 3–5). Harganya tetap sama. Lanjut?",
     batal: "Baik {nama}, pesanan {kode} kami batalkan. Kalau sudah ada pembayaran, kami kembalikan penuh ke rekening yang sama dalam 1×24 jam. Terima kasih sudah mampir, kapan pun mau merakit lagi, kodenya masih bisa dipakai.",
+    komplain: "Maaf ya {nama}, itu tidak seharusnya terjadi. Boleh kirim foto bagian yang bermasalah (dekat dan dari jauh) dan foto kardusnya? Kami cek dan balas dalam 1 jam. Cacat cetak dalam 30 hari kami ganti bagiannya tanpa biaya.",
   };
 
   /* ---------- Data lampu ---------- */
@@ -116,9 +121,15 @@
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
   const save = (list) => localStorage.setItem(KEY, JSON.stringify(list));
   let orders = load();
+  // Nomor urut harian disimpan terpisah supaya ID tidak terpakai ulang setelah pesanan dihapus
+  const SEQ_KEY = "mks-orders-seq";
   const nextId = () => {
     const d = today().replace(/-/g, "").slice(2);
-    const n = orders.filter((o) => o.id.startsWith("P" + d)).length + 1;
+    let seq = {};
+    try { seq = JSON.parse(localStorage.getItem(SEQ_KEY) || "{}") || {}; } catch { seq = {}; }
+    const used = orders.filter((o) => String(o.id).startsWith("P" + d)).map((o) => +String(o.id).split("-")[1] || 0);
+    const n = Math.max(+seq[d] || 0, ...used, 0) + 1;
+    try { localStorage.setItem(SEQ_KEY, JSON.stringify({ [d]: n })); } catch {}
     return `P${d}-${String(n).padStart(2, "0")}`;
   };
 
@@ -127,14 +138,16 @@
     const cfg = decode(o.code);
     const p = cfg ? priceOf(cfg) : null;
     const z = zoneById(o.zone);
-    const ongkir = o.ongkir != null && o.ongkir !== "" ? +o.ongkir : z.price;
-    const total = (p ? p.total : +o.total || 0) + ongkir;
+    const ongkir = o.ongkir != null && String(o.ongkir).trim() !== "" ? num(o.ongkir) : z.price;
+    // Harga yang dijanjikan ke pembeli (tersimpan di pesanan) menang atas hitungan ulang dari data sekarang
+    const harga = num(o.total) || (p ? p.total : 0);
+    const total = harga + ongkir;
     const map = {
       nama: o.nama || "Kak",
       kode: o.code,
-      rincian: p ? p.lines.map((l) => `• ${l.label} — ${l.color.name}`).join("\n") + `\n• Kelistrikan: ${cfg.wiring ? "kit ber-SNI/K3L" : "tanpa (hanya bagian cetak)"}` + (cfg.led ? "\n• Bola LED 5 W" : "") : "",
+      rincian: p ? p.lines.map((l) => `• ${l.label} — ${l.color.name}`).join("\n") + `\n• Kelistrikan: ${cfg.wiring ? "kit kelistrikan (komponen bertanda SNI/K3L)" : "tanpa (hanya bagian cetak)"}` + (cfg.led ? "\n• Bola LED 5 W" : "") : "",
       paket: p ? `${p.pkg.name} (${p.n} bagian)` : "",
-      harga: p ? rp(p.total) : rp(o.total),
+      harga: rp(harga),
       zona: z.label,
       ongkir: rp(ongkir),
       total: rp(total),
@@ -177,6 +190,7 @@
           <tr><td colspan="2">Ongkir ${esc(z.label)} (perkiraan)</td><td class="num">${rp(z.price)}</td></tr>
           <tr class="total"><td colspan="2">Total</td><td class="num">${rp(p.total + z.price)}</td></tr></table>` : ""}
         <div class="grid2">
+          <label class="span2">Kode rakitan<input name="code" value="${esc(draft.code || "")}" placeholder="MK-…" spellcheck="false" autocapitalize="characters" /></label>
           <label>Nama<input name="nama" value="${esc(draft.nama)}" /></label>
           <label>Nomor WA pembeli<input name="hp" inputmode="tel" placeholder="08xxx / 628xxx" value="${esc(draft.hp || "")}" /></label>
           <label class="span2">Alamat kirim<input name="alamat" value="${esc(draft.alamat)}" /></label>
@@ -186,12 +200,15 @@
         </div>
         <div class="acts"><button class="btn btn--primary" type="button" id="save-draft" ${cfg ? "" : "disabled"}>Simpan sebagai pesanan baru</button><button class="btn" type="button" id="clear-draft">Batal</button></div>
       </div>`;
-    $$("#draft input, #draft select").forEach((el) => el.addEventListener("input", () => { draft[el.name] = el.value; if (el.name === "zone") renderDraft(); }));
+    $$("#draft input, #draft select").forEach((el) => {
+      el.addEventListener("input", () => { draft[el.name] = el.name === "code" ? el.value.toUpperCase().trim() : el.value; if (el.name === "zone") renderDraft(); });
+      if (el.name === "code") el.addEventListener("change", () => setTimeout(renderDraft, 0)); // tunda: jangan ganti DOM di tengah blur/change
+    });
     $("#save-draft").addEventListener("click", () => {
       const cfg2 = decode(draft.code), p2 = priceOf(cfg2);
       orders.unshift({
         id: nextId(), tgl: today(), status: "baru", code: draft.code, nama: draft.nama, hp: draft.hp || "", alamat: draft.alamat, zone: draft.zone,
-        ongkir: draft.ongkir || "", total: draft.statedTotal != null && draft.statedTotal !== p2.total ? draft.statedTotal : p2.total, catatan: draft.catatan || "",
+        ongkir: draft.ongkir ? num(draft.ongkir) : "", total: draft.statedTotal != null && draft.statedTotal !== p2.total ? draft.statedTotal : p2.total, catatan: draft.catatan || "",
         lead: leadDays(cfg2), bayar: "", jadwal: "", kurir: "", resi: "", tiba: "", selesai: "", log: [{ t: today(), s: "baru" }],
       });
       save(orders); draft = null; $("#paste").value = ""; renderDraft(); renderList(); toast("Pesanan disimpan");
@@ -205,9 +222,7 @@
     draft = { hp: "", ongkir: "", ...parseMessage(txt) };
     renderDraft();
   });
-  $("#manual").addEventListener("click", () => { draft = { code: "MK-", nama: "", alamat: "", zone: C.shipping.zones[0].id, statedTotal: null, hp: "", ongkir: "", catatan: "" }; renderDraft(); $("#draft input[name=nama]").focus(); });
-  // Kode diketik manual: perbarui saat kode diubah di kolom catatan? Sediakan input kode terpisah
-  $("#draft").addEventListener("input", (e) => { if (e.target.name === "code") { draft.code = e.target.value.toUpperCase(); renderDraft(); } });
+  $("#manual").addEventListener("click", () => { draft = { code: "MK-", nama: "", alamat: "", zone: C.shipping.zones[0].id, statedTotal: null, hp: "", ongkir: "", catatan: "" }; renderDraft(); const c = $("#draft input[name=code]"); c.focus(); c.setSelectionRange(c.value.length, c.value.length); });
 
   /* ---------- UI: daftar pesanan ---------- */
   let filter = "aktif";
@@ -228,7 +243,7 @@
   }
   function rowHtml(o) {
     const s = statusOf(o.status), due = dueInfo(o), cfg = decode(o.code);
-    const total = (+o.total || 0) + (o.ongkir !== "" ? +o.ongkir : zoneById(o.zone).price);
+    const total = num(o.total) + (String(o.ongkir ?? "").trim() !== "" ? num(o.ongkir) : zoneById(o.zone).price);
     return `<details class="order" data-id="${o.id}">
       <summary>
         <span class="dot" style="background:${s.color}"></span>
@@ -252,7 +267,7 @@
         </div>
         ${cfg ? `<p class="muted small">${priceOf(cfg).lines.map((l) => `${esc(l.label)} ${esc(l.color.name)}`).join(" · ")} · ${cfg.wiring ? "kit" : "tanpa kit"}${cfg.led ? " · LED" : ""} · ${isPreset(cfg) ? "preset" : "custom"}</p>` : ""}
         <div class="tpls">
-          ${["baru", "konfirmasi", "bayar", "cetak", "foto", "kirim", "selesai", "stokhabis", "custom", "batal"].map((k) => `<button class="chip${k === o.status || (o.status === "cetak" && k === "foto") ? " chip--on" : ""}" type="button" data-tpl="${k}">${k === "foto" ? "Foto rakitan" : k === "stokhabis" ? "Stok habis" : statusOf(k).label === "Baru" && k !== "baru" ? k : k === "custom" ? "Custom 7–10 hari" : statusOf(k).label}</button>`).join("")}
+          ${["baru", "konfirmasi", "bayar", "cetak", "foto", "kirim", "selesai", "stokhabis", "custom", "komplain", "batal"].map((k) => `<button class="chip${k === o.status || (o.status === "cetak" && k === "foto") ? " chip--on" : ""}" type="button" data-tpl="${k}">${k === "foto" ? "Foto rakitan" : k === "stokhabis" ? "Stok habis" : statusOf(k).label === "Baru" && k !== "baru" ? k : k === "custom" ? "Custom 7–10 hari" : statusOf(k).label}</button>`).join("")}
         </div>
         <textarea class="msg" rows="6" readonly></textarea>
         <div class="acts">
@@ -326,13 +341,15 @@
   const dl = (name, text, type) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); };
   $("#csv").addEventListener("click", () => {
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const csv = [HEAD.map(cell).join(";"), ...orders.map((o) => COLS.map((c) => cell(c === "zone" ? zoneById(o.zone).label : o[c])).join(";"))].join("\r\n");
+    // Status diekspor sebagai label (sama dengan daftar validasi tab Pesanan), bukan id internal
+    const val = (o, c) => (c === "zone" ? zoneById(o.zone).label : c === "status" ? (STATUS.find((s) => s.id === o.status) || {}).label || o.status : o[c]);
+    const csv = [HEAD.map(cell).join(";"), ...orders.map((o) => COLS.map((c) => cell(val(o, c))).join(";"))].join("\r\n");
     dl(`pesanan-${today()}.csv`, "﻿" + csv, "text/csv;charset=utf-8");
   });
   $("#json").addEventListener("click", () => dl(`cadangan-pesanan-${today()}.json`, JSON.stringify(orders, null, 2), "application/json"));
   $("#restore").addEventListener("change", (e) => {
     const f = e.target.files[0]; if (!f) return;
-    f.text().then((t) => { const arr = JSON.parse(t); if (!Array.isArray(arr)) throw 0; if (confirm(`Ganti ${orders.length} pesanan di browser ini dengan ${arr.length} pesanan dari cadangan?`)) { orders = arr; save(orders); renderList(); toast("Cadangan dipulihkan"); } }).catch(() => toast("File tidak valid"));
+    f.text().then((t) => { const arr = JSON.parse(t); if (!Array.isArray(arr) || !arr.every((o) => o && typeof o === "object" && typeof o.id === "string" && typeof o.code === "string" && typeof o.status === "string")) throw 0; arr.forEach((o) => { if (!Array.isArray(o.log)) o.log = []; }); if (confirm(`Ganti ${orders.length} pesanan di browser ini dengan ${arr.length} pesanan dari cadangan?`)) { orders = arr; save(orders); renderList(); toast("Cadangan dipulihkan"); } }).catch(() => toast("File tidak valid"));
     e.target.value = "";
   });
 

@@ -11,6 +11,8 @@
   const roundK = (n) => Math.round(n / 1000) * 1000;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clone = (o) => JSON.parse(JSON.stringify(o));
+  const REDUCE = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SCROLL = REDUCE ? "auto" : "smooth";
   const find = A.find;
   const pick = (list) => {
     const ok = list.filter((x) => x.stock !== false);
@@ -54,7 +56,7 @@
     const n = cfg.body.length + 2;
     const pkg = D().packages[n] || { name: `${n} bagian`, disc: 0, cm: "—" };
     // Harga paket dibulatkan ke ribuan; potongan = selisih dari harga satuan
-    const disc = sum - roundK(sum * (1 - pkg.disc));
+    const disc = Math.max(0, sum - roundK(sum * (1 - pkg.disc)));
     const wiring = cfg.wiring === false ? 0 : D().wiringPrice;
     const led = cfg.led ? D().ledPrice : 0;
     const total = sum - disc + wiring + led;
@@ -121,7 +123,7 @@
     return (
       `Halo ${C.brand}, saya mau pesan lampu rakitan:\nKode: ${code(cfg)}\n` +
       p.lines.map((l) => `• ${l.label} — ${l.color.name}`).join("\n") +
-      `\n• Kelistrikan: ${cfg.wiring === false ? "tanpa (hanya bagian cetak)" : "kit ber-SNI/K3L"}` +
+      `\n• Kelistrikan: ${cfg.wiring === false ? "tanpa (hanya bagian cetak)" : "kit kelistrikan (komponen bertanda SNI/K3L)"}` +
       `\n• Bola LED 5 W hangat: ${cfg.led ? "ya" : "tidak"}` +
       `\nPaket ${p.pkg.name} (${p.n} bagian) — ${rp(p.total)}` +
       (z ? `\nKirim ke ${z.label}, perkiraan ongkir ${rp(z.price)} → total ±${rp(p.total + z.price)}` : "") +
@@ -196,8 +198,8 @@
       `<div><div class="lbl">Warna</div>${swatchesHtml(d.colors, state.base.color, 'data-part="base"')}</div></div>`;
     h +=
       `<div class="ctrl"><div class="ctrl-head"><h3>Kelistrikan <small>opsional</small></h3></div>` +
-      `<div class="toggle-row"><div class="desc"><b>${esc(d.wiringLabel)}</b><small>Komponen dari produsen terdaftar. Tanpa kit ini, Anda menerima bagian cetak saja dan memasang kelistrikan sendiri.</small></div><button class="switch" type="button" id="wiring-switch" role="switch" aria-checked="${state.wiring !== false}"><i></i>${rp(d.wiringPrice)}</button></div>` +
-      `<div class="toggle-row"><div class="desc"><b>Bola LED 5 W warna hangat</b><small>2700 K, E27. Maksimal 5 W agar kap tetap dingin.</small></div><button class="switch" type="button" id="led-switch" role="switch" aria-checked="${state.led}"><i></i>${rp(d.ledPrice)}</button></div>` +
+      `<div class="toggle-row"><div class="desc"><b id="wiring-label">${esc(d.wiringLabel)}</b><small id="wiring-desc">Komponen dari produsen terdaftar. Tanpa kit ini, Anda menerima bagian cetak saja dan memasang kelistrikan sendiri.</small></div><button class="switch" type="button" id="wiring-switch" role="switch" aria-labelledby="wiring-label wiring-switch" aria-describedby="wiring-desc" aria-checked="${state.wiring !== false}"><i></i>${rp(d.wiringPrice)}</button></div>` +
+      `<div class="toggle-row"><div class="desc"><b id="led-label">Bola LED 5 W warna hangat</b><small id="led-desc">2700 K, E27. Maksimal 5 W agar kap tetap dingin.</small></div><button class="switch" type="button" id="led-switch" role="switch" aria-labelledby="led-label led-switch" aria-describedby="led-desc" aria-checked="${state.led}"><i></i>${rp(d.ledPrice)}</button></div>` +
       `<div class="row-wrap"><button class="ghost" type="button" id="random"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h3l6 8h3M2 12h3l1.5-2M9.5 6L11 4h3M12 2l2 2-2 2M12 10l2 2-2 2"/></svg>Acak kombinasi</button></div></div>`;
     $("#controls").innerHTML = h;
   }
@@ -210,16 +212,18 @@
     rows += `<div class="row"><span>Harga satuan ${p.n} bagian</span><span class="num"><s>${rp(p.parts)}</s></span></div>`;
     if (p.disc) rows += `<div class="row row-disc"><span>Potongan paket ${esc(p.pkg.name)} (${Math.round(p.pkg.disc * 100)}%)</span><span class="num">− ${rp(p.disc)}</span></div>`;
     rows += p.wiring
-      ? `<div class="row"><span>Kit kelistrikan ber-SNI/K3L</span><span class="num">${rp(p.wiring)}</span></div>`
+      ? `<div class="row"><span>Kit kelistrikan (komponen SNI/K3L)</span><span class="num">${rp(p.wiring)}</span></div>`
       : `<div class="row"><span>Tanpa kelistrikan (hanya bagian cetak)</span><span class="num">Rp0</span></div>`;
-    if (state.led) rows += `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(p.led)}</span></div>`;
+    rows += state.led
+      ? `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(p.led)}</span></div>`
+      : `<div class="row"><span>Tanpa bohlam (LED sendiri, maks 5 W)</span><button class="add-led" type="button" id="led-add">+ Bohlam LED ${rp(D().ledPrice)}</button></div>`;
     const anchorTotal = p.parts + p.wiring + p.led;
     const pi = presetIndex(state);
     const popular = pi >= 0 && pi === D().popularPreset;
     const z = zoneOf(state);
     const zones = C.shipping ? C.shipping.zones : [];
     $("#summary").innerHTML =
-      `<div class="badges"><span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span>${popular ? '<span class="badge badge--pop">Paling populer</span>' : pi >= 0 ? `<span class="badge">Preset ${esc(D().presets[pi].name)}</span>` : '<span class="badge badge--custom">Rakitan custom</span>'}</div>` +
+      `<div class="badges"><span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span>${popular ? '<span class="badge badge--pop">Pilihan studio</span>' : pi >= 0 ? `<span class="badge">Preset ${esc(D().presets[pi].name)}</span>` : '<span class="badge badge--custom">Rakitan custom</span>'}</div>` +
       `<div class="rows">${rows}</div>` +
       `<div class="total"><div><small>${p.wiring ? "Total termasuk kit kelistrikan" : "Total bagian cetak"}${p.led ? " + bohlam" : ""}</small>${p.disc ? `<s class="was num">${rp(anchorTotal)}</s>` : ""}<b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
       (p.disc ? `<div class="save">Hemat <b>${rp(p.disc)}</b> dibanding beli ${p.n} bagian satuan</div>` : "") +
@@ -235,7 +239,7 @@
       `<small class="reply">${esc(C.replyPromise || "")}</small>` +
       `<div class="acts__row"><button class="btn btn--ghost-dark" type="button" id="share-link">Bagikan rakitan</button>` +
       `<button class="btn btn--ghost-dark" type="button" id="copy-summary">Salin ringkasan</button></div>` +
-      (pi < 0 ? `<button class="btn btn--ghost-dark" type="button" id="back-preset">Kembali ke preset populer</button>` : "") +
+      (pi < 0 ? `<button class="btn btn--ghost-dark" type="button" id="back-preset">Kembali ke edisi awal</button>` : "") +
       `</div>` +
       `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (preset, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>` +
       marketRow(pi >= 0 ? D().presets[pi] : null, "mkt--dark");
@@ -260,10 +264,32 @@
     $("#spec-height").textContent = `≈ ${A.totalCm(state).toFixed(0)} cm`;
     $("#spec-weight").textContent = `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`;
   }
+  // Render ulang lewat innerHTML menghancurkan elemen yang sedang fokus; simpan "alamat"nya
+  // (id atau kombinasi data-*) lalu fokuskan lagi elemen yang setara setelah render.
+  function focusKey(el) {
+    if (!el || el === document.body || !el.closest("#rakit, #edisi, #bagian, #paket")) return null;
+    if (el.id) return "#" + CSS.escape(el.id);
+    if (el.name === "edisi") return `input[name="edisi"][value="${CSS.escape(el.value)}"]`;
+    const d = el.dataset || {};
+    const keys = ["part", "i", "shape", "color", "cat", "use", "preset", "pkg", "remove", "edisiOrder", "edisiEdit"].filter((k) => d[k] != null);
+    if (!keys.length) return null;
+    const attr = (k) => "data-" + k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+    return el.tagName.toLowerCase() + keys.map((k) => `[${attr(k)}="${CSS.escape(d[k])}"]`).join("");
+  }
+  function keepFocus(fn) {
+    let key = null;
+    try { key = focusKey(document.activeElement); } catch {}
+    fn();
+    if (!key) return;
+    const el = document.querySelector(key);
+    if (el && el !== document.activeElement && !el.disabled) el.focus({ preventScroll: true });
+  }
   const renderAll = () => {
-    renderControls();
-    renderSummary();
-    renderPreview();
+    keepFocus(() => {
+      renderControls();
+      renderSummary();
+      renderPreview();
+    });
     persist();
   };
   // Hanya perbarui tautan WA tanpa merender ulang (agar fokus di kolom kado tidak hilang)
@@ -290,13 +316,13 @@
   }
   function renderPresets() {
     $("#presets").innerHTML =
-      "<p>Mulai dari kombinasi favorit:</p><div class=\"presets__row\">" +
+      "<p>Mulai dari salah satu edisi:</p><div class=\"presets__row\">" +
       D()
         .presets.map((p, i) => {
           const n = p.body.length + 2;
           const pr = price(Object.assign(sanitize(clone(p)), { wiring: true, led: false }));
           const pop = i === D().popularPreset;
-          return `<button class="preset${pop ? " preset--pop" : ""}" type="button" data-preset="${i}">${pop ? '<span class="preset__flag">Paling populer</span>' : ""}${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.total)}${pr.disc ? ` <s>${rp(pr.parts + pr.wiring)}</s>` : ""}</span></button>`;
+          return `<button class="preset${pop ? " preset--pop" : ""}" type="button" data-preset="${i}">${pop ? '<span class="preset__flag">Pilihan studio</span>' : ""}${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.total)}${pr.disc ? ` <s>${rp(pr.parts + pr.wiring)}</s>` : ""}</span></button>`;
         })
         .join("") + "</div>";
   }
@@ -306,17 +332,19 @@
       .sort()
       .map((n) => {
         const pk = D().packages[n];
-        const hot = n === 4;
+        const popPreset = D().presets[D().popularPreset] || D().presets[0];
+        const hot = !!popPreset && n === popPreset.body.length + 2; // paket edisi pilihan studio, bukan klaim penjualan
         const m = minPackagePrice(n);
         return (
-          `<div class="pkg${hot ? " hot" : ""}">${hot ? '<span class="pkg__flag">Paling laris</span>' : ""}<div class="top"><div class="n">${n}<small>bagian</small></div><span class="badge">hemat ${Math.round(pk.disc * 100)}%</span></div><h3>Paket ${esc(pk.name)}</h3>` +
+          `<div class="pkg${hot ? " hot" : ""}">${hot ? '<span class="pkg__flag">Rekomendasi kami</span>' : ""}<div class="top"><div class="n">${n}<small>bagian</small></div><span class="badge">hemat ${Math.round(pk.disc * 100)}%</span></div><h3>Paket ${esc(pk.name)}</h3>` +
           `<ul><li>1 kap + ${n - 2} badan + 1 alas + kit kelistrikan</li><li>Tinggi ± ${esc(pk.cm)} cm</li><li>${esc(pk.note || "")}</li></ul>` +
           `<div class="from"><small>mulai dari</small><b class="num">${rp(m.price)}</b>${m.price < m.anchor ? `<s class="num">${rp(m.anchor)} beli satuan</s><em>Hemat ${rp(m.anchor - m.price)}</em>` : ""}</div><button class="btn ${hot ? "btn--primary" : "btn--ghost"}" type="button" data-pkg="${n}">Rakit paket ini</button></div>`
         );
       })
       .join("");
   }
-  function renderCatalog() {
+  function renderCatalog() { keepFocus(renderCatalogNow); }
+  function renderCatalogNow() {
     let h = "";
     const card = (kind, item) => {
       const list = colorsOf(kind);
@@ -351,7 +379,8 @@
   /* ---------- Lima edisi ---------- */
   let edition = D().popularPreset || 0;
   function presetCfg(i) { return Object.assign(sanitize(clone(D().presets[i])), { wiring: true, led: false }); }
-  function renderEditions() {
+  function renderEditions() { keepFocus(renderEditionsNow); }
+  function renderEditionsNow() {
     const el = $("#edisi-app"); if (!el) return;
     const d = D();
     const cfg = presetCfg(edition);
@@ -362,7 +391,7 @@
       `<div class="edisi__side">` +
       `<div class="edisi__list" role="radiogroup" aria-label="Pilih edisi">${d.presets.map((q, i) => {
         const c = presetCfg(i), qp = price(c), n = q.body.length + 2;
-        return `<label class="edisi__opt${i === edition ? " is-on" : ""}"><input type="radio" name="edisi" value="${i}" ${i === edition ? "checked" : ""}/><span class="edisi__sw"><i style="background:${A.shadeHex(c.head.color)}"></i>${c.body.map((x) => `<i style="background:${A.hexOf(x.color)}"></i>`).join("")}<i style="background:${A.hexOf(c.base.color)}"></i></span><span class="edisi__name"><b>${esc(q.name)}</b>${i === d.popularPreset ? '<em class="badge badge--pop">Paling populer</em>' : ""}<small>${n} bagian · Paket ${esc((d.packages[n] || {}).name || "")}</small></span><span class="edisi__price num">${rp(qp.total)}${qp.disc ? `<s>${rp(qp.parts + qp.wiring)}</s>` : ""}</span></label>`;
+        return `<label class="edisi__opt${i === edition ? " is-on" : ""}"><input type="radio" name="edisi" value="${i}" ${i === edition ? "checked" : ""}/><span class="edisi__sw"><i style="background:${A.shadeHex(c.head.color)}"></i>${c.body.map((x) => `<i style="background:${A.hexOf(x.color)}"></i>`).join("")}<i style="background:${A.hexOf(c.base.color)}"></i></span><span class="edisi__name"><b>${esc(q.name)}</b>${i === d.popularPreset ? '<em class="badge badge--pop">Pilihan studio</em>' : ""}<small>${n} bagian · Paket ${esc((d.packages[n] || {}).name || "")}</small></span><span class="edisi__price num">${rp(qp.total)}${qp.disc ? `<s>${rp(qp.parts + qp.wiring)}</s>` : ""}</span></label>`;
       }).join("")}</div>` +
       `<div class="edisi__detail">` +
       `<h3>Edisi ${esc(p.name)}</h3><p class="edisi__story">${esc(p.story || "")}</p>` +
@@ -383,7 +412,7 @@
         `<div class="ocard__acts"><button class="btn btn--primary" type="button" data-edisi-order="${i}">Pesan edisi ${esc(d.presets[i].name)}</button><a class="btn btn--ghost" href="#rakit">Rakit sendiri</a></div>`;
     });
   }
-  // Mockup alur WA mengikuti edisi populer
+  // Mockup alur WA mengikuti edisi pilihan studio
   function renderAlur() {
     const d = D(); const i = d.popularPreset || 0; const cfg = presetCfg(i); const pr = price(cfg);
     const z = C.shipping && C.shipping.zones[0];
@@ -419,6 +448,10 @@
     $("#led-price-note").textContent = rp(D().ledPrice);
     $("#wiring-price-note").textContent = rp(D().wiringPrice);
     $("#wiring-label-note").textContent = D().wiringLabel;
+    document.querySelectorAll("[data-lead-preset]").forEach((el) => { el.textContent = D().leadTime.preset; });
+    document.querySelectorAll("[data-lead-custom]").forEach((el) => { el.textContent = D().leadTime.custom; });
+    const promo = $("#promo-save");
+    if (promo) promo.textContent = `hemat hingga ${Math.round(Math.max(...Object.values(D().packages).map((p) => +p.disc || 0)) * 100)}%`;
   }
 
   /* ---------- Events ---------- */
@@ -433,21 +466,21 @@
     if (t.id === "share-link") {
       const url = shareUrl(state);
       const text = `Lihat lampu rakitan ${code(state)} di ${C.brand}`;
-      if (navigator.share) return navigator.share({ title: C.brand, text, url }).catch(() => {});
+      if (navigator.share) return navigator.share({ title: C.brand, text, url }).catch((err) => { if (!err || err.name !== "AbortError") copyText(url, "Tautan rakitan disalin"); });
       return copyText(url, "Tautan rakitan disalin");
     }
     if (d.edisiOrder != null || d.edisiEdit != null) {
       const i = +(d.edisiOrder ?? d.edisiEdit);
       const p = sanitize(clone(D_.presets[i]));
-      Object.assign(state, { head: p.head, body: p.body, base: p.base });
+      Object.assign(state, { head: p.head, body: p.body, base: p.base, led: false, wiring: true });
       touched = true;
       renderAll();
       const target = d.edisiOrder != null ? $("#summary") : $("#rakit");
-      target.scrollIntoView({ behavior: "smooth", block: d.edisiOrder != null ? "center" : "start" });
+      target.scrollIntoView({ behavior: SCROLL, block: d.edisiOrder != null ? "center" : "start" });
       if (d.edisiEdit != null) $("#ctrl-wrap").open = true;
       return toast(d.edisiOrder != null ? `Edisi ${p.name} siap dipesan` : `Edisi ${p.name} dimuat, ubah bagian mana pun`);
     }
-    if (t.id === "led-switch") { state.led = !state.led; return renderAll(); }
+    if (t.id === "led-switch" || t.id === "led-add") { state.led = !state.led; return renderAll(); }
     if (t.id === "wiring-switch") { state.wiring = state.wiring === false; return renderAll(); }
     if (t.id === "back-preset") {
       const p = sanitize(clone(D_.presets[D_.popularPreset] || D_.presets[0]));
@@ -477,7 +510,7 @@
       while (state.body.length < want) state.body.push({ shape: pick(D_.bodies), color: pick(D_.colors) });
       while (state.body.length > want) state.body.pop();
       renderAll();
-      $("#rakit").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#rakit").scrollIntoView({ behavior: SCROLL, block: "start" });
       return toast(`Paket ${D_.packages[+d.pkg].name} disiapkan`);
     }
     if (d.part) {
@@ -495,7 +528,7 @@
       else if (state.body.length < D_.maxBodies) state.body.push({ shape, color: col });
       else state.body[state.body.length - 1] = { shape, color: col };
       renderAll();
-      $("#rakit").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#rakit").scrollIntoView({ behavior: SCROLL, block: "start" });
       return toast("Dipakai di rakitan");
     }
     if (t.id === "copy-summary") return copyText(waText(state), "Ringkasan disalin");
@@ -599,8 +632,8 @@
       name: "Lampu meja rakitan MahaKarya Studio",
       description: "Lampu meja cetak 3D yang dirakit sesuai pesanan: pilih kap, badan, dan alas dengan bentuk dan warna masing-masing.",
       brand: { "@type": "Brand", name: C.brand },
-      material: "PLA+",
-      offers: { "@type": "AggregateOffer", priceCurrency: "IDR", lowPrice: Math.min(...lows), highPrice: high, offerCount: ns.length, availability: "https://schema.org/MadeToOrder" },
+      material: "PLA matte",
+      offers: { "@type": "AggregateOffer", priceCurrency: "IDR", lowPrice: Math.min(...lows), highPrice: high, offerCount: ns.length, availability: "https://schema.org/InStock" },
     });
   }
   // Bilah pesan di HP hanya saat area pilihan konfigurator terlihat
@@ -609,6 +642,7 @@
       ([e]) => {
         $("#orderbar").hidden = !e.isIntersecting;
         document.body.classList.toggle("has-orderbar", e.isIntersecting);
+        document.documentElement.classList.toggle("has-orderbar", e.isIntersecting);
       },
       { rootMargin: "-120px 0px 0px 0px" }
     ).observe($("#ctrl-wrap"));
@@ -633,12 +667,20 @@
     useCut();
     narrow.addEventListener("change", useCut);
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (still) { btn.hidden = false; btn.addEventListener("click", () => { v.play(); btn.hidden = true; }); return; }
+    const syncBtn = () => { btn.textContent = v.paused ? "▶" : "❚❚"; btn.setAttribute("aria-label", v.paused ? "Putar video latar" : "Jeda video latar"); };
+    btn.hidden = false;
+    syncBtn();
+    v.addEventListener("play", syncBtn);
+    v.addEventListener("pause", syncBtn);
+    btn.addEventListener("click", () => {
+      if (v.paused) { delete v.dataset.userPaused; if (v.preload === "none") v.preload = "auto"; v.play().catch(() => {}); }
+      else { v.dataset.userPaused = "1"; v.pause(); }
+    });
+    if (still) return; // kurangi gerakan: video hanya diputar lewat tombol
     new IntersectionObserver((es) => es.forEach((e) => {
-      if (e.isIntersecting) { if (v.preload === "none") v.preload = "auto"; v.play().catch(() => { btn.hidden = false; }); }
+      if (e.isIntersecting) { if (v.dataset.userPaused) return; if (v.preload === "none") v.preload = "auto"; v.play().catch(() => {}); }
       else v.pause();
     }), { threshold: 0.35 }).observe(v);
-    btn.addEventListener("click", () => { v.play(); btn.hidden = true; });
   })();
 
   // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
@@ -662,27 +704,38 @@
   // Buka dari tautan bagikan (?kode=…) atau pulihkan rakitan terakhir
   (function restore() {
     const q = new URLSearchParams(location.search);
-    const fromLink = q.get("kode") && decodeCode(q.get("kode"));
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch {}
+    const validSaved = !!(saved && saved.head && saved.base && Array.isArray(saved.body) && saved.body.length && [saved.head, saved.base, ...saved.body].every((x) => x && typeof x === "object" && typeof x.shape === "string" && typeof x.color === "string"));
+    let ownCode = "";
+    if (validSaved) { try { ownCode = code(sanitize({ head: saved.head, body: saved.body, base: saved.base, led: !!saved.led, wiring: saved.wiring !== false })); } catch {} }
+    // ?kode= yang sama dengan rakitan tersimpan berasal dari persist() (reload / kembali), bukan tautan bagikan
+    const fromLink = q.get("kode") && q.get("kode").toUpperCase() !== ownCode && decodeCode(q.get("kode"));
     if (fromLink) {
       Object.assign(state, fromLink);
       const z = q.get("zona"); if (z && C.shipping.zones.some((x) => x.id === z)) state.zone = z;
       touched = true;
       refresh();
       toast("Rakitan dari tautan dimuat");
-      setTimeout(() => $("#rakit").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+      setTimeout(() => $("#rakit").scrollIntoView({ behavior: SCROLL, block: "start" }), 300);
       return;
     }
     if (q.get("kode")) history.replaceState(null, "", location.pathname + location.hash);
+    if (!validSaved) return;
+    const snap = clone(state);
     try {
-      const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
-      if (saved && saved.head && saved.base && Array.isArray(saved.body)) {
-        const before = code(state);
-        Object.assign(state, { head: saved.head, body: saved.body, base: saved.base, led: !!saved.led, wiring: saved.wiring !== false, zone: saved.zone || state.zone, gift: { on: false, to: "", msg: "", hide: true, ...(saved.gift || {}) } });
-        sanitize(state);
-        refresh();
-        if (code(state) !== before) toast("Rakitan terakhirmu dipulihkan");
-      }
-    } catch {}
+      const before = code(state);
+      const g = saved.gift && typeof saved.gift === "object" ? saved.gift : {};
+      Object.assign(state, { head: saved.head, body: saved.body, base: saved.base, led: !!saved.led, wiring: saved.wiring !== false, zone: typeof saved.zone === "string" ? saved.zone : state.zone, gift: { on: !!g.on, to: typeof g.to === "string" ? g.to : "", msg: typeof g.msg === "string" ? g.msg : "", hide: g.hide !== false } });
+      sanitize(state);
+      refresh();
+      if (code(state) !== before && !q.get("kode")) toast("Rakitan terakhirmu dipulihkan");
+    } catch {
+      // data tersimpan rusak: kembali ke rakitan awal, buang yang rusak
+      Object.assign(state, snap);
+      try { localStorage.removeItem(SAVE_KEY); } catch {}
+      try { refresh(); } catch {}
+    }
   })();
   window.MKSLamp = { refresh, state, price, code, decodeCode, shareUrl };
 })();

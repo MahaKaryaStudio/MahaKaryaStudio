@@ -10,13 +10,13 @@ Website statis (HTML/CSS/JS murni), tanpa build dan tanpa server. Buka `index.ht
 | `index.html` | **Lampu rakitan** (v2): hero dengan lampu yang menyala saat digulir, seksi cerita terpaku 3 kalimat, **Lima Edisi** (pilih edisi → render, dimensi, harga, pesan), penjelasan 3 bagian yang bereaksi terhadap scroll + geser ganti warna, konfigurator penuh, mockup 3 pesan WhatsApp yang akan diterima pembeli, paket 3/4/5 bagian, katalog bagian satuan, kartu pesan berulang, pita tipografi, cara pesan, spesifikasi, keamanan, FAQ |
 | `koleksi.html` | **Koleksi Nusantara**: katalog vas/lampu/pot/panel, keranjang → WhatsApp, estimator pesanan custom, B2B, material, FAQ |
 
-Video proses di bagian "Cara pesan": `assets/video/proses-lampu.webm` + `.mp4` (8 detik, tanpa suara, 960×540) dan poster `.jpg`. Saat ini video ilustrasi buatan AI dan diberi label demikian di halaman; ganti dengan rekaman produk asli dengan nama file yang sama, lalu hapus kalimat labelnya lewat Mode Edit tab Teks.
+Video latar hero: `assets/video/proses-lampu.webm` + `.mp4` (lanskap, 8 detik, tanpa suara) dan `proses-lampu-tegak.*` (potongan 3:4 untuk HP), masing-masing dengan poster `.jpg`; tombol jeda tersedia. Saat ini video ilustrasi buatan AI dan diberi label demikian di halaman; ganti dengan rekaman produk asli dengan nama file yang sama, lalu hapus kalimat labelnya lewat Mode Edit tab Teks.
 
 Data: `assets/js/config.js` (kontak, janji waktu balas, alamat/NIB, perkiraan ongkir per zona, gratis ongkir, estimator), `assets/js/lamp-data.js` (bentuk, warna, harga, paket, kit kelistrikan, waktu produksi, preset populer, foto bagian lampu), `assets/js/products.js` (katalog koleksi).
 
 Keputusan harga & produk (dari riset pasar di `reports/`, ringkasnya):
-- Harga paket lampu diposisikan Rp375–465 ribu (di antara lampu IKEA dan pesaing lokal 3D print), bagian satuan Rp65–229 ribu, diskon paket 15/22/28%. Bohlam LED (≤5 W) dan **kit kelistrikan ber-SNI/K3L** adalah baris terpisah; lampu bisa dipesan "hanya bagian cetak". Website tidak pernah menyebut lampu rakitan "ber-SNI".
-- Konfigurator dibuka dengan preset "Paling populer"; di HP panel ubah bentuk dilipat. Waktu produksi tampil per varian: preset/berstok vs custom.
+- Harga paket lampu diposisikan Rp375–465 ribu (di antara lampu IKEA dan pesaing lokal 3D print), bagian satuan Rp65–229 ribu, diskon paket 15/22/28%. Bohlam LED (≤5 W) dan **kit kelistrikan (komponen bertanda SNI/K3L)** adalah baris terpisah; lampu bisa dipesan "hanya bagian cetak". Website tidak pernah menyebut lampu rakitan "ber-SNI".
+- Konfigurator dibuka dengan edisi "Pilihan studio" (label editorial, bukan klaim penjualan); di HP panel ubah bentuk dilipat. Waktu produksi tampil per varian: preset/berstok vs custom.
 - Perkiraan ongkir per zona dan perkiraan total tampil sebelum tombol WhatsApp; angkanya contoh, samakan dengan tarif kurir.
 - Rakitan tersimpan di browser dan dipulihkan saat kembali; tombol **Bagikan rakitan** membuat tautan `?kode=MK-…&zona=…` yang membuka konfigurator dengan rakitan itu (alamat halaman ikut berubah saat merakit). **Kirim sebagai kado**: nama penerima, pesan kartu, tanpa harga di paket, ikut terkirim di pesan WhatsApp dan terbaca oleh `admin.html`.
 

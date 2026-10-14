@@ -19,10 +19,10 @@ window.MKS_LAMP = {
   // yang komponennya bertanda SNI/K3L. Dijual sebagai baris terpisah agar lampu
   // bisa dibeli "hanya bagian cetak". Jangan menulis lampu rakitan "ber-SNI".
   wiringPrice: 49000,
-  wiringLabel: "Kit kelistrikan ber-SNI/K3L (fitting E27, kabel 1,5 m, saklar, steker)",
+  wiringLabel: "Kit kelistrikan, komponen bertanda SNI/K3L (fitting E27, kabel 1,5 m, saklar, steker)",
   // Waktu produksi: preset/bagian berstok vs kombinasi custom
   leadTime: { preset: "3–5 hari kerja", custom: "7–10 hari kerja" },
-  // Indeks preset yang dibuka pertama kali dan diberi label "Paling populer"
+  // Indeks preset yang dibuka pertama kali dan diberi label "Pilihan studio"
   popularPreset: 1,
   maxBodies: 3,
   // Palet inti: 5 warna badan/alas yang saling cocok dalam kombinasi apa pun,
@@ -66,16 +66,16 @@ window.MKS_LAMP = {
     { id: "bunga", name: "Bunga", price: 115000 },
   ],
   packages: {
-    3: { name: "Trio", disc: 0.15, cm: "24–30", note: "Pas untuk meja samping tempat tidur" },
-    4: { name: "Kuarto", disc: 0.22, cm: "30–38", note: "Paling sering dipesan, untuk meja kerja" },
-    5: { name: "Kuinto", disc: 0.28, cm: "36–46", note: "Paling tinggi, untuk sudut ruang tamu" },
+    3: { name: "Trio", disc: 0.15, cm: "22–27", note: "Paling rendah, untuk rak dan meja kecil" },
+    4: { name: "Kuarto", disc: 0.22, cm: "27–35", note: "Ukuran tengah, untuk meja samping tempat tidur" },
+    5: { name: "Kuinto", disc: 0.28, cm: "31–43", note: "Paling tinggi, untuk meja kerja dan sudut ruang tamu" },
   },
   // shop: link produk per edisi di marketplace (opsional). Kosong = pakai link toko dari config.js.
   presets: [
     { name: "Senja", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Merah bata dan salmon seperti langit jam lima sore. Untuk meja kerja yang ingin terasa hangat saat lembur.", room: "Meja kerja · ruang tamu", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "kubus", color: "bata" }, { shape: "heksa", color: "krem" }, { shape: "bola", color: "salmon" }], base: { shape: "kotak", color: "bata" } },
-    { name: "Kebun", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Zaitun, krem, dan salmon di atas alas hitam. Paling sering dipesan; cocok untuk kamar dengan banyak tanaman.", room: "Kamar tidur · sudut baca", head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "zaitun" }, { shape: "cincin", color: "krem" }, { shape: "kubus", color: "salmon" }], base: { shape: "bulat", color: "hitam" } },
+    { name: "Kebun", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Zaitun, krem, dan salmon di atas alas hitam. Cocok untuk kamar dengan banyak tanaman.", room: "Kamar tidur · sudut baca", head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "zaitun" }, { shape: "cincin", color: "krem" }, { shape: "kubus", color: "salmon" }], base: { shape: "bulat", color: "hitam" } },
     { name: "Monokrom", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Krem dan hitam arang, kap putih. Untuk ruangan yang sudah ramai warna dan butuh satu benda yang tenang.", room: "Apartemen · meja konsol", head: { shape: "kotak", color: "putih" }, body: [{ shape: "bola", color: "krem" }, { shape: "cincin", color: "hitam" }, { shape: "bola", color: "krem" }], base: { shape: "bulat", color: "hitam" } },
-    { name: "Blush", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Salmon dan krem di alas bunga. Ringkas, tiga bagian, paling sering dijadikan kado housewarming.", room: "Meja samping tempat tidur", head: { shape: "plisir", color: "gading" }, body: [{ shape: "cincin", color: "salmon" }, { shape: "bola", color: "krem" }], base: { shape: "bunga", color: "salmon" } },
+    { name: "Blush", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Salmon dan krem di alas bunga. Empat bagian, cocok untuk kado housewarming.", room: "Meja samping tempat tidur", head: { shape: "plisir", color: "gading" }, body: [{ shape: "cincin", color: "salmon" }, { shape: "bola", color: "krem" }], base: { shape: "bunga", color: "salmon" } },
     { name: "Kayu manis", shop: { tokopedia: "", shopee: "", tiktok: "" }, story: "Satu badan silinder krem di alas segitiga merah bata. Yang paling rendah dan paling hemat.", room: "Rak · meja kecil", head: { shape: "kerucut", color: "gading" }, body: [{ shape: "silinder", color: "krem" }], base: { shape: "segitiga", color: "bata" } },
   ],
   photos: {},

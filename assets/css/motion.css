@@ -47,11 +47,11 @@
 @keyframes hero-stage { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: none; } }
 
 /* Cerita gulir "Tiga bagian" */
-.motion-on .parts-grid.story { align-items: start; }
-.motion-on .parts-grid.story .exploded { position: sticky; top: 96px; }
-.motion-on .parts-grid.story .part-row { transition: opacity 0.4s, transform 0.4s, border-color 0.4s; opacity: 0.42; border-left: 2px solid transparent; padding-left: 14px; margin-left: -16px; }
-.motion-on .parts-grid.story .part-row.is-active { opacity: 1; transform: translateX(4px); border-left-color: var(--accent); }
-.motion-on .parts-grid.story .part-row.is-active .tag { background: var(--accent); color: #fff; }
+.motion-on .parts-grid--story { align-items: start; }
+.motion-on .parts-grid--story .exploded { position: sticky; top: 96px; }
+.motion-on .parts-grid--story .part-row { transition: opacity 0.4s, transform 0.4s, border-color 0.4s; opacity: 0.42; border-left: 2px solid transparent; padding-left: 14px; margin-left: -16px; }
+.motion-on .parts-grid--story .part-row.is-active { opacity: 1; transform: translateX(4px); border-left-color: var(--accent); }
+.motion-on .parts-grid--story .part-row.is-active .tag { background: var(--accent); color: #fff; }
 
 /* Langkah "Cara pesan": garis pemandu terisi mengikuti scroll, nomor menyala satu per satu */
 .motion-on .steps-l { position: relative; --fill: 0; }

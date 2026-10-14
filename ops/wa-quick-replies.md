@@ -1,6 +1,6 @@
 # Sistem admin WhatsApp — MahaKarya Studio (1 admin, WhatsApp Business)
 
-Tiga bagian: **(1) pengaturan sekali** di aplikasi WhatsApp Business, **(2) alur dan batas waktu**, **(3) teks quick reply** yang sama persis dengan template di `admin.html`.
+Tiga bagian: **(1) pengaturan sekali** di aplikasi WhatsApp Business, **(2) alur dan batas waktu**, **(3) teks quick reply**. Sebelas teks sama persis dengan template di `admin.html`; `/rakit` hanya ada di WhatsApp (untuk calon pembeli yang belum punya pesanan).
 
 ## 1. Pengaturan sekali di WhatsApp Business
 
@@ -11,7 +11,7 @@ Buka *Pengaturan → Alat bisnis*.
 | **Profil bisnis** | Nama "MahaKarya Studio", kategori *Dekorasi rumah*, jam 09.00–21.00 WIB setiap hari, alamat kota, email, tautan website, Instagram. Foto profil: ikon Nyala. |
 | **Pesan sapaan** (greeting) | Kirim ke: *Semua orang*. Teks: lihat **G1**. |
 | **Pesan di luar jam kerja** (away) | Jadwal: *Di luar jam kerja*, jam kerja 09.00–21.00. Teks: lihat **G2**. |
-| **Balasan cepat** (quick replies) | Tambahkan 12 teks di bagian 3, dengan pintasan persis seperti kolom *Pintasan*. Di chat, ketik `/` lalu pintasannya. |
+| **Balasan cepat** (quick replies) | Tambahkan 12 teks di bagian 3, dengan pintasan persis seperti kolom *Pintasan*. Di chat, ketik `/` lalu pintasannya. Placeholder `{nama}`/`{kode}` tidak terisi otomatis di aplikasi WA; `admin.html` yang mengisinya. |
 | **Label** | Buat 7 label dengan urutan dan warna ini: 🟡 `1 Baru` · 🔵 `2 Konfirmasi` · 🟠 `3 Tunggu bayar` · 🟣 `4 Cetak` · 🟢 `5 Dikirim` · ⚪ `6 Selesai` · 🔴 `Batal`. Angka di depan membuat urutannya rapi di filter. |
 | **Katalog** | Opsional. Isi 5 preset dari website dengan harga paket dan tautan ke `index.html#rakit`. Jangan isi 12 bagian satuan di katalog WA; pembeli jadi memesan tanpa kode. |
 | **Tautan singkat** | *Alat bisnis → Tautan singkat*: aktifkan, pesan default "Halo MahaKarya Studio, saya mau tanya lampu rakitan". Pakai tautan ini di bio Instagram. |

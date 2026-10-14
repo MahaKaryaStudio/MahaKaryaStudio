@@ -19,7 +19,7 @@
   const ORIGINAL = { products: products && clone(products), config: clone(config) };
   const state = load();
   if (products && state.products) replaceArray(products, state.products);
-  if (state.config) replaceObject(config, state.config);
+  if (state.config) replaceObject(config, fillMissing(clone(state.config), ORIGINAL.config));
   if (!state.text[PAGE]) state.text[PAGE] = {};
   const plugins = [];
 
@@ -37,6 +37,24 @@
   function replaceObject(target, src) {
     Object.keys(target).forEach((k) => delete target[k]);
     Object.assign(target, clone(src));
+  }
+  // Snapshot di localStorage bisa lebih tua dari file di repo: lengkapi key yang belum ada
+  // (mis. config.tiktok, preset.story/room/shop) dari data asli. Item array dicocokkan lewat id/name,
+  // tanpa menghidupkan lagi item yang sudah dihapus admin.
+  function fillMissing(snap, orig) {
+    if (Array.isArray(snap) && Array.isArray(orig)) {
+      snap.forEach((it) => {
+        if (!it || typeof it !== "object" || Array.isArray(it)) return;
+        const o = orig.find((x) => x && typeof x === "object" && ((it.id != null && x.id === it.id) || (it.name != null && x.name === it.name)));
+        if (o) fillMissing(it, o);
+      });
+    } else if (snap && orig && typeof snap === "object" && typeof orig === "object" && !Array.isArray(snap) && !Array.isArray(orig)) {
+      Object.keys(orig).forEach((k) => {
+        if (!(k in snap)) snap[k] = clone(orig[k]);
+        else fillMissing(snap[k], orig[k]);
+      });
+    }
+    return snap;
   }
   function load() {
     try {
@@ -73,7 +91,7 @@
     plugins.push(p);
     if (p.storeKey && p.data) {
       if (!p.original) p.original = clone(p.data);
-      if (state[p.storeKey]) replaceObject(p.data, state[p.storeKey]);
+      if (state[p.storeKey]) replaceObject(p.data, fillMissing(clone(state[p.storeKey]), p.original));
     }
   }
 
@@ -244,7 +262,7 @@
   const SHAPES = ["vase", "tall", "bulb", "cylinder", "bowl", "lamp", "planter", "wave"];
   const MOTIFS = ["ridge", "twist", "batik", "parang", "kawung", "smooth", "voronoi", "wave"];
   const CATS = ["vas", "lampu", "pot", "aksesori", "dinding"];
-  const TAGS = [["bestseller", "Terlaris"], ["baru", "Baru"], ["hadiah", "Ide hadiah"]];
+  const TAGS = [["bestseller", "Pilihan studio"], ["baru", "Baru"], ["hadiah", "Ide hadiah"]];
   const productsChanged = () => markChanged("products", products);
 
   function tabProducts(body) {
@@ -640,5 +658,5 @@
     document.body.classList.add("mks-has-panel");
   }
 
-  window.MKSEditor = { register, markChanged, state, save, confirmBox, shrinkImage, esc, rp, clone, replaceObject, replaceArray, refreshAll, $, $$ };
+  window.MKSEditor = { register, markChanged, state, save, confirmBox, shrinkImage, esc, rp, clone, replaceObject, replaceArray, fillMissing, refreshAll, $, $$ };
 })();

@@ -28,8 +28,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # Hanya berkas situs yang ditayangkan; SOP admin (ops/), alat bantu (tools/), laporan, dan
+      # berkas repo lain tidak ikut diunggah ke alamat publik.
+      - name: Siapkan folder situs
+        run: |
+          mkdir -p _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' --exclude 'ops' --exclude 'tools' \
+            --exclude 'reports' --exclude 'research_notes' --exclude 'finance' --exclude 'dist' \
+            --exclude 'README.md' --exclude '.gitignore' ./ _site/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

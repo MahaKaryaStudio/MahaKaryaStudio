@@ -42,7 +42,7 @@ window.MKS_PRODUCTS = [
     motif: "voronoi",
     color: "#e8c58a",
     desc: "Kap lampu berpori terinspirasi stupa Borobudur. Cahaya hangat membentuk bayangan berpola di dinding.",
-    specs: ["Tinggi 22 cm", "LED E27 hangat 2700K", "Kabel 1,5 m + saklar"],
+    specs: ["Tinggi 22 cm", "Fitting E27, bohlam LED maks 5 W (bukan pijar/halogen)", "Kabel 1,5 m + saklar"],
     tags: ["bestseller"],
   },
   {
@@ -55,7 +55,7 @@ window.MKS_PRODUCTS = [
     motif: "wave",
     color: "#f2ede4",
     desc: "Kap lampu gantung dengan riak ombak parametrik. Ringan, mudah dipasang, cocok untuk kafe dan ruang makan.",
-    specs: ["Diameter 28 cm", "PLA Matte Putih", "Fitting E27"],
+    specs: ["Diameter 28 cm", "PLA Matte Putih", "Fitting E27, bohlam LED maks 5 W (bukan pijar/halogen)"],
     tags: ["baru"],
   },
   {
@@ -80,7 +80,7 @@ window.MKS_PRODUCTS = [
     shape: "cylinder",
     motif: "twist",
     color: "#d9a7a0",
-    desc: "Set tiga pot kecil berpilin untuk sukulen dan kaktus. Hadiah favorit untuk rumah baru.",
+    desc: "Set tiga pot kecil berpilin untuk sukulen dan kaktus. Cocok untuk hadiah rumah baru.",
     specs: ["Diameter 7 / 8 / 9 cm", "PLA Matte", "3 pilihan warna"],
     tags: ["hadiah"],
   },
