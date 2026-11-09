@@ -151,7 +151,7 @@
     if (dim > 0) out += `<ellipse cx="${CX}" cy="${headBottom - hs.h * 0.45}" rx="24" ry="30" fill="#fff" opacity="${dim * 0.28}"/>`;
     if (o.explode) {
       const lx = CX + 100;
-      const tf = 'font-family="DM Mono,monospace" font-size="11" fill="#a89a85"';
+      const tf = 'font-family="DM Mono,monospace" font-size="12" fill="#a89a85"';
       out +=
         `<g stroke="#a89a85" stroke-opacity=".6" stroke-dasharray="3 4">` +
         `<line x1="${CX + 70}" y1="${(headTop + headBottom) / 2}" x2="${lx}" y2="${(headTop + headBottom) / 2}"/>` +
@@ -161,7 +161,7 @@
         `<line x1="${CX}" y1="${bodyBottom + 2}" x2="${CX}" y2="${baseTop - 2}" stroke-dasharray="2 3"/></g>`;
       out +=
         `<g ${tf}><text x="${lx + 6}" y="${(headTop + headBottom) / 2 + 4}">KAP</text><text x="${lx + 6}" y="${(bodyTop + bodyBottom) / 2 + 4}">BADAN</text><text x="${lx + 6}" y="${baseTop + 16}">ALAS</text>` +
-        `<text x="${CX + 8}" y="${(headBottom + bodyTop) / 2 + 4}" font-size="9">ulir M20</text><text x="${CX + 8}" y="${(bodyBottom + baseTop) / 2 + 4}" font-size="9">ulir M20</text></g>`;
+        `<text x="${CX + 8}" y="${(headBottom + bodyTop) / 2 + 4}" font-size="12">ulir M20</text><text x="${CX + 8}" y="${(bodyBottom + baseTop) / 2 + 4}" font-size="12">ulir M20</text></g>`;
     }
     if (o.dims) {
       const dx = CX + 112;
@@ -169,7 +169,7 @@
       out +=
         `<g stroke="#a89a85" stroke-opacity=".7"><line x1="${dx}" y1="${headTop}" x2="${dx}" y2="${floor}"/><line x1="${dx - 6}" y1="${headTop}" x2="${dx + 6}" y2="${headTop}"/><line x1="${dx - 6}" y1="${floor}" x2="${dx + 6}" y2="${floor}"/>` +
         `<line x1="${CX - 60}" y1="${headTop - 14}" x2="${CX + 60}" y2="${headTop - 14}"/><line x1="${CX - 60}" y1="${headTop - 20}" x2="${CX - 60}" y2="${headTop - 8}"/><line x1="${CX + 60}" y1="${headTop - 20}" x2="${CX + 60}" y2="${headTop - 8}"/></g>`;
-      out += `<g font-family="DM Mono,monospace" font-size="11" fill="#f2e7d5"><text x="${dx + 10}" y="${(headTop + floor) / 2 + 4}">≈ ${cm.toFixed(0)} cm</text><text x="${CX}" y="${headTop - 22}" text-anchor="middle">Ø 20 cm</text></g>`;
+      out += `<g font-family="DM Mono,monospace" font-size="12" fill="#f2e7d5"><text x="${dx + 10}" y="${(headTop + floor) / 2 + 4}">≈ ${cm.toFixed(0)} cm</text><text x="${CX}" y="${headTop - 22}" text-anchor="middle">Ø 20 cm</text></g>`;
     }
     out += "</svg>";
     return scoped(out, u);

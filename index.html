@@ -20,9 +20,10 @@
   <link rel="apple-touch-icon" href="assets/brand/png/ikon-512.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" /></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" /></noscript>
+  <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/motion.css" />
   <link rel="stylesheet" href="assets/css/lamp.css" />
@@ -39,9 +40,7 @@
   </script>
 </head>
 <body data-page="index.html">
-  <a class="skip" href="#rakit">Lewati ke konfigurator</a>
-
-  <div class="promo">Paket lampu <strong id="promo-save">hemat hingga 28%</strong> dibanding beli bagian satuan · Dicetak sesuai pesanan · Pesan lewat WhatsApp</div>
+  <a class="skip-link" href="#konten">Lewati ke konten</a>
 
   <header class="nav" id="top">
     <div class="wrap nav__inner">
@@ -57,7 +56,7 @@
         <a href="#faq">FAQ</a>
         <a href="koleksi.html">Koleksi lain</a>
       </nav>
-      <a class="btn btn--primary btn--sm" href="#rakit">Rakit lampumu</a>
+      <a class="btn btn--ghost btn--sm" href="#rakit">Rakit lampumu</a>
 
       <details class="menu">
         <summary aria-label="Buka menu"><i></i><i></i><i></i></summary>
@@ -73,44 +72,37 @@
     </div>
   </header>
 
-  <main>
+  <main id="konten">
     <!-- HERO (gelap) -->
-    <section class="lhero dark">
+    <section class="lhero dark" id="hero">
       <div class="lhero__bg" aria-hidden="true">
-        <video id="reel-video" muted loop playsinline preload="none" poster="assets/video/proses-lampu-poster.jpg" tabindex="-1" data-portrait="assets/video/proses-lampu-tegak" data-landscape="assets/video/proses-lampu">
+        <video id="reel-video" muted loop playsinline preload="none" poster="assets/video/proses-lampu-poster.jpg" tabindex="-1">
           <source src="assets/video/proses-lampu.webm" type="video/webm" />
           <source src="assets/video/proses-lampu.mp4" type="video/mp4" />
         </video>
       </div>
-      <button class="reel__play" id="reel-play" type="button" aria-label="Putar video latar" hidden>▶</button>
-      <p class="lhero__note">Video latar: ilustrasi konsep (dibuat dengan AI)</p>
+      <!-- Label AI + tombol jeda melekat pada video (satu pil scrim), selalu di dalam layar pertama -->
+      <div class="lhero__media" id="reel-ui">
+        <button class="reel__play" id="reel-play" type="button" aria-label="Putar video latar" hidden>▶</button>
+        <span class="lhero__note pill pill--text">Latar video: ilustrasi konsep (dibuat dengan AI)</span>
+      </div>
       <p class="lhero__hint" id="hero-hint" aria-hidden="true"><span>↓</span> Gulir untuk menyalakan</p>
       <div class="wrap lhero__grid">
-        <div>
-          <p class="eyebrow">Lampu meja cetak 3D · dirakit sesuai pesanan · Jakarta</p>
+        <div class="lhero__text">
+          <p class="eyebrow">MahaKarya Studio · Jakarta</p>
           <h1>Lampu yang kamu <span>susun sendiri.</span></h1>
           <p class="lead">Pilih kap, badan, dan alas satu per satu. Tiap bagian punya bentuk dan warnanya sendiri. Kami cetak, cek rakitannya, lalu kirim per bagian ke rumahmu; tinggal putar.</p>
-          <div class="chips" data-dynamic-text>
-            <span class="chip-stat"><b data-count>3</b> bagian</span>
-            <span class="chip-stat"><b id="chip-shapes" data-count>12</b> bentuk</span>
-            <span class="chip-stat"><b id="chip-colors" data-count>5</b> warna filamen</span>
-            <span class="chip-stat">Mulai <b id="hero-from">Rp —</b></span>
-          </div>
+          <p class="lhero__from" data-dynamic-text><span class="lhero__from-label">Mulai dari</span> <b id="hero-from" class="num">Rp —</b> <span class="lhero__from-note"><span class="lhero__from-sep" aria-hidden="true">· </span>termasuk kit kelistrikan</span></p>
           <div class="lhero__cta">
-            <a class="btn btn--primary" href="#edisi">Lihat lima edisi</a>
-            <a class="btn btn--ghost" href="#rakit">Rakit sendiri</a>
+            <a class="btn btn--primary-dark btn--lg" href="#edisi">Lihat lima edisi</a>
+            <a class="text-link" href="#rakit">Rakit sendiri <span class="arrow" aria-hidden="true">→</span></a>
           </div>
-          <ul class="trust trust--hero">
-            <li>Garansi 30 hari cacat cetak</li>
-            <li>Foto rakitan sebelum dikirim</li>
-            <li>Bagian bisa diganti kapan saja</li>
-          </ul>
         </div>
         <div class="stage" id="hero-stage" style="--dim:0.12">
           <div class="wall"></div>
-          <div class="frames"><i></i><i></i><i></i></div>
           <div class="glow"></div>
           <div class="lamp" id="hero-lamp" data-dynamic></div>
+          <span class="pill stage__pill" data-stage-pill="hero" data-dynamic>Ilustrasi</span>
           <div class="stage-ui">
             <button class="switch" id="hero-switch" role="switch" aria-checked="true"><i></i><span class="sr-only">Lampu </span>Nyala</button>
             <label class="dimmer">Redup<input type="range" id="hero-dim" min="15" max="100" value="100" aria-label="Kecerahan lampu">Terang</label>
@@ -123,6 +115,7 @@
     <section class="story dark" id="kenapa" aria-label="Kenapa lampu rakitan">
       <div class="story__pin">
         <div class="story__bg" aria-hidden="true"><img src="assets/video/proses-lampu-poster.jpg" alt="" loading="lazy" decoding="async" /></div>
+        <span class="pill stage__pill story__pill">Ilustrasi · dibuat dengan AI</span>
         <div class="wrap story__wrap">
           <p class="story__line is-on">Lampu di toko dibuat <em>satu bentuk</em> untuk semua orang.</p>
           <p class="story__line">Padahal ruanganmu tidak seperti ruangan <em>orang lain</em>.</p>
@@ -134,23 +127,22 @@
     </section>
 
     <!-- LIMA EDISI (terang) -->
-    <section id="edisi">
+    <section id="edisi" class="paper room-lg">
       <div class="wrap">
-        <p class="eyebrow">Lima edisi</p>
+        <p class="eyebrow">01 · Edisi</p>
         <h2 class="section-title">Lima kombinasi yang kami rancang untuk ruangan berbeda.</h2>
         <p class="section-sub">Pilih satu, lalu pesan apa adanya atau ganti bagian mana pun di konfigurator. Harga sudah termasuk kit kelistrikan; bohlam LED opsional.</p>
-        <div class="edisi" id="edisi-app" data-dynamic style="margin-top:32px"></div>
-        <div class="ocard" data-ocard data-dynamic></div>
+        <div class="edisi room-body" id="edisi-app" data-dynamic></div>
       </div>
     </section>
 
     <!-- TIGA BAGIAN (terang) -->
-    <section id="tiga">
+    <section id="tiga" class="paper-2">
       <div class="wrap">
-        <p class="eyebrow">Cara kerjanya</p>
+        <p class="eyebrow">02 · Cara kerjanya</p>
         <h2 class="section-title">Tiga bagian, satu ulir yang sama.</h2>
         <p class="section-sub">Kap, badan, dan alas disambung dengan ulir cetak M20 yang sama di semua bagian. Tanpa lem. Bagian apa pun bisa dilepas dan diganti kapan saja, termasuk yang kamu beli belakangan.</p>
-        <div class="parts-grid" style="margin-top:36px">
+        <div class="parts-grid room-body">
           <div class="exploded-wrap">
             <div class="exploded" id="exploded" data-dynamic></div>
             <div class="swipe" id="swipe">
@@ -167,23 +159,28 @@
       </div>
     </section>
 
+    <!-- PITA TIPOGRAFI -->
+    <section class="band dark" id="pita" aria-label="Dicetak satu per satu di Jakarta">
+      <div class="wrap"><p class="band__text"><span>Dicetak satu per satu.</span> <em>Di Jakarta.</em></p><p class="band__sub">Setiap lampu dicetak dan dirakit di studio kami, lalu kami kirim foto rakitannya sebelum berangkat.</p></div>
+    </section>
+
     <!-- KONFIGURATOR (gelap) -->
-    <section id="rakit" class="dark">
+    <section id="rakit" class="dark room-lg">
       <div class="wrap">
-        <p class="eyebrow">Konfigurator</p>
+        <p class="eyebrow">03 · Studio rakit</p>
         <h2 class="section-title">Rakit lampumu.</h2>
         <p class="section-sub">Mulai dari salah satu edisi, lalu ubah bagian mana pun kalau mau. Harga menyesuaikan seketika; kit kelistrikan bisa ditambahkan atau dilepas.</p>
-        <div class="presets" id="presets" data-dynamic style="margin-top:28px"></div>
+        <div class="presets room-body" id="presets" data-dynamic></div>
         <div class="config">
           <div class="preview">
             <div class="stage" id="cfg-stage" style="--dim:1">
               <div class="wall"></div>
-              <div class="frames"><i></i><i></i><i></i></div>
               <div class="glow"></div>
               <div class="lamp" id="cfg-lamp" data-dynamic></div>
+              <span class="pill stage__pill" data-stage-pill="rakit">Ilustrasi · Rakitanmu</span>
               <div class="stage-ui">
                 <button class="switch" id="cfg-switch" role="switch" aria-checked="true"><i></i><span class="sr-only">Lampu </span>Nyala</button>
-                <span class="mono" id="cfg-height" style="font-size:12px;color:var(--dark-muted)">≈ — cm</span>
+                <span class="stage-ui__meta" id="cfg-height">≈ — cm</span>
               </div>
             </div>
             <div class="pstrip" id="parts-strip" data-dynamic aria-label="Bagian yang dipilih"></div>
@@ -204,12 +201,12 @@
     </section>
 
     <!-- BEGINI PESANANNYA BERJALAN -->
-    <section id="alur">
+    <section id="alur" class="dark dark-2">
       <div class="wrap">
-        <p class="eyebrow">Setelah tombol WhatsApp</p>
+        <p class="eyebrow">04 · Setelah tombol WhatsApp</p>
         <h2 class="section-title">Begini pesananmu berjalan.</h2>
         <p class="section-sub">Tidak ada akun, tidak ada keranjang. Tiga pesan dari kami yang akan kamu terima, persis seperti ini.</p>
-        <div class="alur" style="margin-top:32px">
+        <div class="alur room-body">
           <article class="phone">
             <header><span class="phone__step">A</span><b>Konfirmasi &amp; total</b><small>&lt; 1 jam setelah kode diterima</small></header>
             <div class="phone__chat">
@@ -238,12 +235,12 @@
     </section>
 
     <!-- PAKET (terang) -->
-    <section id="paket">
+    <section id="paket" class="paper">
       <div class="wrap">
-        <p class="eyebrow">Paket</p>
+        <p class="eyebrow">05 · Paket</p>
         <h2 class="section-title">Tiga ukuran, pilih yang pas di mejamu.</h2>
-        <p class="section-sub">Setiap paket adalah kap + badan + alas. Harga coret adalah harga kalau ketiga bagian dibeli satuan dari katalog di bawah; makin banyak badan, makin besar potongannya.</p>
-        <div class="pkgs" id="pkgs" data-dynamic style="margin-top:36px"></div>
+        <p class="section-sub">Setiap paket adalah kap + badan + alas. Harga coret adalah harga kalau semua bagian dibeli satuan dari katalog di bawah, ditambah kit. Makin banyak badan, makin besar potongannya: hingga <span id="promo-save" data-dynamic>28%</span> dari harga bagian cetak.</p>
+        <div class="pkgs room-body" id="pkgs" data-dynamic></div>
         <div class="incl">
           <span><b id="wiring-label-note">Kit kelistrikan (komponen bertanda SNI/K3L)</b>, <b id="wiring-price-note">Rp49.000</b> (bisa dilepas)</span>
           <span>Kartu perawatan &amp; kunci ulir</span>
@@ -253,12 +250,12 @@
     </section>
 
     <!-- BAGIAN SATUAN (terang) -->
-    <section id="bagian" style="background:var(--paper-2)">
+    <section id="bagian" class="paper-2">
       <div class="wrap">
-        <p class="eyebrow">Bagian satuan</p>
+        <p class="eyebrow">06 · Bagian satuan</p>
         <h2 class="section-title">Ganti satu bagian, lampu terasa baru.</h2>
         <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Pilih warna di kartu, lalu pakai langsung di konfigurator.</p>
-        <div class="pcat" id="catalog" data-dynamic style="margin-top:36px"></div>
+        <div class="pcat room-body" id="catalog" data-dynamic></div>
         <div class="havebase">
           <div>
             <h3>Sudah punya lampunya?</h3>
@@ -266,36 +263,31 @@
           </div>
           <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya sudah punya lampu rakitan dan mau beli bagian satuan: ">Pesan bagian satuan</a>
         </div>
-        <div class="ocard" data-ocard data-dynamic></div>
         <div class="bulk">
           <div>
             <h3>Pesan 10 lampu atau lebih?</h3>
             <p>Untuk kafe, hotel, hampers, atau hadiah karyawan: warna seragam, logo di alas, dan harga khusus volume.</p>
           </div>
-          <a class="btn btn--primary" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
+          <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
         </div>
       </div>
     </section>
 
-    <!-- PITA TIPOGRAFI -->
-    <section class="band dark" aria-label="Dicetak satu per satu di Jakarta">
-      <div class="wrap"><p class="band__text"><span>Dicetak satu per satu.</span> <em>Di Jakarta.</em></p><p class="band__sub">Tidak ada stok gudang. Lampumu mulai dicetak setelah kamu memesan, dan kami kirim fotonya sebelum berangkat.</p></div>
-    </section>
 
     <!-- CARA PESAN + SPESIFIKASI -->
-    <section id="cara">
+    <section id="cara" class="paper">
       <div class="wrap how">
         <div>
-          <p class="eyebrow">Cara pesan</p>
-          <h2 class="section-title">Dari layar ke meja: edisi ±1 minggu, custom ±2 minggu.</h2>
-          <div class="steps-l" style="margin-top:28px">
-            <div class="step"><span>1</span><div><h3>Rakit di sini</h3><p>Susun bentuk dan warna. Harga dan tinggi lampu muncul langsung saat kamu mengubahnya.</p></div></div>
-            <div class="step"><span>2</span><div><h3>Kirim lewat WhatsApp</h3><p>Tombol Pesan membuka WhatsApp dengan ringkasan rakitan dan kode. Kami balas konfirmasi stok warna dan tagihan.</p></div></div>
-            <div class="step"><span>3</span><div><h3>Kami cetak</h3><p>Tiap bagian dicetak satu per satu: <span data-lead-preset>3–5 hari kerja</span> untuk edisi dan bagian berstok, <span data-lead-custom>7–10 hari kerja</span> untuk kombinasi custom. Kamu terima foto rakitan sebelum dikirim.</p></div></div>
-            <div class="step"><span>4</span><div><h3>Tiba di rumah</h3><p>Dikemas per bagian, tinggal putar dan pasang. Jabodetabek 1–2 hari, luar kota 2–5 hari.</p></div></div>
+          <p class="eyebrow">07 · Cara pesan</p>
+          <h2 class="section-title">Dari layar ke meja dalam 1–3 minggu.</h2>
+          <div class="steps-l room-body">
+            <div class="step"><span aria-hidden="true"></span><div><h3>Rakit di sini</h3><p>Susun bentuk dan warna. Harga dan tinggi lampu muncul langsung saat kamu mengubahnya.</p></div></div>
+            <div class="step"><span aria-hidden="true"></span><div><h3>Kirim lewat WhatsApp</h3><p>Tombol Pesan membuka WhatsApp dengan ringkasan rakitan dan kode. Kami balas konfirmasi stok warna dan tagihan.</p></div></div>
+            <div class="step"><span aria-hidden="true"></span><div><h3>Kami cetak</h3><p>Tiap bagian dicetak satu per satu: <span data-lead-preset>3–5 hari kerja</span> untuk edisi dan bagian berstok, <span data-lead-custom>7–10 hari kerja</span> untuk kombinasi custom. Kamu terima foto rakitan sebelum dikirim.</p></div></div>
+            <div class="step"><span aria-hidden="true"></span><div><h3>Tiba di rumah</h3><p>Dikemas per bagian, tinggal putar dan pasang. Jabodetabek 1–2 hari, luar kota 2–5 hari.</p></div></div>
           </div>
         </div>
-        <div class="spec">
+        <div class="spec dark">
           <p class="eyebrow">Spesifikasi rakitan saat ini</p>
           <div class="fig" id="spec-fig" data-dynamic></div>
           <dl>
@@ -313,50 +305,52 @@
     </section>
 
     <!-- KEAMANAN & PERAWATAN -->
-    <section id="aman">
+    <section id="aman" class="paper-2">
       <div class="wrap">
-        <p class="eyebrow">Keamanan &amp; perawatan</p>
+        <p class="eyebrow">08 · Keamanan &amp; perawatan</p>
         <h2 class="section-title">Supaya awet dan aman dipakai.</h2>
         <div class="safety">
           <div class="safety__card"><b>Bohlam LED maksimal 5 W</b><p>Jangan pakai bola pijar atau halogen. PLA mulai melunak di sekitar 55 °C, jadi batas 5 W menjaga kap tetap dingin.</p></div>
           <div class="safety__card"><b>Jauhkan dari panas</b><p>Hindari jendela yang terkena matahari langsung, dasbor mobil, dan kompor. Ruangan ber-AC atau berventilasi ideal.</p></div>
-          <div class="safety__card"><b>Kelistrikan dari komponen bertanda</b><p>Kit kabel, saklar, steker, dan fitting berasal dari produsen terdaftar dengan tanda SNI/K3L. Lampu rakitan ini bukan produk bersertifikat SNI; bila ragu, pesan tanpa kit dan pasang kelistrikan pilihan Anda.</p></div>
+          <div class="safety__card"><b>Komponen kit bertanda SNI/K3L</b><p>Kit kabel, saklar, steker, dan fitting berasal dari produsen terdaftar dengan tanda SNI/K3L. Lampu rakitan ini bukan produk bersertifikat SNI; bila ragu, pesan tanpa kit dan pasang kelistrikan pilihan Anda.</p></div>
           <div class="safety__card"><b>Perawatan</b><p>Lap dengan kain kering atau sedikit lembap. Hindari alkohol dan tiner. Untuk membersihkan bagian dalam, putar lepas bagiannya.</p></div>
         </div>
       </div>
     </section>
 
     <!-- FAQ -->
-    <section class="faq" id="faq" style="background:var(--paper-2)">
+    <section class="faq paper" id="faq">
       <div class="wrap">
+        <p class="eyebrow">09 · Tanya jawab</p>
         <h2 class="section-title">Yang sering ditanyakan</h2>
         <div class="faq__list">
           <details><summary>Apakah lampu cetak 3D aman dari panas?</summary><p>Aman dengan bola LED sampai 5 W. Jangan pakai bola pijar atau halogen; panasnya bisa melunakkan PLA. Setiap paket disertai catatan ini di kartu perawatan.</p></details>
-          <details><summary>Apakah lampunya ber-SNI?</summary><p>Lampu rakitannya sendiri tidak bersertifikat SNI. Kit kelistrikan yang kami sertakan (kabel, saklar, steker, fitting) berasal dari produsen terdaftar dengan komponen bertanda SNI/K3L. Kalau Anda ingin memakai kelistrikan sendiri, pesan tanpa kit dan harganya berkurang.</p></details>
-          <details><summary>Berapa lama produksinya?</summary><p>Edisi dan bagian yang berstok: 3–5 hari kerja. Kombinasi custom yang dicetak khusus: 7–10 hari kerja. Waktu yang berlaku tampil di ringkasan sebelum Anda memesan.</p></details>
+          <details><summary>Apakah lampunya bersertifikat SNI?</summary><p>Tidak. Lampu rakitannya sendiri tidak bersertifikat SNI. Kit kelistrikan yang kami sertakan (kabel, saklar, steker, fitting) berasal dari produsen terdaftar dengan komponen bertanda SNI/K3L. Kalau kamu ingin memakai kelistrikan sendiri, pesan tanpa kit dan harganya berkurang.</p></details>
+          <details><summary>Berapa lama produksinya?</summary><p>Edisi dan bagian yang berstok: 3–5 hari kerja. Kombinasi custom yang dicetak khusus: 7–10 hari kerja. Waktu yang berlaku tampil di ringkasan sebelum kamu memesan.</p></details>
           <details><summary>Bisa pesan warna di luar yang ada?</summary><p>Bisa untuk pesanan minimal lima bagian dengan warna yang sama. Sebutkan warnanya di WhatsApp, kami cek stok filamen dan kirim foto contoh cetak sebelum produksi.</p></details>
           <details><summary>Apakah garis lapisan cetaknya terlihat?</summary><p>Ya, tipis. Itu karakter cetak 3D dan sengaja kami biarkan. Filamen matte membuat garisnya halus dan tidak mengilap di bawah cahaya.</p></details>
           <details><summary>Kalau satu bagian retak atau ingin diganti?</summary><p>Semua bagian dijual satuan dan tinggal diputar ke ulir yang sama. Retak akibat cacat cetak dalam 30 hari pertama kami ganti gratis.</p></details>
           <details><summary>Bagaimana kalau paket rusak saat pengiriman?</summary><p>Cek kardus sebelum tanda tangan; kalau penyok, foto dulu. Kirim foto atau video saat membuka paket paling lambat 2×24 jam setelah diterima. Bagian yang rusak kami cetak ulang dan kirim gratis.</p></details>
           <details><summary>Bisa batal atau minta uang kembali?</summary><p>Sebelum masuk antrean cetak: bisa batal kapan saja, dana kembali penuh ke rekening yang sama dalam 1×24 jam. Setelah dicetak, pesanan tidak bisa dibatalkan karena dibuat khusus untukmu; cacat cetak dalam 30 hari tetap kami ganti.</p></details>
           <details><summary>Bisa pakai bola lampu sendiri?</summary><p>Bisa, fittingnya E27 standar. Pilih LED warna hangat 2700 K agar kap tampak seperti di foto.</p></details>
-          <details><summary>Bagaimana cara bayar dan kapan dikirim?</summary><p>Setelah rakitan dikonfirmasi di WhatsApp, kami kirim tagihan untuk transfer bank atau QRIS atas nama usaha. Produksi dimulai setelah pembayaran diterima, lalu kami kirim foto rakitan sebelum paket berangkat. Perkiraan ongkir per zona sudah tampil di ringkasan; tarif pastinya kami konfirmasi sebelum Anda bayar.</p></details>
+          <details><summary>Bagaimana cara bayar dan kapan dikirim?</summary><p>Setelah rakitan dikonfirmasi di WhatsApp, kami kirim tagihan untuk transfer bank atau QRIS atas nama usaha. Produksi dimulai setelah pembayaran diterima, lalu kami kirim foto rakitan sebelum paket berangkat. Perkiraan ongkir per zona sudah tampil di ringkasan; tarif pastinya kami konfirmasi sebelum kamu bayar.</p></details>
           <details><summary>Bagaimana merawatnya?</summary><p>Lap dengan kain kering atau sedikit lembap; hindari alkohol dan tiner. Jauhkan dari sinar matahari langsung dan sumber panas; PLA mulai melunak di sekitar 55 °C. Untuk membersihkan bagian dalam, putar lepas bagiannya.</p></details>
           <details><summary>Apakah ada produk selain lampu?</summary><p>Ada. Vas, pot, panel dinding, dan aksesori bermotif Nusantara ada di halaman <a href="koleksi.html">Koleksi lain</a>.</p></details>
         </div>
       </div>
     </section>
 
-    <section class="final">
+    <section class="final dark room-lg" id="konsultasi">
       <div class="wrap final__inner">
+        <p class="eyebrow">10 · Konsultasi</p>
         <h2>Belum yakin kombinasinya?</h2>
         <p>Kirim foto meja atau ruanganmu, kami bantu pilihkan bentuk dan warna.</p>
-        <a class="btn btn--light" data-wa="Halo MahaKarya Studio, saya ingin konsultasi lampu rakitan untuk ruangan saya.">Konsultasi via WhatsApp</a>
+        <a class="btn btn--wa btn--lg" data-wa="Halo MahaKarya Studio, saya ingin konsultasi lampu rakitan untuk ruangan saya.">Konsultasi via WhatsApp</a>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer dark">
     <div class="wrap footer__grid">
       <div>
         <a href="#top" class="logo logo--light"><svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true" fill="none" stroke-linecap="round"><g stroke="#f2a33a" stroke-width="6"><line x1="35.0" y1="16" x2="65.0" y2="16"/><line x1="31.0" y1="24" x2="69.0" y2="24"/><line x1="27.0" y1="32" x2="73.0" y2="32"/><line x1="23.0" y1="40" x2="77.0" y2="40"/><line x1="19.0" y1="48" x2="81.0" y2="48"/></g><circle cx="50" cy="66" r="9" fill="#f2e7d5"/><line x1="30" y1="88" x2="70" y2="88" stroke="#bfb2a1" stroke-width="6"/></svg><span>MahaKarya<em>Studio</em></span></a>

@@ -13,6 +13,23 @@
  */
 (function () {
   const KEY = "mks-edits-v2";
+  /* ---------- Migrasi alamat teks ke tata letak v3 (kunci localStorage tetap "mks-edits-v2") ----------
+     v3 membungkus seksi dalam <main id="konten">, memindah .band, memberi id pada hero/.band/.final, dan
+     menambah label ruang. Suntingan teks lama dipindah ke alamat baru HANYA bila elemennya sama persis
+     (teks dasarnya tidak berubah). Suntingan untuk elemen yang teks dasarnya diganti di v3 atau sudah
+     dihapus tidak diterapkan lagi (bisa jatuh ke elemen lain), tetapi disimpan di state.textV2. */
+  const LAYOUT = 3;
+  const MOVED = {
+    "index.html": {
+      rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
+      drop: ["div:0", "#top/div:0/details:0/summary:0", "main:0/section:0/p:0", "main:0/section:0/div:1/div:0/p:0", "main:0/section:0/div:1/div:0/div:1/a:1", "main:0/section:0/div:1/div:0/ul:0/li:0", "main:0/section:0/div:1/div:0/ul:0/li:1", "main:0/section:0/div:1/div:0/ul:0/li:2", "#kenapa/div:0/div:1/ol:0/li:0", "#kenapa/div:0/div:1/ol:0/li:1", "#kenapa/div:0/div:1/ol:0/li:2", "#edisi/div:0/p:0", "#tiga/div:0/p:0", "#rakit/div:0/p:0", "#alur/div:0/p:0", "#alur/div:0/p:2", "#paket/div:0/p:0", "#paket/div:0/p:1", "#bagian/div:0/p:0", "main:0/section:8/div:0/p:1", "#cara/div:0/div:0/p:0", "#cara/div:0/div:0/h2:0", "#cara/div:0/div:0/div:0/div:0/span:0", "#cara/div:0/div:0/div:0/div:1/span:0", "#cara/div:0/div:0/div:0/div:2/span:0", "#cara/div:0/div:0/div:0/div:3/span:0", "#aman/div:0/p:0", "#faq/div:0/div:0/details:1/summary:0", "#faq/div:0/div:0/details:1/p:0", "#faq/div:0/div:0/details:2/p:0", "#faq/div:0/div:0/details:9/p:0"],
+      dropPrefix: "main:0/",
+    },
+    "koleksi.html": {
+      prefix: ["main:0/", "#konten/"],
+      drop: ["#top/div:0/details:0/summary:0", "#faq/div:0/div:0/details:5/summary:0"],
+    },
+  };
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;
@@ -56,12 +73,37 @@
     }
     return snap;
   }
+  function migrateText(s) {
+    if (s.layout >= LAYOUT) return false;
+    let changed = false;
+    Object.keys(MOVED).forEach((page) => {
+      const t = s.text[page];
+      if (!t || typeof t !== "object" || !Object.keys(t).length) return;
+      const m = MOVED[page], out = {}, kept = {};
+      Object.entries(t).forEach(([path, html]) => {
+        let np = (m.rename && m.rename[path]) || null;
+        if (!np && ((m.drop && m.drop.includes(path)) || (m.dropPrefix && path.startsWith(m.dropPrefix)))) { kept[path] = html; return; }
+        if (!np) np = m.prefix && path.startsWith(m.prefix[0]) ? m.prefix[1] + path.slice(m.prefix[0].length) : path;
+        out[np] = html;
+      });
+      if (Object.keys(kept).length) {
+        s.textV2 = s.textV2 && typeof s.textV2 === "object" ? s.textV2 : {};
+        s.textV2[page] = Object.assign({}, s.textV2[page], kept);
+      }
+      s.text[page] = out;
+      changed = true;
+    });
+    s.layout = LAYOUT;
+    return changed;
+  }
   function load() {
     try {
-      const s = JSON.parse(localStorage.getItem(KEY)) || {};
-      return Object.assign({ text: {}, products: null, config: null }, s, { text: s.text || {} });
+      const s = Object.assign({ text: {}, products: null, config: null }, JSON.parse(localStorage.getItem(KEY)) || {});
+      if (!s.text || typeof s.text !== "object") s.text = {};
+      if (migrateText(s)) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (_) {} }
+      return s;
     } catch (_) {
-      return { text: {}, products: null, config: null };
+      return { text: {}, products: null, config: null, layout: LAYOUT };
     }
   }
   let saveWarned = false;

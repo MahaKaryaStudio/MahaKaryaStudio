@@ -4,3 +4,12 @@ document.addEventListener("click", (e) => {
   if (!menu) return;
   if (e.target.closest(".menu__links a") || !menu.contains(e.target)) menu.open = false;
 });
+// Escape menutup menu ringkas dan mengembalikan fokus ke tombolnya.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const menu = document.querySelector(".menu[open]");
+  if (!menu) return;
+  menu.open = false;
+  const s = menu.querySelector("summary");
+  if (s) s.focus();
+});

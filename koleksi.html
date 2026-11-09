@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Koleksi Nusantara — MahaKarya Studio</title>
   <meta name="description" content="Dekorasi rumah 3D print bermotif Nusantara: vas, lampu, pot, panel dinding. Bisa custom nama/logo dan pesanan korporat. Dibuat sesuai pesanan di Jakarta." />
-  <meta name="theme-color" content="#1f1a16" />
+  <meta name="theme-color" content="#15100c" />
   <meta property="og:title" content="MahaKarya Studio — Dekorasi Rumah 3D Print" />
   <meta property="og:description" content="Motif warisan Nusantara, dicetak presisi. Bisa custom & pesanan korporat." />
   <meta property="og:type" content="website" />
@@ -19,9 +19,10 @@
   <link rel="apple-touch-icon" href="assets/brand/png/ikon-512.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" /></noscript>
+  <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/motion.css" />
   <script type="application/ld+json">
@@ -37,7 +38,7 @@
   </script>
 </head>
 <body data-page="koleksi.html">
-  <a class="skip" href="#koleksi">Lewati ke koleksi</a>
+  <a class="skip-link" href="#konten">Lewati ke konten</a>
 
   <div class="promo">Gratis ongkir untuk pesanan di atas <strong data-free-ship></strong> · Diproduksi sesuai pesanan, bukan stok gudang</div>
 
@@ -74,7 +75,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="konten">
     <!-- HERO -->
     <section class="hero">
       <div class="wrap hero__grid">
@@ -143,7 +144,7 @@
     </section>
 
     <!-- CUSTOM / ESTIMATOR -->
-    <section class="custom" id="custom">
+    <section class="custom dark" id="custom">
       <div class="wrap custom__grid">
         <div>
           <p class="eyebrow">Pesanan custom</p>
@@ -272,23 +273,23 @@
           <details><summary>Bagaimana jika barang rusak saat pengiriman?</summary><p>Cek kardus sebelum tanda tangan; kalau penyok, foto dulu. Kirim foto atau video saat membuka paket dalam 2×24 jam, kami cetak ulang dan kirim gratis.</p></details>
           <details><summary>Bisa pesan satuan dengan nama?</summary><p>Bisa. Personalisasi nama/inisial tersedia mulai 1 pcs dengan biaya tambahan kecil.</p></details>
           <details><summary>Metode pembayaran?</summary><p>Transfer bank, QRIS, atau checkout melalui marketplace resmi kami. Pesanan custom memakai DP 50%.</p></details>
-          <details><summary>Apakah lampu di koleksi ini ber-SNI?</summary><p>Lampu cetak 3D kami bukan produk bersertifikat SNI. Pakai bohlam LED maksimal 5 W, bukan pijar atau halogen, supaya kap tetap dingin; PLA mulai melunak di sekitar 55 °C.</p></details>
+          <details><summary>Apakah lampu di koleksi ini bersertifikat SNI?</summary><p>Lampu cetak 3D kami bukan produk bersertifikat SNI. Pakai bohlam LED maksimal 5 W, bukan pijar atau halogen, supaya kap tetap dingin; PLA mulai melunak di sekitar 55 °C.</p></details>
           <details><summary>Apakah desain saya aman?</summary><p>Desain eksklusif yang Anda pesan tidak akan kami jual ke pihak lain. Perjanjian kerahasiaan tersedia untuk klien bisnis.</p></details>
         </div>
       </div>
     </section>
 
     <!-- CTA -->
-    <section class="final">
+    <section class="final dark">
       <div class="wrap final__inner">
         <h2>Punya ruang yang butuh karakter?</h2>
         <p>Ceritakan ruangannya, kami bantu pilihkan atau rancangkan.</p>
-        <a class="btn btn--light" data-wa="Halo MahaKarya Studio, saya ingin konsultasi dekorasi.">Konsultasi via WhatsApp</a>
+        <a class="btn btn--wa btn--lg" data-wa="Halo MahaKarya Studio, saya ingin konsultasi dekorasi.">Konsultasi via WhatsApp</a>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer dark">
     <div class="wrap footer__grid">
       <div>
         <a href="index.html" class="logo logo--light"><svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true" fill="none" stroke-linecap="round"><g stroke="#f2a33a" stroke-width="6"><line x1="35.0" y1="16" x2="65.0" y2="16"/><line x1="31.0" y1="24" x2="69.0" y2="24"/><line x1="27.0" y1="32" x2="73.0" y2="32"/><line x1="23.0" y1="40" x2="77.0" y2="40"/><line x1="19.0" y1="48" x2="81.0" y2="48"/></g><circle cx="50" cy="66" r="9" fill="#f2e7d5"/><line x1="30" y1="88" x2="70" y2="88" stroke="#bfb2a1" stroke-width="6"/></svg><span>MahaKarya<em>Studio</em></span></a>

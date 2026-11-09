@@ -1,201 +1,144 @@
 /*
- * MOTION — halaman yang bergerak mengikuti scroll, tanpa library.
- *  1. Header: sembunyi saat scroll ke bawah, muncul saat scroll ke atas; tautan nav mengikuti bagian aktif.
- *  2. Garis progres baca.
- *  3. Reveal dua arah: elemen masuk dari bawah saat scroll turun, dari atas saat scroll naik,
- *     dan diulang setiap kali keluar-masuk layar.
- *  4. Hero mengikuti scroll: parallax video & panggung, teks memudar, nyala lampu meredup.
- *  5. Cerita gulir "Tiga bagian": ilustrasi menempel, baris bagian menyala bergantian.
- *  6. Langkah "Cara pesan": garis pemandu terisi mengikuti scroll.
- *  7. Scroll halus (inersia) untuk roda mouse di desktop; sentuhan di HP tetap native.
- * Semua dimatikan bila pengguna memilih "kurangi gerakan" di sistem.
+ * MOTION — gerak mengikuti scroll, tanpa library, tanpa scroll-jacking.
+ *  1. Nav: sembunyi saat gulir turun, muncul saat gulir naik; tautan nav mengikuti seksi aktif.
+ *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
+ *  3. Cerita terpaku #kenapa: kalimat bertukar; progres 0..1 di --story-p dan indeks di data-step.
+ *  4. #tiga: ilustrasi menempel, baris aktif (.is-active) + data-focus pada #exploded.
+ *  5. #cara: garis progres (--fill) dan langkah .is-done.
+ *  6. Reveal SEKALI per seksi, hanya kepala seksi.
+ * Scroll memakai perilaku asli browser (scroll-behavior: smooth dari CSS untuk tautan #).
+ * prefers-reduced-motion atau html.motion-off: tidak ada yang disembunyikan atau digerakkan.
  */
 (function () {
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const html = document.documentElement;
+  const mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+  const off = mq.matches || html.classList.contains("motion-off");
+  html.classList.add(off ? "motion-off" : "motion-on");
+  html.classList.remove(off ? "motion-on" : "motion-off");
+  window.MKSMotion = { on: !off };
+  if (off) return;
+
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-  const html = document.documentElement;
-  html.classList.add(reduce ? "motion-off" : "motion-on");
-  if (reduce) return;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const io = (cb, opts) => ("IntersectionObserver" in window ? new IntersectionObserver(cb, opts) : null);
 
-  /* ---------- 7. Scroll halus (desktop, roda mouse) ---------- */
-  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
-  let smooth = null;
-  if (finePointer) {
-    // scroll-behavior: smooth milik CSS akan menganimasikan scrollTo kita sendiri; matikan,
-    // dan tangani tautan # dengan inersia yang sama.
-    html.style.scrollBehavior = "auto";
-    let target = window.scrollY, current = window.scrollY, raf = 0, written = -1;
-    const maxY = () => html.scrollHeight - innerHeight;
-    const write = (v) => { written = Math.round(v); window.scrollTo(0, v); };
-    const tick = () => {
-      const diff = target - current;
-      if (Math.abs(diff) < 0.5) { current = target; write(current); raf = 0; return; }
-      current += diff * 0.14;
-      write(current);
-      raf = requestAnimationFrame(tick);
-    };
-    addEventListener("wheel", (e) => {
-      if (e.ctrlKey || e.defaultPrevented) return;
-      if (e.target.closest(".mks-editor, textarea, select, [data-native-scroll]")) return;
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      e.preventDefault();
-      const d = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-      if (!raf) { current = window.scrollY; target = current; }
-      target = clamp(target + d, 0, maxY());
-      if (!raf) raf = requestAnimationFrame(tick);
-    }, { passive: false });
-    // Scroll yang bukan dari kita (klik tautan #, keyboard, drag scrollbar) terlihat dari
-    // posisi yang tidak sama dengan yang terakhir kita tulis: hentikan inersia & sinkronkan.
-    addEventListener("scroll", () => {
-      const y = Math.round(window.scrollY);
-      if (Math.abs(y - written) <= 1) return;
-      if (raf) { cancelAnimationFrame(raf); raf = 0; }
-      current = target = y;
-    }, { passive: true });
-    document.addEventListener("click", (e) => {
-      const a = e.target.closest('a[href^="#"]'); if (!a || a.closest(".mks-editor")) return;
-      const el = a.getAttribute("href").length > 1 && document.getElementById(a.getAttribute("href").slice(1)); if (!el) return;
-      e.preventDefault();
-      const nav = document.querySelector(".nav");
-      const pad = nav ? nav.offsetHeight + 12 : 80;
-      if (!raf) { current = window.scrollY; }
-      target = clamp(el.getBoundingClientRect().top + window.scrollY - pad, 0, maxY());
-      if (!raf) raf = requestAnimationFrame(tick);
-      // Pindahkan titik fokus ke target (perilaku bawaan browser yang hilang karena preventDefault),
-      // supaya skip link dan Tab berikutnya masuk ke bagian yang dituju.
-      if (!el.matches("a, button, input, select, textarea, [tabindex]")) el.tabIndex = -1;
-      el.focus({ preventScroll: true });
-      history.replaceState(null, "", a.getAttribute("href"));
-      a.closest(".menu")?.removeAttribute("open");
-    });
-    smooth = { stop: () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } } };
-  }
+  // Script dimuat sebelum DOM selesai di beberapa halaman: tunggu bila perlu
+  const ready = (fn) => (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", fn, { once: true }) : fn());
+  ready(init);
 
-  /* ---------- 1 + 2 + 4 + 6. Semua yang dihitung per frame scroll ---------- */
-  const nav = $(".nav");
-  const bar = document.createElement("div");
-  bar.className = "scroll-progress"; bar.setAttribute("aria-hidden", "true"); document.body.appendChild(bar);
-  const hero = $(".lhero") || $(".hero");
-  const heroBg = $(".lhero__bg");
-  const heroStage = $(".lhero .stage") || $(".hero__stage");
-  const heroCopy = $(".lhero__grid > div:first-child") || $(".hero__copy");
-  const heroStageEl = $("#hero-stage");
-  const steps = $(".steps-l");
-  const navLinks = $$(".nav__links a[href^='#'], .menu__links a[href^='#']");
-  const sections = navLinks.map((a) => $(a.getAttribute("href"))).filter(Boolean);
-  let lastY = window.scrollY, ticking = false, hiddenNav = false, dirDown = true;
+  function init() {
+    /* ---------- 1 + 2 + 5: dihitung per frame scroll ---------- */
+    const nav = $(".nav");
+    const hero = $(".lhero");
+    const heroStage = $("#hero-stage");
+    const hint = $("#hero-hint");
+    const steps = $(".steps-l");
+    const navLinks = $$(".nav__links a[href^='#'], .menu__links a[href^='#']");
+    const sections = navLinks.map((a) => { try { return $(a.getAttribute("href")); } catch (_) { return null; } }).filter(Boolean);
+    let lastY = window.scrollY, ticking = false, hiddenNav = false;
 
-  function frame() {
-    const y = window.scrollY;
-    const max = html.scrollHeight - innerHeight;
-    bar.style.transform = `scaleX(${max > 0 ? clamp(y / max, 0, 1) : 0})`;
-    // arah scroll → kelas di <html>, dipakai reveal dua arah
-    if (y > lastY + 2 && !dirDown) { dirDown = true; html.classList.remove("scroll-up"); html.classList.add("scroll-down"); }
-    else if (y < lastY - 2 && dirDown) { dirDown = false; html.classList.remove("scroll-down"); html.classList.add("scroll-up"); }
-    if (nav) {
-      nav.classList.toggle("nav--scrolled", y > 8);
-      const menuOpen = $(".menu[open]", nav);
-      if (y > lastY + 4 && y > 140 && !hiddenNav && !menuOpen) { hiddenNav = true; nav.classList.add("nav--hide"); }
-      else if ((y < lastY - 4 || y < 140) && hiddenNav) { hiddenNav = false; nav.classList.remove("nav--hide"); }
-      // scroll spy
-      let active = null;
-      for (const s of sections) if (s.getBoundingClientRect().top <= innerHeight * 0.4) active = s;
-      navLinks.forEach((a) => a.classList.toggle("is-active", !!active && a.getAttribute("href") === "#" + active.id));
-    }
-    // hero mengikuti scroll
-    if (hero) {
-      const h = hero.offsetHeight || 1;
-      if (y < h + 80) {
-        const p = clamp(y / h, 0, 1);
-        if (heroBg) heroBg.style.transform = `translate3d(0, ${y * 0.22}px, 0)`;
-        if (heroStage) heroStage.style.transform = `translate3d(0, ${y * -0.06}px, 0) scale(${1 - p * 0.04})`;
-        if (heroCopy) { heroCopy.style.opacity = String(1 - p * 1.1); heroCopy.style.transform = `translate3d(0, ${y * 0.12}px, 0)`; }
-        if (heroStageEl && !heroStageEl.dataset.off) {
-          const lit = clamp(0.12 + p * 3.2, 0.12, 1); // menyala penuh setelah ±28% tinggi hero
-          heroStageEl.style.setProperty("--dim", String(Math.max(lit, heroStageEl.dataset.auto ? 1 : 0)));
-          if (lit >= 1) heroStageEl.dataset.auto = "1";
-          const hint = $("#hero-hint"); if (hint) hint.classList.toggle("is-off", lit > 0.5 || !!heroStageEl.dataset.auto);
+    function frame() {
+      const y = window.scrollY;
+      if (nav) {
+        const menuOpen = nav.querySelector(".menu[open], dialog[open]");
+        if (y > lastY + 4 && y > 400 && !hiddenNav && !menuOpen) { hiddenNav = true; nav.classList.add("nav--hide"); }
+        else if ((y < lastY - 4 || y < 140) && hiddenNav) { hiddenNav = false; nav.classList.remove("nav--hide"); }
+        let active = null;
+        for (const s of sections) if (s.getBoundingClientRect().top <= innerHeight * 0.4) active = s;
+        navLinks.forEach((a) => a.classList.toggle("is-active", !!active && a.getAttribute("href") === "#" + active.id));
+      }
+      if (hero && heroStage) {
+        const h = hero.offsetHeight || 1;
+        if (y < h + 80 && !heroStage.dataset.off) {
+          const p = clamp(y / h, 0, 1);
+          let lit = heroStage.dataset.auto ? 1 : 0.35 + 0.65 * clamp(p / 0.3, 0, 1);
+          if (lit >= 1) heroStage.dataset.auto = "1";
+          if (p > 0.7) lit = Math.min(lit, 1 - 0.4 * clamp((p - 0.7) / 0.3, 0, 1));
+          heroStage.style.setProperty("--dim", lit.toFixed(3));
+          if (hint) hint.classList.toggle("is-off", lit > 0.5 || !!heroStage.dataset.auto);
         }
       }
-    }
-    // garis langkah "Cara pesan" terisi mengikuti posisi scroll
-    if (steps) {
-      const r = steps.getBoundingClientRect();
-      const p = clamp((innerHeight * 0.75 - r.top) / r.height, 0, 1);
-      steps.style.setProperty("--fill", p.toFixed(3));
-      $$(".step", steps).forEach((st, i, arr) => st.classList.toggle("is-done", p >= (i + 0.5) / arr.length));
-    }
-    lastY = y; ticking = false;
-  }
-  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }, { passive: true });
-  addEventListener("resize", () => requestAnimationFrame(frame));
-  html.classList.add("scroll-down");
-  frame();
-  // Kalau pengunjung tidak menggulir, lampu tetap menyala sendiri setelah 2,2 detik
-  if (heroStageEl) setTimeout(() => { if (!heroStageEl.dataset.auto && !heroStageEl.dataset.off) { heroStageEl.dataset.auto = "1"; heroStageEl.style.setProperty("--dim", "1"); $("#hero-hint")?.classList.add("is-off"); } }, 2200);
-  // Jangan ubah --dim hero saat pengguna mematikan lampu lewat saklar
-  if (heroStageEl) $("#hero-switch")?.addEventListener("click", () => { heroStageEl.dataset.off = heroStageEl.dataset.off ? "" : "1"; });
-
-  /* ---------- Cerita terpaku: kalimat bertukar mengikuti scroll ---------- */
-  const story = $(".story");
-  if (story) {
-    const lines = $$(".story__line", story), dots = $$(".story__dots li", story), card = $(".story__card", story), bg = $(".story__bg img", story);
-    let last = -1;
-    const storyFrame = () => {
-      const r = story.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      const p = clamp(-r.top / Math.max(1, total), 0, 1);
-      const idx = Math.min(lines.length - 1, Math.floor(p * lines.length * 0.98));
-      if (bg) bg.style.setProperty("--zoom", (1 + p * 0.1).toFixed(3));
-      if (idx !== last) {
-        last = idx;
-        lines.forEach((l, i) => { l.classList.toggle("is-on", i === idx); l.classList.toggle("is-past", i < idx); });
-        dots.forEach((d, i) => d.classList.toggle("is-on", i === idx));
-        if (card) card.classList.toggle("is-on", idx === lines.length - 1);
+      if (steps) {
+        const r = steps.getBoundingClientRect();
+        const p = clamp((innerHeight * 0.75 - r.top) / (r.height || 1), 0, 1);
+        steps.style.setProperty("--fill", p.toFixed(3));
+        $$(".step", steps).forEach((st, i, arr) => st.classList.toggle("is-done", p >= (i + 0.5) / arr.length));
       }
-    };
-    addEventListener("scroll", () => requestAnimationFrame(storyFrame), { passive: true });
-    storyFrame();
-  }
+      lastY = y;
+      ticking = false;
+    }
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    frame();
+    // Tanpa gulir, lampu hero tetap menyala sendiri setelah 2,2 detik
+    if (heroStage) {
+      setTimeout(() => {
+        if (heroStage.dataset.auto || heroStage.dataset.off || window.scrollY > (hero ? hero.offsetHeight * 0.7 : 600)) return;
+        heroStage.dataset.auto = "1";
+        heroStage.style.setProperty("--dim", "1");
+        if (hint) hint.classList.add("is-off");
+      }, 2200);
+      // Saklar hero mematikan kendali scroll (lamp.js memegang nyala/mati)
+      const sw = $("#hero-switch");
+      if (sw) sw.addEventListener("click", () => { heroStage.dataset.off = heroStage.dataset.off ? "" : "1"; });
+    }
 
-  /* ---------- Angka berjalan saat pertama terlihat ---------- */
-  const counted = new WeakSet();
-  function countUp(el) {
-    if (counted.has(el)) return; counted.add(el);
-    const txt = el.textContent.trim(); const n = parseInt(txt.replace(/\D/g, ""), 10); if (!n) return;
-    const suffix = txt.replace(/^[\d.,]+/, ""); const t0 = performance.now(), dur = 900;
-    const step = (t) => { const k = clamp((t - t0) / dur, 0, 1); const e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(n * e) + suffix; if (k < 1) requestAnimationFrame(step); };
-    requestAnimationFrame(step);
-  }
-  const cio = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { countUp(e.target); cio.unobserve(e.target); } }), { threshold: 0.6 });
-  $$("[data-count]").forEach((el) => cio.observe(el));
+    /* ---------- 3. Cerita terpaku ---------- */
+    const story = $(".story");
+    if (story) {
+      const lines = $$(".story__line", story), dots = $$(".story__dots li", story), card = $(".story__card", story);
+      let last = -1;
+      const storyFrame = () => {
+        const r = story.getBoundingClientRect();
+        const total = r.height - innerHeight;
+        const p = clamp(-r.top / Math.max(1, total), 0, 1);
+        story.style.setProperty("--story-p", p.toFixed(3));
+        const n = Math.max(1, lines.length);
+        const idx = Math.min(n - 1, Math.floor(p * n * 0.98));
+        if (idx !== last) {
+          last = idx;
+          story.dataset.step = String(idx);
+          lines.forEach((l, i) => { l.classList.toggle("is-on", i === idx); l.classList.toggle("is-past", i < idx); l.classList.toggle("is-next", i > idx); });
+          dots.forEach((d, i) => d.classList.toggle("is-on", i === idx));
+          if (card) card.classList.toggle("is-on", idx === n - 1);
+        }
+      };
+      let sTick = false;
+      addEventListener("scroll", () => { if (!sTick) { sTick = true; requestAnimationFrame(() => { sTick = false; storyFrame(); }); } }, { passive: true });
+      storyFrame();
+    }
 
-  /* ---------- 3. Reveal dua arah ---------- */
-  const SINGLE = ".eyebrow, .section-title, .section-sub, .trust--hero, .part-row, .step, .spec, .final__inner, .faq__list details, .hero__points li, .custom__form, .b2b__copy, .material__copy, .ocard, .band__text, .band__sub, .alur__note, .swipe, .edisi__detail";
-  const GROUP = "#presets, #pkgs, #catalog, .safety, .why__grid, .products, .process__grid, .material__cards, .b2b__grid, .footer__grid, .parts-grid > div:last-child, .alur, .edisi__list";
-  $$(SINGLE).forEach((el) => { if (!el.closest(".nav, .mks-editor, .lhero__grid")) el.setAttribute("data-rv", ""); });
-  $$(GROUP).forEach((el) => el.setAttribute("data-rv-group", ""));
-  const io = new IntersectionObserver((es) => es.forEach((e) => {
-    if (e.isIntersecting) e.target.classList.add("in");
-    else if (e.boundingClientRect.top > 0) e.target.classList.remove("in"); // keluar lewat bawah: siap muncul lagi
-    else if (e.boundingClientRect.bottom < 0) e.target.classList.remove("in"); // keluar lewat atas
-  }), { rootMargin: "0px 0px -6% 0px", threshold: 0.06 });
-  $$("[data-rv], [data-rv-group]").forEach((el) => io.observe(el));
-
-  /* ---------- 5. Cerita gulir "Tiga bagian" (desktop) ---------- */
-  const rows = $$("#tiga .part-row");
-  if (rows.length && matchMedia("(min-width: 861px)").matches) {
-    $("#tiga .parts-grid").classList.add("parts-grid--story");
-    const ro = new IntersectionObserver((es) => es.forEach((e) => {
-      if (e.isIntersecting) {
+    /* ---------- 4. #tiga: baris aktif (desktop) ---------- */
+    const rows = $$("#tiga [data-tiga-row], #tiga .part-row");
+    const grid = $("#tiga .parts-grid");
+    if (rows.length && grid && matchMedia("(min-width: 861px)").matches) {
+      grid.classList.add("parts-grid--story");
+      const ro = io((es) => es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const i = rows.indexOf(e.target);
         rows.forEach((r) => r.classList.toggle("is-active", r === e.target));
-        const ex = $("#exploded"); if (ex) ex.dataset.focus = ["head", "body", "base"][rows.indexOf(e.target)] || "";
-      }
-    }), { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
-    rows.forEach((r) => ro.observe(r));
-  }
+        const tiga = $("#tiga"); if (tiga) tiga.dataset.active = String(i);
+        const ex = $("#exploded"); if (ex) ex.dataset.focus = ["head", "body", "base"][i] || "";
+      }), { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
+      if (ro) rows.forEach((r) => ro.observe(r));
+    }
 
-  window.MKSMotion = { smooth };
+    /* ---------- 6. Reveal sekali: kepala seksi saja ---------- */
+    const heads = [];
+    $$("main section").forEach((sec) => {
+      if (sec.matches(".lhero, .story")) return;
+      $$(":scope > .wrap > :is(.eyebrow, .label, .section-title, .section-sub), :scope > .wrap > div > :is(.eyebrow, .label, .section-title)", sec)
+        .slice(0, 3)
+        .forEach((el, i) => { el.setAttribute("data-rv", ""); el.style.setProperty("--rv-i", String(i)); heads.push(el); });
+    });
+    const show = (el) => el.classList.add("in");
+    const rio = io((es) => es.forEach((e) => { if (e.isIntersecting) { show(e.target); rio.unobserve(e.target); } }), { rootMargin: "0px 0px -6% 0px", threshold: 0 });
+    heads.forEach((el) => {
+      // yang sudah terlewati (mis. masuk lewat tautan #) langsung tampil
+      if (!rio || el.getBoundingClientRect().top < innerHeight * 0.94) show(el);
+      else rio.observe(el);
+    });
+  }
 })();
