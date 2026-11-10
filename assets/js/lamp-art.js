@@ -57,6 +57,7 @@
   };
   const toHex = (a) => "#" + a.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
   const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return toHex(A.map((v, i) => v + (B[i] - v) * t)); };
+  const safeHex = (h) => toHex(rgb(h)); // warna bagian selalu "#rrggbb" sebelum ditulis ke atribut fill
   const lum = (h) => { const [r, g, b] = rgb(h).map((v) => v / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
 
   /* ---------- geometri ---------- */
@@ -230,7 +231,7 @@
     const gap = explode ? 34 : 0;
     let y = FLOOR;
     const base = baseSpec(cfg.base.shape, y);
-    base.hex = cfg.base.hex || hexOf(cfg.base.color);
+    base.hex = safeHex(cfg.base.hex || hexOf(cfg.base.color));
     base.kind = "base";
     base.y = y;
     const baseTop = y - base.h;
@@ -238,7 +239,7 @@
     const bodyBottom = y;
     const bodies = cfg.body.map((p) => {
       const s = bodySpec(p.shape, y);
-      s.hex = p.hex || hexOf(p.color);
+      s.hex = safeHex(p.hex || hexOf(p.color));
       s.kind = "body";
       s.y = y;
       y -= s.h;
@@ -249,7 +250,7 @@
     const neck = { y, top: y - 16 };
     y -= 16;
     const head = headSpec(cfg.head.shape, y);
-    head.hex = cfg.head.hex || shadeHex(cfg.head.color);
+    head.hex = safeHex(cfg.head.hex || shadeHex(cfg.head.color));
     head.kind = "head";
     head.y = y;
     const headBottom = y, headTop = y - head.h;
@@ -265,7 +266,7 @@
     return {
       base, bodies, neck, head, hw, joints, baseTop, bodyBottom, bodyTop, headBottom, headTop,
       top: headTop, bottom: base.bottom, foot: base.foot,
-      shadeCy: (head.yT + head.yB) / 2 + (head.box ? 0 : 0),
+      shadeCy: (head.yT + head.yB) / 2,
     };
   }
 
@@ -287,8 +288,8 @@
   const VARIANTS = {
     stage: { r: 0.8, fl: 0.78, lf: 0.6, fe: 0.9 },
     hero: { r: 0.8, fl: 0.78, lf: 0.62, fe: 0.9 }, // 588 × 735: Senja ±455 px
-    // 390 × 440: lampu Senja y ±102–334 (brief: 80–330; puncak diturunkan agar tidak tertutup pil top 72 / saklar top 68)
-    "hero-hp": { r: 0.8, fl: 334 / 440, lf: 232 / 440, fe: 0.87 },
+    // 390 × 440: lampu Senja y ±114–340 (brief: 80–330; puncak diturunkan agar kap punya ±12 px udara di bawah pil 78–102 / saklar 68–112)
+    "hero-hp": { r: 0.8, fl: 340 / 440, lf: 226 / 440, fe: 0.88 },
     vitrine: { r: 690 / 780, fl: 0.78, lf: 0.58, fe: 0.9 },
     studio: { r: 690 / 800, fl: 0.78, lf: 0.6, fe: 0.9 },
     scene: { r: 486 / 560, fl: 0.78, lf: 0.6, fe: 0.9 },
@@ -447,14 +448,14 @@
       // 1 dinding
       out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.J - f.top + f.Hf + 1)}" fill="url(#${u}-wa)"/>`;
       // 2 cahaya dinding + glow kap (× --dim)
-      if (on) out += `<g data-la-lit ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 10)}" rx="${r1(f.W * 0.62)}" ry="${r1(f.Hf * 0.42)}" fill="url(#${u}-wl)"/><ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="235" ry="205" fill="url(#${u}-gl)"/></g>`;
+      if (on) out += `<g data-la-lit="" ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 10)}" rx="${r1(f.W * 0.62)}" ry="${r1(f.Hf * 0.42)}" fill="url(#${u}-wl)"/><ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="235" ry="205" fill="url(#${u}-gl)"/></g>`;
       // 3 meja: permukaan + tepi depan
       out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height="${r1(f.fe - f.J)}" fill="url(#${u}-tt)"/>`;
       out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height=".8" fill="#f2e7d5" fill-opacity=".05"/>`;
       out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="${r1(f.Hf * 2)}" fill="url(#${u}-tf)"/>`;
       out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="1" fill="#f2e7d5" fill-opacity=".08"/>`;
       // 4 genangan cahaya di meja (× --dim)
-      if (on && !o.explode) out += `<g data-la-lit ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
+      if (on && !o.explode) out += `<g data-la-lit="" ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
     }
     // 5 bayangan kontak statis
     if (!o.explode) {
@@ -479,14 +480,14 @@
       // lampu mati / redup: seluruh lampu lebih gelap (brightness .55 saat mati), tanpa filter
       const offOp = on ? `style="opacity:calc((1 - var(--dim, ${dim})) * .45)"` : 'opacity=".45"';
       const outs = [L.base.out, ...L.bodies.map((b) => b.out), H.out, solidPath(10, 10, L.neck.top + 3, L.neck.y - 3, 3, 3)];
-      head += `</g><g data-la-off fill="#000" ${offOp}>${outs.map((d) => `<path d="${d}"/>`).join("")}`;
+      head += `</g><g data-la-off="" fill="#000" ${offOp}>${outs.map((d) => `<path d="${d}"/>`).join("")}`;
     }
     // kap merespons lebih cepat dari glow: pada --dim .35 (awal gulir hero) sudah terbaca menyala redup
-    if (on) head += `</g><g data-la-lit ${dv(1.5)}>${paintHeadLit(H, q)}`;
+    if (on) head += `</g><g data-la-lit="" ${dv(1.5)}>${paintHeadLit(H, q)}`;
     lamp += `<g class="lp-head" data-la-part="head">${head}</g>`;
     out += `<g class="lp-lamp">${lamp}</g>`;
     // mekar lembut di sekitar kap (× --dim)
-    if (on && !matte) out += `<g data-la-lit ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 4)}" rx="${r1(H.hw * 1.7)}" ry="${r1(H.h * 0.95)}" fill="url(#${u}-bl)" style="mix-blend-mode:screen"/></g>`;
+    if (on && !matte) out += `<g data-la-lit="" ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 4)}" rx="${r1(H.hw * 1.7)}" ry="${r1(H.h * 0.95)}" fill="url(#${u}-bl)" style="mix-blend-mode:screen"/></g>`;
     // 7 vinyet
     if (night && f.vig) out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.Hf * 3)}" fill="url(#${u}-vg)" pointer-events="none"/>`;
 
@@ -612,11 +613,11 @@
     const q = { u, lines: true, spec: true, matte: false, dim: 1 };
     if (kind === "head") {
       const s = headSpec(id, 190);
-      s.hex = hex;
+      s.hex = safeHex(hex);
       return { need: { lines: true, lit: !!lit, clip: lit ? s.front : null }, svg: paintHead(s, q) + (lit ? `<g opacity="${lit}">${paintHeadLit(s, q)}</g>` : "") };
     }
     const s = kind === "body" ? bodySpec(id, 178) : baseSpec(id, 166);
-    s.hex = hex;
+    s.hex = safeHex(hex);
     return { need: { lines: true }, svg: paintPart(s, q) };
   }
   function partSvg(kind, id, hex, u) {

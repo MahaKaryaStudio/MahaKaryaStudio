@@ -489,7 +489,7 @@
     const host = $("#hero-lamp");
     if (host && key !== heroKey) {
       heroKey = key;
-      host.innerHTML = A.renderLamp(hero.cfg, { uid: "hero", variant, vignette: false, dim: hero.dim, label: `Ilustrasi lampu${pre ? " edisi " + pre.name : ""}, menyala di meja` });
+      host.innerHTML = A.renderLamp(hero.cfg, { uid: "hero", variant, vignette: false, dim: hero.dim, label: `Ilustrasi lampu${pre ? " edisi " + pre.name : ""} di atas meja` });
     }
     // Saat motion aktif, nyala lampu hero dikendalikan scroll (motion.js) sampai pengguna menyentuh saklar
     const st = $("#hero-stage");
@@ -502,8 +502,9 @@
       sw.setAttribute("aria-checked", hero.on);
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = hero.on ? "Nyala" : "Mati";
     }
-    // Pil ILUSTRASI: "ILUSTRASI · EDISI SENJA · ≈ 41 CM" (tinggi hanya di desktop; kata "Edisi" disembunyikan < 380 px agar tidak menabrak saklar)
-    setHtml('[data-stage-pill="hero"]', `Ilustrasi${pre ? ` · <span class="lhero__pill-ed">Edisi </span>${esc(pre.name)}` : ""}<span class="lhero__pill-cm"> · ≈ ${A.totalCm(hero.cfg).toFixed(0)} cm</span>`);
+    // Pil ILUSTRASI: "ILUSTRASI · EDISI SENJA · ≈ 41 CM". Di panggung sempit CSS (container query) menyembunyikan
+    // berturut-turut tinggi, kata "Edisi", lalu nama edisi, supaya pil tidak pernah menabrak saklar; "ILUSTRASI" selalu ada.
+    setHtml('[data-stage-pill="hero"]', `Ilustrasi${pre ? `<span class="lhero__pill-name"> · <span class="lhero__pill-ed">Edisi </span>${esc(pre.name)}</span>` : ""}<span class="lhero__pill-cm"> · ≈ ${A.totalCm(hero.cfg).toFixed(0)} cm</span>`);
     const d = D();
     const m = minPackagePrice(3);
     setHtml("#hero-from", amountHtml(m.price)); // hero tanpa harga coret (brief): "Mulai dari Rp375.000 · termasuk kit kelistrikan"
@@ -690,7 +691,7 @@
     const pr = price(cfg);
     const p = d.presets[edition];
     el.innerHTML =
-      `<div class="edisi__stage stage" style="--dim:1"><div class="wall"></div><div class="glow"></div><div class="lamp">${A.renderLamp(cfg, { uid: "ed", on: true, dim: 0.95, dims: true, variant: "vitrine", label: `Ilustrasi lampu edisi ${p.name}` })}</div><span class="pill stage__pill">Ilustrasi · Edisi ${esc(p.name)}</span></div>` +
+      `<div class="edisi__stage stage" style="--dim:1"><div class="lamp">${A.renderLamp(cfg, { uid: "ed", on: true, dim: 0.95, dims: true, variant: "vitrine", label: `Ilustrasi lampu edisi ${p.name}` })}</div><span class="pill stage__pill">Ilustrasi · Edisi ${esc(p.name)}</span></div>` +
       `<div class="edisi__side">` +
       `<div class="edisi__list" role="radiogroup" aria-label="Pilih edisi">${d.presets.map((q, i) => {
         const c = presetCfg(i), qp = price(c), n = q.body.length + 2;
@@ -899,12 +900,6 @@
       persist();
       return emit("gift");
     }
-    if (t.id === "hero-dim") {
-      hero.dim = t.value / 100;
-      hero.on = true;
-      const st = $("#hero-stage"); if (st) st.dataset.auto = "1";
-      renderHero();
-    }
   });
   function copyText(txt, msg) {
     const fallback = () => {
@@ -978,6 +973,10 @@
     const v = $("#reel-video"), btn = $("#reel-play");
     if (!v || !("IntersectionObserver" in window) || reduceMotion()) return;
     const narrow = window.matchMedia("(max-width: 860px)");
+    // Poster hanya dipasang saat video memang akan tampil (desktop, gerak aktif): HP tidak mengunduhnya
+    const setPoster = () => { if (!narrow.matches && v.dataset.poster && !v.poster) v.poster = v.dataset.poster; };
+    setPoster();
+    if (narrow.addEventListener) narrow.addEventListener("change", setPoster);
     if (narrow.addEventListener) narrow.addEventListener("change", () => { if (narrow.matches) v.pause(); });
     if (btn) {
       const syncBtn = () => { btn.textContent = v.paused ? "▶" : "❚❚"; btn.setAttribute("aria-label", v.paused ? "Putar video latar" : "Jeda video latar"); };
@@ -1012,6 +1011,7 @@
     bindStatic();
     renderSchema();
     renderStatic();
+    heroKey = ""; // data bisa berubah (warna/nama dari Mode Edit): hero digambar ulang; jalur saklar/gulir tetap memakai cache
     renderHero();
     renderPresets();
     renderPackages();
