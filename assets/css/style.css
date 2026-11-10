@@ -95,8 +95,6 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
 .nav--float[data-slot="mini"] .nav__mini { display: flex; animation: nav-in var(--t-med) var(--ease-out); }
 @keyframes nav-in { from { opacity: 0; } }
 .nav__mini { align-items: center; gap: 12px; }
-.nav__thumb { flex: none; width: 28px; height: 34px; border-radius: var(--r-frame); overflow: hidden; background: var(--stage-thumb); }
-.nav__thumb svg { width: 100%; height: 100%; }
 .nav__mini-text { display: grid; gap: 4px; justify-items: start; }
 .nav__mini-name { font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .nav__mini-price { position: relative; display: block; }

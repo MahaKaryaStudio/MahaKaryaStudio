@@ -194,7 +194,7 @@
       const theme = dark ? (y < 8 && cur === sections[0] ? "clear" : "dark") : "light";
       if (theme !== state.theme) { state.theme = theme; nav.dataset.navTheme = theme; }
       const slot = (cur && SLOT[cur.id]) || "none";
-      if (slot !== state.slot) { state.slot = slot; nav.dataset.slot = slot; if (slot === "mini") paintThumb(); }
+      if (slot !== state.slot) { state.slot = slot; nav.dataset.slot = slot; }
       const quiet = slot === "mini" && !HP.matches && !!filledInView(h);
       if (quiet !== state.quiet) { state.quiet = quiet; nav.classList.toggle("nav--quiet", quiet); }
     }
@@ -228,9 +228,9 @@
   const amountHtml = (n) => (window.MKSLamp && window.MKSLamp.fmt ? window.MKSLamp.fmt.amountHtml(n) : `<span class="rp">Rp</span>${Math.round(n).toLocaleString("id-ID")}`);
   const els = {
     obName: $("[data-ob-name]"), obPrice: $("[data-ob-price]"), obDelta: $("[data-ob-delta]"), obBtn: bar && $(".orderbar__btn", bar),
-    name: $("[data-nav-name]"), price: $("[data-nav-price]"), delta: $("[data-nav-delta]"), thumb: $("[data-nav-thumb]"), pesan: $(".nav__pesan"),
+    name: $("[data-nav-name]"), price: $("[data-nav-price]"), delta: $("[data-nav-delta]"), pesan: $(".nav__pesan"),
   };
-  let lastTotal = null, lastDet = null, thumbFor = "";
+  let lastTotal = null;
   // Harga berganti di node yang sama: crossfade 200 ms (opasitas saja, aman untuk gerak dikurangi)
   function swap(el, h) {
     if (!el || el.innerHTML === h) return;
@@ -249,17 +249,9 @@
     clearTimeout(el._t);
     el._t = setTimeout(() => { el.classList.remove("is-on"); el._t = setTimeout(() => { el.hidden = true; }, reduce() ? 150 : 250); }, 1200);
   }
-  function paintThumb() {
-    const d = lastDet;
-    if (!d || !els.thumb || !window.LampArt || HP.matches) return;
-    if (thumbFor === d.code) return;
-    thumbFor = d.code;
-    try { els.thumb.innerHTML = window.LampArt.renderLamp(d.state, { uid: "navthumb", on: true, dim: 0.8, table: false, vb: "50 60 220 400" }); } catch (_) {}
-  }
   const QUIET_REASONS = { load: 1, refresh: 1 };
   function render(det) {
     if (!det || !det.price) return;
-    lastDet = det;
     const total = det.price.total;
     const delta = lastTotal == null || QUIET_REASONS[det.reason] ? 0 : total - lastTotal;
     lastTotal = total;
@@ -273,7 +265,6 @@
     setText(els.name, name);
     swap(els.price, amountHtml(total));
     if (els.pesan && det.waUrl) { els.pesan.href = det.waUrl; els.pesan.target = "_blank"; els.pesan.rel = "noopener"; }
-    if (state.slot === "mini") paintThumb();
     if (delta) { showDelta(els.obDelta, delta); showDelta(els.delta, delta); }
     sync();
   }
