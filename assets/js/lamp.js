@@ -431,7 +431,7 @@
 
   function renderPreview() {
     const cm = `≈ ${A.totalCm(state).toFixed(0)} cm`;
-    setHtml("#cfg-lamp", A.renderLamp(state, { uid: "cfg", on: state.on, cover: true }));
+    setHtml("#cfg-lamp", A.renderLamp(state, { uid: "cfg", on: state.on, variant: "studio", label: "Ilustrasi rakitanmu" }));
     const st = $("#cfg-stage");
     if (st) st.style.setProperty("--dim", state.on ? 1 : 0);
     const sw = $("#cfg-switch");
@@ -477,9 +477,21 @@
     return emit(reason);
   }
 
+  // Hero: rig malam lamp-art varian "hero" (desktop 588 × 735) / "hero-hp" (HP 390 × 440).
+  // Lampu selalu dirender dengan lapisan nyala; nyala/mati/redup lewat --dim panggung (transisi 600 ms),
+  // jadi SVG hanya dirender ulang bila edisi atau varian berubah.
+  const heroNarrow = window.matchMedia ? window.matchMedia("(max-width: 860px)") : { matches: false };
+  let heroKey = "";
   function renderHero() {
-    setHtml("#hero-lamp", A.renderLamp(hero.cfg, { uid: "hero", on: hero.on, dim: hero.dim, cover: true }));
-    // Saat motion aktif, nyala lampu hero dikendalikan scroll (motion.js) sampai pengguna menyentuh saklar/dimmer
+    const pre = D().presets[0];
+    const variant = heroNarrow.matches ? "hero-hp" : "hero";
+    const key = variant + "|" + code(hero.cfg);
+    const host = $("#hero-lamp");
+    if (host && key !== heroKey) {
+      heroKey = key;
+      host.innerHTML = A.renderLamp(hero.cfg, { uid: "hero", variant, vignette: false, dim: hero.dim, label: `Ilustrasi lampu${pre ? " edisi " + pre.name : ""}, menyala di meja` });
+    }
+    // Saat motion aktif, nyala lampu hero dikendalikan scroll (motion.js) sampai pengguna menyentuh saklar
     const st = $("#hero-stage");
     if (st) {
       const byScroll = document.documentElement.classList.contains("motion-on") && hero.on && !st.dataset.auto && !st.dataset.off;
@@ -490,14 +502,27 @@
       sw.setAttribute("aria-checked", hero.on);
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = hero.on ? "Nyala" : "Mati";
     }
-    const pre = D().presets[0];
-    setText('[data-stage-pill="hero"]', `Ilustrasi${pre ? " · Edisi " + pre.name : ""}`);
+    // Pil ILUSTRASI: "ILUSTRASI · EDISI SENJA · ≈ 41 CM" (tinggi hanya di desktop)
+    setHtml('[data-stage-pill="hero"]', `Ilustrasi${pre ? " · Edisi " + esc(pre.name) : ""}<span class="lhero__pill-cm"> · ≈ ${A.totalCm(hero.cfg).toFixed(0)} cm</span>`);
     const d = D();
     const m = minPackagePrice(3);
-    setText("#hero-from", rp(m.price)); // hero tanpa harga coret (brief): "Mulai dari Rp375.000 · termasuk kit kelistrikan"
+    setHtml("#hero-from", amountHtml(m.price)); // hero tanpa harga coret (brief): "Mulai dari Rp375.000 · termasuk kit kelistrikan"
     setText("#chip-shapes", d.heads.length + d.bodies.length + d.bases.length);
     setText("#chip-colors", d.colors.length);
   }
+  if (heroNarrow.addEventListener) heroNarrow.addEventListener("change", () => renderHero());
+  // H1 hero tepat tiga baris pada 112 (HP 52); bila satu baris lebih lebar dari kolom teks (font lain,
+  // teks hasil Mode Edit), pakai cadangan brief §11 #7: 104 (HP 48).
+  function fitHeroH1() {
+    const h = $("#hero h1"), col = $("#hero .lhero__text");
+    if (!h || !col) return;
+    h.classList.remove("is-fb");
+    const lines = $$(".lhero__l", h);
+    if (lines.some((l) => l.getBoundingClientRect().width > col.clientWidth + 0.5)) h.classList.add("is-fb");
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeroH1);
+  let fitT = 0;
+  addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(fitHeroH1, 150); });
   function renderPresets() {
     const el = $("#presets");
     if (!el) return;
@@ -706,7 +731,7 @@
     const pr = price(cfg);
     const p = d.presets[edition];
     el.innerHTML =
-      `<div class="edisi__stage stage" style="--dim:1"><div class="wall"></div><div class="glow"></div><div class="lamp">${A.renderLamp(cfg, { uid: "ed", on: true, dim: 0.95, dims: true, cover: true })}</div><span class="pill stage__pill">Ilustrasi · Edisi ${esc(p.name)}</span></div>` +
+      `<div class="edisi__stage stage" style="--dim:1"><div class="wall"></div><div class="glow"></div><div class="lamp">${A.renderLamp(cfg, { uid: "ed", on: true, dim: 0.95, dims: true, variant: "vitrine", label: `Ilustrasi lampu edisi ${p.name}` })}</div><span class="pill stage__pill">Ilustrasi · Edisi ${esc(p.name)}</span></div>` +
       `<div class="edisi__side">` +
       `<div class="edisi__list" role="radiogroup" aria-label="Pilih edisi">${d.presets.map((q, i) => {
         const c = presetCfg(i), qp = price(c), n = q.body.length + 2;
@@ -742,7 +767,7 @@
     setText("[data-alur-pkg]", pr.pkg.name);
     setText("[data-alur-price]", rp(pr.total));
     setText("[data-alur-total]", rp(pr.total + (z ? z.price : 0)));
-    setHtml("[data-alur-photo]", A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.85, vb: "40 40 240 420" }) + '<span class="pill">Ilustrasi</span>');
+    setHtml("[data-alur-photo]", A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.9, variant: "thumb", label: "Ilustrasi foto rakitan" }) + '<span class="pill">Ilustrasi</span>');
     // huruf pertama kecil karena muncul di tengah kalimat; "WIB" tetap kapital
     setHtml("[data-reply-inline]", replyHtml(lowerFirst(C.replyPromise || "")));
   }
