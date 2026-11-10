@@ -819,17 +819,24 @@
   }
   // Pergantian edisi: View Transitions bila didukung (crossfade 300 ms seluruh tampilan lama → baru), dilewati
   // saat gerak dikurangi; tanpa dukungan: crossfade opasitas pada node yang dipertahankan (lampu, plakat 250 ms; harga 200 ms).
+  let vtRunning = 0;
   function withTransition(fn, fallbackNodes) {
     const root = document.documentElement;
     if (reduceMotion()) { fn(); return; }
     if (typeof document.startViewTransition === "function") {
       root.classList.add("vt-edisi");
-      const done = () => root.classList.remove("vt-edisi");
-      try {
-        const vt = document.startViewTransition(fn);
+      vtRunning++;
+      const done = () => { if (--vtRunning <= 0) { vtRunning = 0; root.classList.remove("vt-edisi"); } };
+      let vt = null;
+      try { vt = document.startViewTransition(fn); } catch (_) { done(); }
+      if (vt) {
+        // Transisi yang disalip pilihan berikutnya ditolak dengan AbortError: itu wajar, bukan galat
+        const quiet = () => {};
+        if (vt.ready) vt.ready.catch(quiet);
+        if (vt.updateCallbackDone) vt.updateCallbackDone.catch((err) => { if (err && err.name !== "AbortError") setTimeout(() => { throw err; }); });
         vt.finished.then(done, done);
         return;
-      } catch (_) { done(); }
+      }
     }
     fn();
     (typeof fallbackNodes === "function" ? fallbackNodes() : []).forEach(([node, ms]) => {

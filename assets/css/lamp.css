@@ -165,7 +165,8 @@ html.motion-off .lhero__hint { display: none !important; }
 .story__prog i.is-on { background: var(--dark-fg); }
 
 /* Scene 486 × 560 (kolom 8–12), tanpa kotak */
-.story__scene { grid-column: 8 / 13; grid-row: 1; position: sticky; top: 120px; justify-self: end; width: 100%; max-width: 486px; aspect-ratio: 486 / 560; max-height: calc(100svh - 144px); color: var(--dark-fg); }
+/* lebar dibatasi kolom, 486, dan tinggi layar; rasio 486:560 selalu utuh supaya mask meja tetap pas dengan SVG */
+.story__scene { grid-column: 8 / 13; grid-row: 1; position: sticky; top: 120px; justify-self: end; width: min(100%, 486px, max(200px, (100svh - 144px) * 0.868)); aspect-ratio: 486 / 560; color: var(--dark-fg); }
 .story__art, .story__rig, .story__lamp { position: absolute; inset: 0; }
 .story__rig svg, .story__lamp svg { width: 100%; height: 100%; display: block; }
 /* meja memudar elips ke latar seksi (tanpa tepi kotak): pusat di kaki lampu */
@@ -174,6 +175,11 @@ html.motion-off .lhero__hint { display: none !important; }
 .story__lamp[data-k="1"], .story__lamp[data-k="2"] { --dim: 0.35; }
 .story__lamp[data-k="3"] { opacity: 1; --dim: 1; }
 .story__pill { top: auto; left: auto; right: 16px; bottom: 16px; }
+/* scene sempit (HP 350, tablet): pil "ILUSTRASI" saja, sedikit lebih rendah, agar tidak menutup alas lampu */
+.story__scene { container-type: inline-size; }
+@container (max-width: 399px) { .story__pill-ed { display: none; } }
+@container (min-width: 351px) and (max-width: 399px) { .story__pill { bottom: 8px; } }
+@container (max-width: 300px) { .story__pill { right: 0; bottom: 0; } }
 
 /* Terpaku (motion.js): 200vh, pin 100svh */
 .story--pin { height: 200vh; }
@@ -185,7 +191,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .story--pin .story__close { grid-area: 2 / 1; margin-top: 40px; opacity: 0; visibility: hidden; transition: opacity var(--t-slow) var(--ease-out), visibility 0s linear var(--t-slow); }
 .story--pin .story__close.is-on { opacity: 1; visibility: visible; transition-delay: 0s; }
 .story--pin .story__prog { display: flex; position: absolute; left: var(--story-pad); bottom: 48px; }
-.story--pin .story__scene { position: relative; top: auto; align-self: center; width: auto; max-width: 100%; height: min(560px, 100svh - 160px); max-height: none; }
+.story--pin .story__scene { position: relative; top: auto; align-self: center; width: min(100%, 486px, (100svh - 160px) * 0.868); }
 .story--pin .story__lamp[data-k] { opacity: 0; }
 .story--pin[data-step="0"] .story__lamp[data-k="0"],
 .story--pin[data-step="1"][data-sub="0"] .story__lamp[data-k="1"],
@@ -200,7 +206,7 @@ html.motion-off .lhero__hint { display: none !important; }
 @media (max-width: 699px) {
   /* HP bertumpuk: scene 350 × 260 di atas, kalimat 40 berjarak 40 */
   .story__pin { grid-template-columns: minmax(0, 1fr); row-gap: 40px; padding-inline: var(--page-margin); }
-  .story__scene { grid-column: 1; grid-row: 1; position: relative; top: auto; justify-self: center; max-width: 350px; aspect-ratio: 350 / 260; max-height: none; }
+  .story__scene { grid-column: 1; grid-row: 1; position: relative; top: auto; justify-self: center; width: min(100%, 350px); aspect-ratio: 350 / 260; }
   .story__text { grid-column: 1; grid-row: 2; row-gap: 40px; }
   .story__line { line-height: 1.08; letter-spacing: -0.02em; }
   .story__close { margin-top: -8px; gap: 0; }
@@ -209,7 +215,7 @@ html.motion-off .lhero__hint { display: none !important; }
   .story--pin { height: 160vh; }
   /* padding atas 72 (layar ≥ 720 tinggi: isi turun sedikit agar tidak menggantung di sepertiga atas) */
   .story--pin .story__pin { min-height: 0; padding: max(72px, calc((100svh - 600px) / 2 + 28px)) var(--page-margin) 0; align-items: start; align-content: start; row-gap: 32px; }
-  .story--pin .story__scene { align-self: start; width: 100%; height: auto; max-height: max(180px, 100svh - 404px); }
+  .story--pin .story__scene { align-self: start; width: min(100%, 350px, max(242px, (100svh - 404px) * 1.346)); }
   .story--pin .story__line { align-self: start; }
   .story--pin .story__prog { position: static; grid-area: 2 / 1; margin-top: 24px; }
   .story--pin .story__close { grid-area: 3 / 1; margin-top: 24px; }
@@ -261,7 +267,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .edisi__opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
 .edisi__ind { grid-column: 1; grid-row: 1; justify-self: center; width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); transition: background-color var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out); }
 .edisi__thumb { display: none; }
-.edisi__name { grid-column: 2; grid-row: 1; min-width: 0; font: 400 clamp(28px, 10.4cqi, 40px) / 1.05 var(--serif); letter-spacing: -0.02em; font-variation-settings: "opsz" 72; color: var(--fg); }
+.edisi__name { grid-column: 2; grid-row: 1; min-width: 0; font: 400 clamp(28px, 10.5cqi, 40px) / 1.05 var(--serif); letter-spacing: -0.02em; font-variation-settings: "opsz" 72; color: var(--fg); }
 .edisi__price { grid-column: 3; grid-row: 1; font: 400 var(--fs-mono-price) / 1.4 var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); white-space: nowrap; text-align: right; }
 .edisi__meta { grid-column: 2 / -1; grid-row: 2; display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 12px; }
 .edisi__dots { display: flex; gap: 4px; flex: none; }
@@ -299,7 +305,8 @@ html.motion-off .lhero__hint { display: none !important; }
 
 @media (max-width: 900px) {
   .edisi { grid-template-columns: minmax(0, 1fr); }
-  .edisi__stage { position: relative; top: auto; height: clamp(320px, 92.3vw, 440px); min-height: 0; margin-inline: calc(-1 * var(--page-margin)); border-radius: 0; }
+  /* 390 × 360 pada 390 (332 pada 360); tablet maks 440; HP mendatar tidak melebihi tinggi layar */
+  .edisi__stage { position: relative; top: auto; height: min(clamp(320px, 92.3vw, 440px), max(280px, 100svh - 96px)); min-height: 0; margin-inline: calc(-1 * var(--page-margin)); border-radius: 0; }
   .edisi__rail { margin-top: 24px; row-gap: 24px; }
   .edisi__opt { grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 12px; row-gap: 4px; min-height: 64px; padding: 0 8px; }
   .edisi__opt.is-on, .edisi__opt:has(input:focus-visible) { border-radius: var(--r-control); }
