@@ -29,6 +29,9 @@
  *     o.frame    [w, h] bingkai sendiri (rasio + skala), o.floor/o.lampFrac menimpa varian
  *     o.vignette false  (hero tanpa bingkai: tepi dipudarkan lewat mask CSS)
  *     o.pill     teks pil ILUSTRASI → string = svg + <span class="pill stage__pill" data-stage-pill>
+     o.ink      warna anotasi terurai (katalog di kertas: "#5b524a"), o.marks false = tanpa anotasi
+     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
+     thumb(cfg, {paper:true}) → thumb katalog di kertas (bayangan --catalog-shadow, tanpa glow)
  *     o.label    aria-label; o.decorative → aria-hidden
  *   thumb(cfg, o), silhouette(spec, uid) → {vb, w, h, svg}, geometry(cfg), anchor(cfg, variant),
  *   partSvg(kind, id, hex, uid), iconSvg(kind, id, uid), totalCm, totalKg, find, hexOf, shadeHex, VARIANTS
@@ -487,19 +490,20 @@
     // 7 vinyet
     if (night && f.vig) out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.Hf * 3)}" fill="url(#${u}-vg)" pointer-events="none"/>`;
 
-    if (o.explode) out += explodeMarks(L);
+    if (o.explode && o.marks !== false) out += explodeMarks(L, o.ink);
     if (o.dims) out += dimsMarks(L, cfg);
     out += "</svg>";
     if (o.pill) out += `<span class="pill stage__pill" data-stage-pill>${esc(o.pill)}</span>`;
     return out;
   }
 
-  function explodeMarks(L) {
+  function explodeMarks(L, ink) {
     const lx = CX + 100, H = L.head;
     const hc = (L.headTop + L.headBottom) / 2, bc = (L.bodyTop + L.bodyBottom) / 2;
-    const tf = 'font-family="DM Mono,monospace" font-size="12" fill="#a89a85"';
+    const col = esc(ink || "#a89a85");
+    const tf = `font-family="DM Mono,monospace" font-size="12" fill="${col}"`;
     return (
-      `<g stroke="#a89a85" stroke-opacity=".6" stroke-dasharray="3 4">` +
+      `<g stroke="${col}" stroke-opacity=".6" stroke-dasharray="3 4">` +
       `<line x1="${CX + H.hw + 10}" y1="${r1(hc)}" x2="${lx}" y2="${r1(hc)}"/>` +
       `<line x1="${CX + 56}" y1="${r1(bc)}" x2="${lx}" y2="${r1(bc)}"/>` +
       `<line x1="${CX + 82}" y1="${r1(L.baseTop + 12)}" x2="${lx}" y2="${r1(L.baseTop + 12)}"/>` +
@@ -522,12 +526,14 @@
 
   /* ---------- thumb ≤ 64 px: siluet + warna + glow, tanpa pattern/filter ---------- */
   function renderThumb(cfg, o) {
-    const u = o.uid || "t", on = o.on !== false, L = stack(cfg), H = L.head;
+    const u = o.uid || "t", on = (o.lit != null ? o.lit !== false : o.on !== false) && !o.paper, L = stack(cfg), H = L.head;
     const pad = 14, top = L.top - pad - 6, bot = L.bottom + pad;
     const h = bot - top, w = Math.max(L.hw * 2 + pad * 2, h * (o.ratio || 0.8));
     let s = `<svg viewBox="${r1(CX - w / 2)} ${r1(top)} ${r1(w)} ${r1(h)}" xmlns="http://www.w3.org/2000/svg"${o.decorative === false ? ` role="img" aria-label="${esc(o.label || "Pratinjau lampu")}"` : ' aria-hidden="true" focusable="false"'}>`;
-    s += `<defs><radialGradient id="${u}-tg">${stop(0, "#ffbe6e", 0.55)}${stop(0.45, "#ffaa50", 0.14)}${stop(1, "#ffaa50", 0)}</radialGradient><radialGradient id="${u}-tcs">${stop(0, "#000", 0.5)}${stop(1, "#000", 0)}</radialGradient></defs>`;
-    if (on) s += `<ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="${r1(w * 0.62)}" ry="${r1(h * 0.42)}" fill="url(#${u}-tg)"/>`;
+    // o.paper: thumb katalog di kertas (baris edisi HP): bayangan --catalog-shadow, tanpa glow
+    const paper = !!o.paper;
+    s += `<defs>${on && !paper ? `<radialGradient id="${u}-tg">${stop(0, "#ffbe6e", 0.55)}${stop(0.45, "#ffaa50", 0.14)}${stop(1, "#ffaa50", 0)}</radialGradient>` : ""}<radialGradient id="${u}-tcs">${paper ? stop(0, "#1f1a16", 0.26) + stop(1, "#1f1a16", 0) : stop(0, "#000", 0.5) + stop(1, "#000", 0)}</radialGradient></defs>`;
+    if (on && !paper) s += `<ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="${r1(w * 0.62)}" ry="${r1(h * 0.42)}" fill="url(#${u}-tg)"/>`;
     s += `<ellipse cx="${CX}" cy="${r1(L.foot.cy + 3)}" rx="${r1(L.foot.rx * 1.2)}" ry="${r1(L.foot.ry * 1.6 + 4)}" fill="url(#${u}-tcs)"/>`;
     const part = (p) => (p.under ? p.under.map((x) => `<path d="${x.d}" fill="${tone(p.hex, x.tone)}"/>`).join("") : "") + `<path d="${p.out}" fill="${p.hex}"/>` + (p.caps ? p.caps.map((c) => `<path d="${c.d}" fill="${tone(p.hex, c.tone)}"/>`).join("") : "");
     s += part(L.base) + L.bodies.map(part).join("") + `<rect x="${CX - 10}" y="${r1(L.neck.top)}" width="20" height="16" fill="#3a3129"/>`;
@@ -536,9 +542,11 @@
   }
 
   /* ---------- gambar kerja: garis tinta (kelas dipakai #paket dan nanti #tiga) ---------- */
-  function drawingParts(L) {
+  function drawingParts(L, grouped) {
     const sh = (d) => `<path class="sil__s" d="${d}"/>`;
     let g = "";
+    const open = (k) => { if (grouped) g += `<g data-la-part="${k}">`; };
+    const close = () => { if (grouped) g += "</g>"; };
     const part = (p) => {
       if (p.draw) { p.draw.forEach(([c, d]) => (g += `<path class="${c}" d="${d}"/>`)); return; }
       g += sh(p.out);
@@ -546,20 +554,40 @@
       if (p.lines) g += `<path class="sil__l" d="${p.lines.join("")}"/>`;
       if (p.groove) g += sh(ellPath(p.groove.cx, p.groove.cy, p.groove.rx, p.groove.ry));
     };
+    open("base");
     part(L.base);
+    close();
+    open("body");
     L.bodies.forEach(part);
+    close();
+    open("head");
     g += sh(solidPath(10, 10, L.neck.top + 3, L.neck.y - 3, 3, 3));
     const H = L.head;
     g += sh(H.out) + sh(H.open) + sh(H.inner);
     const pl = H.pleats.filter((_, k) => k % 2 === 0).map((p) => `M${P(p.x1, p.y1)}L${P(p.x2, p.y2)}`).join("");
     g += `<path class="sil__p" d="${pl}"/>`;
+    close();
     return g;
   }
+  // o.explode: tampilan terurai (#tiga) dengan garis penunjuk + label mono (kelas .sil__lead / .sil__t,
+  // warna dari CSS: garis 1 px --ink-2). Kelompok bagian membawa data-la-part untuk sorot baris aktif.
   function renderDrawing(cfg, o) {
-    const L = stack(cfg);
-    const top = L.top - 2, bot = L.bottom + 2, hw = L.hw + 2;
-    const vb = o.vb || `${r1(CX - hw)} ${r1(top)} ${r1(hw * 2)} ${r1(bot - top)}`;
-    return `<svg class="sil" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${drawingParts(L)}</svg>`;
+    const L = stack(cfg, o.explode);
+    const ex = !!o.explode;
+    const top = L.top - (ex ? 10 : 2), bot = L.bottom + (ex ? 10 : 2), hw = L.hw + 2;
+    const vb = o.vb || (ex ? `${r1(CX - hw - 10)} ${r1(top)} ${r1(hw * 2 + 110)} ${r1(bot - top)}` : `${r1(CX - hw)} ${r1(top)} ${r1(hw * 2)} ${r1(bot - top)}`);
+    const label = o.label ? ` role="img" aria-label="${esc(o.label)}"` : ' aria-hidden="true" focusable="false"';
+    let marks = "";
+    if (ex) {
+      const lx = CX + L.hw + 22, H = L.head;
+      const hc = (L.headTop + L.headBottom) / 2, bc = (L.bodyTop + L.bodyBottom) / 2, ac = L.baseTop + 12;
+      marks =
+        `<path class="sil__lead" d="M${P(CX + H.hw + 8, hc)}H${r1(lx)}M${P(CX + 58, bc)}H${r1(lx)}M${P(CX + L.base.hw + 6, ac)}H${r1(lx)}"/>` +
+        `<path class="sil__lead sil__lead--thread" d="M${P(CX, L.headBottom + 2)}V${r1(L.bodyTop - 2)}M${P(CX, L.bodyBottom + 2)}V${r1(L.baseTop - 2)}"/>` +
+        `<g class="sil__t" font-family="DM Mono,monospace" font-size="12"><text x="${r1(lx + 6)}" y="${r1(hc + 4)}">KAP</text><text x="${r1(lx + 6)}" y="${r1(bc + 4)}">BADAN</text><text x="${r1(lx + 6)}" y="${r1(ac + 4)}">ALAS</text>` +
+        `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}">ulir M20</text></g>`;
+    }
+    return `<svg class="sil${ex ? " sil--explode" : ""}" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"${label} data-la="drawing">${drawingParts(L, true)}${marks}</svg>`;
   }
   // Siluet paket (lamp.js #paket): spec {head, body:[…], base} → {vb, w, h, svg}
   function silhouette(spec, uid) {

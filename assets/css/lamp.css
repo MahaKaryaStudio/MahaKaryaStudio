@@ -12,7 +12,7 @@
 .lhero__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: center; }
 .lhero__text { grid-column: 1 / 7; min-width: 0; }
 .lhero .eyebrow { margin: 0 0 var(--hg-label, 24px); color: var(--dark-muted); }
-.lhero h1 { margin: 0; font-size: var(--hero-h1, var(--fs-h1)); text-wrap: nowrap; }
+.lhero h1 { margin: 0; font-size: var(--hero-h1, var(--fs-h1)); max-width: none; } /* tiap baris dijaga .lhero__l; teks tanpa span (suntingan lama Mode Edit) membungkus biasa */
 .lhero__l { display: block; width: max-content; max-width: none; } /* tepat tiga baris: "Lampu yang / kamu susun / sendiri." */
 .lhero h1 em { font-style: italic; font-weight: 360; text-shadow: var(--text-glow); }
 .lhero .lead { max-width: 40ch; margin: var(--hg-lead, 32px) 0 0; color: var(--dark-fg-2); }
@@ -55,9 +55,9 @@
   .lhero__text { display: flex; flex-direction: column; align-items: flex-start; position: relative; z-index: 1; }
   .lhero .eyebrow { display: none; } /* wordmark sudah di nav 56; H1 langsung di bidang meja */
   .lhero h1.is-fb { --hero-h1: 48px; }
-  .lhero__from { margin-top: 16px; column-gap: 10px; }
+  .lhero__from { margin-top: 12px; column-gap: 10px; row-gap: 0; } /* y 524–564 → CTA 576–628 (brief) */
   .lhero__from b { font-size: 28px; }
-  .lhero__from-note { flex-basis: 100%; font-size: var(--fs-mono-code); }
+  .lhero__from-note { flex-basis: 100%; font-size: var(--fs-mono-code); line-height: 1; }
   .lhero__from-sep { display: none; } /* catatan kit di baris sendiri, tanpa titik yatim */
   .lhero__cta { order: 4; width: 100%; gap: 4px; margin-top: 12px; }
   .lhero__cta .btn { width: 100%; }
@@ -68,6 +68,7 @@
   .stage--hero .stage-ui { top: 68px; right: 20px; left: auto; bottom: auto; }
   .lhero__pill-cm { display: none; }
 }
+@media (max-width: 379px) { .lhero__pill-ed { display: none; } } /* 360: "ILUSTRASI · SENJA", tidak menabrak saklar */
 /* Video latar AI (desktop saja): opacity .28 + overlay 90° + pudar bawah 160 (brief) */
 .lhero__bg { position: absolute; inset: 0; z-index: -1; background: var(--dark-bg); }
 .lhero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.28; }
@@ -419,6 +420,10 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .sil__f { fill: var(--sil-fill, var(--bg)); }
 .sil__l { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .sil__p { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-opacity: 0.28; stroke-width: 1px; vector-effect: non-scaling-stroke; }
+/* gambar kerja terurai (LampArt mode "drawing" + explode): garis penunjuk 1 px --ink-2, label mono 12 */
+.sil__lead { fill: none; stroke: var(--sil-lead, var(--ink-2)); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.sil__lead--thread { stroke-dasharray: 2 3; }
+.sil__t { fill: var(--sil-lead, var(--ink-2)); letter-spacing: 0.06em; }
 .paket__name { margin: 32px 0 8px; }
 .paket__note { margin: 0; color: var(--ink-2); min-height: 3.2em; } /* 2 baris tetap: harga sejajar antarkolom */
 .paket__price { display: grid; justify-items: start; margin-top: 32px; }
@@ -510,7 +515,7 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .steps-l .step p { margin: 0; color: var(--fg-2); }
 .spec { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 24px; display: grid; gap: 16px; }
 .spec .eyebrow { margin: 0; }
-.spec .fig { background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
+.spec .fig { position: relative; background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
 .spec .fig svg { width: 100%; height: auto; display: block; }
 .spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--fs-small); }
 .spec dt { color: var(--dark-muted); }

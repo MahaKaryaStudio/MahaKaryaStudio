@@ -440,7 +440,7 @@
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = state.on ? "Nyala" : "Mati";
     }
     setText("#cfg-height", cm);
-    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: false, dims: true, vb: "0 36 360 444" }));
+    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 444", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
     setText("#spec-height", cm);
     setText("#spec-weight", `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`);
     fitSvgText($("#spec-fig"));
@@ -502,8 +502,8 @@
       sw.setAttribute("aria-checked", hero.on);
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = hero.on ? "Nyala" : "Mati";
     }
-    // Pil ILUSTRASI: "ILUSTRASI · EDISI SENJA · ≈ 41 CM" (tinggi hanya di desktop)
-    setHtml('[data-stage-pill="hero"]', `Ilustrasi${pre ? " · Edisi " + esc(pre.name) : ""}<span class="lhero__pill-cm"> · ≈ ${A.totalCm(hero.cfg).toFixed(0)} cm</span>`);
+    // Pil ILUSTRASI: "ILUSTRASI · EDISI SENJA · ≈ 41 CM" (tinggi hanya di desktop; kata "Edisi" disembunyikan < 380 px agar tidak menabrak saklar)
+    setHtml('[data-stage-pill="hero"]', `Ilustrasi${pre ? ` · <span class="lhero__pill-ed">Edisi </span>${esc(pre.name)}` : ""}<span class="lhero__pill-cm"> · ≈ ${A.totalCm(hero.cfg).toFixed(0)} cm</span>`);
     const d = D();
     const m = minPackagePrice(3);
     setHtml("#hero-from", amountHtml(m.price)); // hero tanpa harga coret (brief): "Mulai dari Rp375.000 · termasuk kit kelistrikan"
