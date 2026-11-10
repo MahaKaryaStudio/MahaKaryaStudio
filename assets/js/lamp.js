@@ -547,50 +547,9 @@
     5: { head: "plisir", body: ["bola", "silinder", "bola"], base: "bulat" },
   };
   const pkgSpec = (n) => PKG_SIL[n] || { head: "plisir", body: Array.from({ length: Math.max(1, n - 2) }, () => "kubus"), base: "bulat" };
-  // Siluet garis (gambar kerja): isi = warna latar (menutup garis di belakang), garis 1,5 px, plisir 1 px .28.
-  // Geometri sama dengan LampArt (pusat x 160, lantai y 440).
-  function silhouetteSvg(spec, uid) {
-    const CX = 160, s = (tag, a) => `<${tag} class="sil__s" ${a}/>`;
-    let y = 440, top = 0, bottom = 440, hw = 0, g = "";
-    const bs = spec.base;
-    if (bs === "segitiga") { g += s("polygon", `points="${CX - 88},${y - 8} ${CX + 88},${y - 8} ${CX + 88},${y} ${CX - 88},${y}"`) + s("polygon", `points="${CX - 88},${y - 8} ${CX + 88},${y - 8} ${CX},${y - 30}"`); hw = 88; }
-    else if (bs === "kotak") { g += s("rect", `x="${CX - 72}" y="${y - 12}" width="144" height="12" rx="2"`) + s("rect", `x="${CX - 72}" y="${y - 26}" width="144" height="16" rx="3"`); hw = 72; }
-    else {
-      // bulat (dan cadangan untuk bunga): silinder pendek
-      g += s("ellipse", `cx="${CX}" cy="${y - 8}" rx="78" ry="14"`) + `<rect class="sil__f" x="${CX - 78}" y="${y - 22}" width="156" height="14"/>` +
-        `<path class="sil__l" d="M${CX - 78} ${y - 22}V${y - 8}M${CX + 78} ${y - 22}V${y - 8}"/>` + s("ellipse", `cx="${CX}" cy="${y - 22}" rx="78" ry="14"`);
-      hw = 78; bottom = y + 6;
-    }
-    y -= 26;
-    spec.body.forEach((id) => {
-      let h;
-      if (id === "bola") { h = 68; g += s("ellipse", `cx="${CX}" cy="${y - 34}" rx="40" ry="34"`); hw = Math.max(hw, 40); }
-      else if (id === "kubus") { h = 58; g += s("rect", `x="${CX - 32}" y="${y - 58}" width="64" height="58" rx="3"`); hw = Math.max(hw, 32); }
-      else if (id === "cincin") { h = 38; g += s("ellipse", `cx="${CX}" cy="${y - 19}" rx="50" ry="19"`); hw = Math.max(hw, 50); }
-      else if (id === "heksa") { h = 62; const m = y - 31; g += s("polygon", `points="${CX - 52},${m} ${CX - 26},${y - 62} ${CX + 26},${y - 62} ${CX + 52},${m} ${CX + 26},${y} ${CX - 26},${y}"`); hw = Math.max(hw, 52); }
-      else { h = 50; g += s("rect", `x="${CX - 34}" y="${y - 50}" width="68" height="50" rx="7"`); hw = Math.max(hw, 34); }
-      y -= h;
-    });
-    g += s("rect", `x="${CX - 10}" y="${y - 16}" width="20" height="16" rx="2"`);
-    y -= 16;
-    let pl = "";
-    if (spec.head === "kerucut") {
-      g += s("polygon", `points="${CX - 46},${y - 104} ${CX + 46},${y - 104} ${CX + 72},${y} ${CX - 72},${y}"`);
-      for (let k = -6; k <= 6; k += 2) pl += `M${CX + (k / 8) * 44} ${y - 101}L${CX + (k / 8) * 70} ${y - 3}`;
-      top = y - 104; hw = Math.max(hw, 72);
-    } else if (spec.head === "kotak") {
-      g += s("rect", `x="${CX - 56}" y="${y - 104}" width="112" height="104" rx="3"`);
-      for (let yy = y - 91; yy < y - 8; yy += 14) pl += `M${CX - 52} ${yy}H${CX + 52}`;
-      top = y - 104; hw = Math.max(hw, 56);
-    } else {
-      g += s("rect", `x="${CX - 60}" y="${y - 110}" width="120" height="110" rx="6"`);
-      for (let x = CX - 48; x <= CX + 48; x += 12) pl += `M${x} ${y - 106}V${y - 4}`;
-      top = y - 110; hw = Math.max(hw, 60);
-    }
-    g += `<path class="sil__p" d="${pl}"/>`;
-    const w = hw * 2, h = bottom - top;
-    return { vb: `${CX - hw} ${top} ${w} ${h}`, w, h, svg: `<svg class="sil" viewBox="${CX - hw} ${top} ${w} ${h}" style="--sil-w:${w};--sil-h:${h}" aria-hidden="true" focusable="false" data-uid="${uid}">${g}</svg>` };
-  }
+  // Siluet garis (gambar kerja) dari renderer bersama LampArt.silhouette(): isi = warna latar,
+  // garis 1,5 px, plisir 1 px .28 (kelas .sil__s/.sil__f/.sil__l/.sil__p). Geometri = rig lamp-art.
+  const silhouetteSvg = (spec, uid) => A.silhouette(spec, uid);
   // Versi berwarna (panel HP, paket yang dipilih): warna dari edisi pilihan studio, tanpa glow SVG (glow kecil lewat CSS)
   function silhouetteLit(n, uid) {
     const sp = pkgSpec(n), geo = silhouetteSvg(sp, uid);
