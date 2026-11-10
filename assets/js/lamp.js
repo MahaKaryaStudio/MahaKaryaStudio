@@ -12,7 +12,10 @@
  *      data-wa="" / "order"   → pesanan rakitan saat ini (berisi "Kode: MK-…")
  *      data-wa="preset:N"     → pesanan edisi ke-N apa adanya
  *      teks lain              → pesan statis; {kode}, {harga}, {nama} diganti nilai rakitan saat ini
- *  - Perubahan harga diumumkan lewat satu wilayah aria-live="polite" (#mks-live).
+ *  - Perubahan harga diumumkan lewat satu wilayah aria-live="polite" (#mks-live); ganti edisi juga ("Edisi Senja: Rp464.000, hemat …").
+ *  - state.edition = edisi yang tampil di #edisi. Selama rakitan masih berupa edisi, memilih edisi di indeks
+ *    ikut mengganti rakitan (studio rakit, orderbar, ringkasan nav sama); rakitan custom tidak ditimpa.
+ *    Sebaliknya, rakitan yang menjadi sebuah edisi (preset studio, pulihan, "Pesan edisi ini") menggeser state.edition.
  *  - Setiap kait DOM bersifat opsional: markup boleh dihapus/diganti tanpa membuat skrip error.
  */
 (function () {
@@ -762,6 +765,8 @@
       `<p class="edisi__story" data-ed-story></p>` +
       `<p class="edisi__room"><span class="label">Cocok untuk</span> <span data-ed-room></span></p>` +
       `<div class="price-block price-block--lg edisi__buy">` +
+      // label hanya tampil di HP: indeks sudah tergulir saat harga dan tombol terlihat, jadi nama edisi diulang di sini
+      `<p class="price-block__label edisi__buy-label" data-ed-label></p>` +
       `<p class="price-block__was num" data-ed-was></p>` +
       `<p class="price-block__amount num" data-ed-amount></p>` +
       `<p class="price-block__note">Termasuk kit kelistrikan (komponen bertanda SNI/K3L) · bohlam LED opsional ${rp(d.ledPrice)} · produksi ${esc(d.leadTime.preset)}</p>` +
@@ -801,6 +806,7 @@
       was.hidden = !(anchor > pr.total);
       was.innerHTML = anchor > pr.total ? `<span class="edisi__was-a">Harga satuan <s>${rp(anchor)}</s></span><span class="edisi__sep" aria-hidden="true"> · </span><span class="edisi__was-b">hemat ${rp(anchor - pr.total)}</span>` : "";
     }
+    setText($("[data-ed-label]", el), `Harga edisi ${p.name}`);
     setHtml($("[data-ed-amount]", el), amountHtml(pr.total));
     const order = $("[data-ed-order]", el);
     if (order) {

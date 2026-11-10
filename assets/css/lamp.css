@@ -153,7 +153,7 @@ html.motion-off .lhero__hint { display: none !important; }
    terpaku 100svh, satu kalimat tampil, lampu di scene berevolusi per kalimat
    (data-step 0 siluet · 1 bagian berganti [data-sub 0/1] · 2 edisi pilihan studio menyala), progres hairline.
    Scene tanpa kotak: rig (meja) dimask memudar ke --dark-bg; lampu ber-crossfade 600 ms di atasnya. */
-.story { position: relative; padding: 0; }
+.story { position: relative; padding: 0; overflow-x: clip; /* glow lampu tidak menambah lebar halaman; clip tidak mematikan sticky */ }
 .story__pin { --story-pad: max(var(--page-margin), (100% - var(--container)) / 2); position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: start; padding: var(--pad-room) var(--story-pad) var(--pad-support); }
 .story__text { grid-column: 1 / 8; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 64px; min-width: 0; }
 .story__line { margin: 0; font: 380 var(--fs-story) / 1 var(--serif); letter-spacing: -0.03em; font-variation-settings: "opsz" 144; color: var(--dark-muted); max-width: 7.05em; /* = 12ch Fraunces opsz 144 */ text-wrap: balance; }
@@ -185,8 +185,8 @@ html.motion-off .lhero__hint { display: none !important; }
 .story--pin { height: 200vh; }
 .story--pin .story__pin { position: sticky; top: 0; height: 100svh; min-height: 600px; padding-block: 0; align-items: center; overflow: hidden; }
 .story--pin .story__text { row-gap: 0; }
-.story--pin .story__line { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(24px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); }
-.story--pin .story__line.is-on { opacity: 1; transform: none; }
+.story--pin .story__line { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); }
+.story--pin .story__line.is-on { opacity: 1; transform: none; pointer-events: auto; }
 .story--pin .story__line.is-past { opacity: 0; transform: translateY(-24px); }
 .story--pin .story__close { grid-area: 2 / 1; margin-top: 40px; opacity: 0; visibility: hidden; transition: opacity var(--t-slow) var(--ease-out), visibility 0s linear var(--t-slow); }
 .story--pin .story__close.is-on { opacity: 1; visibility: visible; transition-delay: 0s; }
@@ -289,6 +289,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .edisi__room { display: grid; gap: 8px; margin: 16px 0 0; font: 500 var(--fs-ui) / 1.5 var(--sans); color: var(--fg); }
 .edisi__room .label { margin: 0; }
 .edisi__buy { margin-top: 32px; }
+.edisi__buy-label { display: none; }
 .edisi__buy .price-block__amount { font-size: clamp(44px, 18.75cqi, var(--fs-price-lg)); }
 .edisi__buy .price-block__note { max-width: none; }
 .edisi__acts { display: grid; justify-items: start; margin-top: 24px; }
@@ -322,6 +323,7 @@ html.motion-off .lhero__hint { display: none !important; }
   .edisi__meta { align-self: start; }
   .edisi__dots i { width: 8px; height: 8px; }
   /* coret + hemat sebagai dua baris mono 14 */
+  .edisi__buy-label { display: block; }
   .edisi__was-a, .edisi__was-b { display: block; }
   .edisi__sep { display: none; }
   .edisi__buy .price-block__amount { font-size: var(--fs-price-lg); }
