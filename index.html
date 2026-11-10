@@ -120,27 +120,35 @@
       </div>
     </section>
 
-    <!-- KENAPA RAKITAN (terpaku, 3 kalimat) -->
+    <!-- KENAPA RAKITAN (gelap): tiga kalimat yang dijawab lampu di kanan (siluet → berganti → Kebun menyala).
+         Tanpa JS / gerak dikurangi: kalimat bertumpuk, lampu menyala penuh. motion.js menambah .story--pin
+         (terpaku 200vh desktop / 160vh HP). Urutan div dijaga agar alamat teks Mode Edit (#kenapa/div:0/div:1/p:N) tetap. -->
     <section class="story dark" id="kenapa" aria-label="Kenapa lampu rakitan">
       <div class="story__pin">
-        <div class="story__bg" aria-hidden="true"><img src="assets/video/proses-lampu-poster.jpg" alt="" loading="lazy" decoding="async" /></div>
-        <span class="pill stage__pill story__pill">Ilustrasi · dibuat dengan AI</span>
-        <div class="wrap story__wrap">
+        <div class="story__scene" id="story-scene" data-dynamic>
+          <div class="story__art" id="story-art" role="img" aria-label="Ilustrasi: lampu satu bentuk dari toko berganti bagian, lalu menjadi lampu rakitan yang menyala"></div>
+          <span class="pill stage__pill story__pill" data-stage-pill="kenapa">Ilustrasi</span>
+        </div>
+        <div class="story__text">
           <p class="story__line is-on">Lampu di toko dibuat <em>satu bentuk</em> untuk semua orang.</p>
           <p class="story__line">Padahal ruanganmu tidak seperti ruangan <em>orang lain</em>.</p>
           <p class="story__line">Jadi kami tidak memilihkan. <em>Kamu susun</em>, kami cetak di Jakarta.</p>
-          <div class="story__card"><span class="story__ico">✦</span><div><b>Lima edisi siap pesan, atau rakit dari nol.</b><p>Kap, badan, dan alas bisa diganti kapan saja. Ulirnya sama di semua bagian.</p></div></div>
-          <ol class="story__dots" aria-hidden="true"><li class="is-on"></li><li></li><li></li></ol>
+          <div class="story__prog" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+          <div class="story__close">
+            <p class="story__close-text">Lima edisi siap pesan · atau rakit dari nol</p>
+            <a class="text-link" href="#edisi">Lihat edisi <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- LIMA EDISI (terang) -->
+    <!-- 01 LIMA EDISI (paper): vitrine lengket kolom 1–7, rail kolom 9–12 (indeks 5 edisi → plakat → harga → WA).
+         Isi #edisi-app dirender lamp.js dari lamp-data.js; harga dan harga coret tidak pernah diketik di sini. -->
     <section id="edisi" class="paper room-lg">
       <div class="wrap">
         <p class="eyebrow">01 · Edisi</p>
-        <h2 class="section-title">Lima kombinasi yang kami rancang untuk ruangan berbeda.</h2>
-        <p class="section-sub">Pilih satu, lalu pesan apa adanya atau ganti bagian mana pun di konfigurator. Harga sudah termasuk kit kelistrikan; bohlam LED opsional.</p>
+        <h2 class="section-title">Lima edisi untuk <em>lima ruangan.</em></h2>
+        <p class="section-sub">Pilih satu lalu pesan apa adanya, atau ganti bagian mana pun di studio rakit. Harga sudah termasuk kit kelistrikan; bohlam LED opsional.</p>
         <div class="edisi room-body" id="edisi-app" data-dynamic></div>
       </div>
     </section>

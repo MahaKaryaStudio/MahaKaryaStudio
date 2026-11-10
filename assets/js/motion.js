@@ -2,7 +2,7 @@
  * MOTION — gerak mengikuti scroll, tanpa library, tanpa scroll-jacking.
  *  1. (Nav: sembunyi/muncul, tema, slot, dan tautan aktif ada di nav.js, juga saat gerak dikurangi.)
  *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
- *  3. Cerita terpaku #kenapa: kalimat bertukar; progres 0..1 di --story-p dan indeks di data-step.
+ *  3. Cerita terpaku #kenapa (.story--pin): kalimat bertukar, lampu scene berevolusi; --story-p, data-step, data-sub.
  *  4. #tiga: ilustrasi menempel, baris aktif (.is-active) + data-focus pada #exploded.
  *  5. #cara: garis progres (--fill) dan langkah .is-done.
  *  6. Reveal SEKALI per seksi, hanya kepala seksi.
@@ -73,29 +73,56 @@
       if (sw) sw.addEventListener("click", () => { heroStage.dataset.off = heroStage.dataset.off ? "" : "1"; });
     }
 
-    /* ---------- 3. Cerita terpaku ---------- */
+    /* ---------- 3. Cerita terpaku #kenapa ----------
+       Bawaan CSS = kalimat bertumpuk. .story--pin (200vh desktop / 160vh HP, isi terpaku) hanya dipasang bila
+       layar cukup tinggi untuk isi pin dan Mode Edit tidak terbuka. Per frame: --story-p (0..1), data-step
+       (kalimat 0–2), data-sub (0/1: dua lampu selingan di kalimat kedua), kelas baris is-on/is-past/is-next,
+       segmen progres, dan penutup (.story__close.is-on di kalimat terakhir). */
     const story = $(".story");
     if (story) {
-      const lines = $$(".story__line", story), dots = $$(".story__dots li", story), card = $(".story__card", story);
-      let last = -1;
+      const lines = $$(".story__line", story), segs = $$(".story__prog i", story), close = $(".story__close", story);
+      const MIN_H = 600;
+      let last = "", pinned = null;
       const storyFrame = () => {
+        const pin = innerHeight >= MIN_H && !document.body.classList.contains("mks-has-panel");
+        if (pin !== pinned) {
+          pinned = pin;
+          last = "";
+          story.classList.toggle("story--pin", pin);
+          if (!pin) {
+            story.removeAttribute("data-step");
+            story.removeAttribute("data-sub");
+            story.style.removeProperty("--story-p");
+            lines.forEach((l) => l.classList.remove("is-on", "is-past", "is-next"));
+            if (close) close.classList.remove("is-on");
+          }
+        }
+        if (!pin) return;
         const r = story.getBoundingClientRect();
         const total = r.height - innerHeight;
         const p = clamp(-r.top / Math.max(1, total), 0, 1);
         story.style.setProperty("--story-p", p.toFixed(3));
         const n = Math.max(1, lines.length);
-        const idx = Math.min(n - 1, Math.floor(p * n * 0.98));
-        if (idx !== last) {
-          last = idx;
+        const f = p * n * 0.98;
+        const idx = Math.min(n - 1, Math.floor(f));
+        const sub = f - idx >= 0.5 ? 1 : 0;
+        const key = idx + ":" + sub;
+        if (key !== last) {
+          last = key;
           story.dataset.step = String(idx);
+          story.dataset.sub = String(sub);
           lines.forEach((l, i) => { l.classList.toggle("is-on", i === idx); l.classList.toggle("is-past", i < idx); l.classList.toggle("is-next", i > idx); });
-          dots.forEach((d, i) => d.classList.toggle("is-on", i === idx));
-          if (card) card.classList.toggle("is-on", idx === n - 1);
+          segs.forEach((d, i) => d.classList.toggle("is-on", i === idx));
+          if (close) close.classList.toggle("is-on", idx === n - 1);
         }
       };
       let sTick = false;
-      addEventListener("scroll", () => { if (!sTick) { sTick = true; requestAnimationFrame(() => { sTick = false; storyFrame(); }); } }, { passive: true });
+      const onStory = () => { if (!sTick) { sTick = true; requestAnimationFrame(() => { sTick = false; storyFrame(); }); } };
+      addEventListener("scroll", onStory, { passive: true });
+      addEventListener("resize", onStory);
       storyFrame();
+      // Mode Edit (#edit) menambah body.mks-has-panel: cerita kembali bertumpuk agar semua kalimat bisa disunting
+      if ("MutationObserver" in window) new MutationObserver(onStory).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     }
 
     /* ---------- 4. #tiga: baris aktif (desktop) ---------- */

@@ -25,9 +25,16 @@
  *     o.uid, o.on (alias o.lit), o.dim, o.explode, o.table, o.vb, o.dims, o.cover   (v2)
  *     o.mode     "night" | "catalog" | "drawing" | "thumb" | "matte"
  *                (tanpa mode: table:false → catalog, selain itu night)
- *     o.variant  "hero" | "hero-hp" | "vitrine" | "studio" | "scene" | "final" | "thumb"  (bingkai rig malam)
+ *     o.variant  "hero" | "hero-hp" | "vitrine" | "studio" | "scene" | "scene-hp" | "final" | "thumb"  (bingkai rig malam)
  *     o.frame    [w, h] bingkai sendiri (rasio + skala), o.floor/o.lampFrac menimpa varian
  *     o.vignette false  (hero tanpa bingkai: tepi dipudarkan lewat mask CSS)
+ *     o.layers   "rig" = hanya dinding + meja (tanpa lampu/cahaya), "lamp" = hanya lampu + cahaya + bayangan
+ *                (tanpa dinding/meja); dipakai scene #kenapa: satu rig, beberapa lampu ber-crossfade di atasnya
+ *     o.wall     false = tanpa dinding (scene tanpa kotak: meja menyatu dengan latar seksi lewat mask CSS)
+ *     o.off      opasitas penggelap saat mati (bawaan .45); 0 = siluet rata (matte + hex seragam)
+ *     o.dims     true = anotasi ukur (Ø kap + tinggi total). Label ber-atribut data-fit="exact": fitSvgText (lamp.js)
+ *                menjaganya tepat 12 px di layar pada skala SVG berapa pun (font-size naik bila SVG mengecil,
+ *                transform scale turun bila SVG membesar; font-size atribut tidak pernah < 12)
  *     o.pill     teks pil ILUSTRASI → string = svg + <span class="pill stage__pill" data-stage-pill>
  *     o.ink      warna anotasi terurai (katalog di kertas: "#5b524a"), o.marks false = tanpa anotasi
  *     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
@@ -295,9 +302,12 @@
     hero: { r: 0.8, fl: 0.78, lf: 0.62, fe: 0.9 }, // 588 × 735: Senja ±455 px
     // 390 × 440: lampu Senja y ±114–340 (brief: 80–330; puncak diturunkan agar kap punya ±12 px udara di bawah pil 78–102 / saklar 68–112)
     "hero-hp": { r: 0.8, fl: 340 / 440, lf: 226 / 440, fe: 0.88 },
-    vitrine: { r: 690 / 780, fl: 0.78, lf: 0.58, fe: 0.9 },
+    // 690 × 780 (HP 390 × 360): lampu ±62% tinggi (Kebun 484 px pada 780), lantai di 78%
+    vitrine: { r: 690 / 780, fl: 0.78, lf: 0.656, fe: 0.9 },
     studio: { r: 690 / 800, fl: 0.78, lf: 0.6, fe: 0.9 },
-    scene: { r: 486 / 560, fl: 0.78, lf: 0.6, fe: 0.9 },
+    // #kenapa: scene tanpa kotak 486 × 560, lampu Kebun ±420 px (y 64–484); HP 350 × 260, lampu ±212 px (y 18–230)
+    scene: { r: 486 / 560, fl: 484 / 560, lf: 0.793, fe: 0.955 },
+    "scene-hp": { r: 350 / 260, fl: 230 / 260, lf: 0.862, fe: 0.965 },
     final: { r: 420 / 480, fl: 0.78, lf: 0.6, fe: 0.9 },
     thumb: { r: 0.8, fl: 0.8, lf: 0.66, fe: 0.92 },
   };
@@ -427,6 +437,7 @@
     const night = mode === "night" || mode === "matte";
     const matte = mode === "matte";
     const dim = !on ? 0 : o.dim == null ? 1 : Math.max(0, Math.min(1, +o.dim));
+    const rigOn = o.layers !== "lamp", lampOn = o.layers !== "rig"; // scene #kenapa: rig dan lampu sebagai lapisan terpisah
     const L = stack(cfg, o.explode);
     const H = L.head;
     // Lapisan cahaya: di rig malam mengikuti --dim wadah (fallback o.dim); di katalog nilai tetap
@@ -437,12 +448,12 @@
     if (night) {
       f = frameOf(o);
       f.J = FLOOR - 30; // garis temu dinding–meja: lampu berdiri di permukaan meja, bukan di garis dinding
-      f.vig = o.vignette !== false;
+      f.vig = o.vignette !== false && rigOn && lampOn;
       vb = o.vb || `${r1(f.x)} ${r1(f.top)} ${r1(f.W)} ${r1(f.Hf)}`;
     } else vb = o.vb || `0 0 ${W0} ${H0}`;
 
     // bayangan kontak: malam hitam .62; katalog --catalog-shadow (rgba(31,26,22,.18))
-    const need = { lines: !matte, lit: on, night: f, clip: on ? H.front : null, cs: night ? "#000" : "#1f1a16", csA: night ? 0.62 : 0.2 };
+    const need = { lines: !matte && lampOn, lit: on && lampOn, night: f, clip: on && lampOn ? H.front : null, cs: !lampOn ? null : night ? "#000" : "#1f1a16", csA: night ? 0.62 : 0.2 };
     const label = o.decorative ? ' aria-hidden="true" focusable="false"' : ` role="img" aria-label="${esc(o.label || "Pratinjau lampu")}"`;
     const anc = night ? { gx: r1(((CX - f.x) / f.W) * 100), gy: r1(((L.shadeCy - f.top) / f.Hf) * 100) } : null;
     let out = `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"${label}${night || o.cover ? ' overflow="visible"' : ""}${anc ? ` data-la="${mode}" style="--gx:${anc.gx}%;--gy:${anc.gy}%"` : ""}>`;
@@ -451,17 +462,20 @@
     const big = night ? { x: r1(f.x - f.W * 2), w: r1(f.W * 5) } : null;
     if (night) {
       // 1 dinding
-      out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.J - f.top + f.Hf + 1)}" fill="url(#${u}-wa)"/>`;
+      if (rigOn && o.wall !== false) out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.J - f.top + f.Hf + 1)}" fill="url(#${u}-wa)"/>`;
       // 2 cahaya dinding + glow kap (× --dim)
-      if (on) out += `<g data-la-lit="" ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 10)}" rx="${r1(f.W * 0.62)}" ry="${r1(f.Hf * 0.42)}" fill="url(#${u}-wl)"/><ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="235" ry="205" fill="url(#${u}-gl)"/></g>`;
+      if (on && lampOn) out += `<g data-la-lit="" ${dv(1)}><ellipse cx="${CX}" cy="${r1(L.shadeCy + 10)}" rx="${r1(f.W * 0.62)}" ry="${r1(f.Hf * 0.42)}" fill="url(#${u}-wl)"/><ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="235" ry="205" fill="url(#${u}-gl)"/></g>`;
       // 3 meja: permukaan + tepi depan
-      out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height="${r1(f.fe - f.J)}" fill="url(#${u}-tt)"/>`;
-      out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height=".8" fill="#f2e7d5" fill-opacity=".05"/>`;
-      out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="${r1(f.Hf * 2)}" fill="url(#${u}-tf)"/>`;
-      out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="1" fill="#f2e7d5" fill-opacity=".08"/>`;
+      if (rigOn) {
+        out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height="${r1(f.fe - f.J)}" fill="url(#${u}-tt)"/>`;
+        out += `<rect x="${big.x}" y="${r1(f.J)}" width="${big.w}" height=".8" fill="#f2e7d5" fill-opacity=".05"/>`;
+        out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="${r1(f.Hf * 2)}" fill="url(#${u}-tf)"/>`;
+        out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="1" fill="#f2e7d5" fill-opacity=".08"/>`;
+      }
       // 4 genangan cahaya di meja (× --dim)
-      if (on && !o.explode) out += `<g data-la-lit="" ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
+      if (on && lampOn && !o.explode) out += `<g data-la-lit="" ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
     }
+    if (!lampOn) return out + "</svg>"; // lapisan rig saja
     // 5 bayangan kontak statis
     if (!o.explode) {
       const ft = L.foot;
@@ -483,7 +497,8 @@
     let head = paintHead(H, q);
     if (night) {
       // lampu mati / redup: seluruh lampu lebih gelap (brightness .55 saat mati), tanpa filter
-      const offOp = on ? `style="opacity:calc((1 - var(--dim, ${dim})) * .45)"` : 'opacity=".45"';
+      const offK = o.off == null ? 0.45 : Math.max(0, Math.min(1, +o.off));
+      const offOp = on ? `style="opacity:calc((1 - var(--dim, ${dim})) * ${offK})"` : `opacity="${offK}"`;
       const outs = [L.base.out, ...L.bodies.map((b) => b.out), H.out, solidPath(10, 10, L.neck.top + 3, L.neck.y - 3, 3, 3)];
       head += `</g><g data-la-off="" fill="#000" ${offOp}>${outs.map((d) => `<path d="${d}"/>`).join("")}`;
     }
@@ -519,14 +534,17 @@
       `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}" font-size="12">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}" font-size="12">ulir M20</text></g>`
     );
   }
-  // Anotasi ukur (vitrine #edisi): garis 1 px --dark-line-strong, teks mono 12 (fitSvgText menjaga ≥ 12 px)
+  // Anotasi ukur (vitrine #edisi, gambar spesifikasi): garis 1 px --dark-line-strong (#f2e7d5 .45), label DM Mono.
+  // "Ø 20 cm" di atas kap (garis selebar kap), tinggi total (dari lamp-data lewat totalCm) di kanan lampu.
+  // Label data-fit="exact": fitSvgText (lamp.js) menjaganya tepat 12 px di layar.
   function dimsMarks(L, cfg) {
-    const dx = CX + Math.max(112, L.hw + 30), top = L.headTop, cm = totalCm(cfg);
+    const H = L.head, dx = CX + Math.max(112, L.hw + 30), top = L.headTop, cm = totalCm(cfg);
+    const yl = r1(top - 14), x1 = r1(CX - H.hw), x2 = r1(CX + H.hw);
     const ln = 'stroke="#f2e7d5" stroke-opacity=".45" stroke-width="1" vector-effect="non-scaling-stroke"';
     return (
-      `<g ${ln} fill="none"><path d="M${dx} ${r1(top)}V${FLOOR}M${dx - 6} ${r1(top)}h12M${dx - 6} ${FLOOR}h12"/>` +
-      `<path d="M${CX - 60} ${r1(top - 14)}h120M${CX - 60} ${r1(top - 20)}v12M${CX + 60} ${r1(top - 20)}v12"/></g>` +
-      `<g font-family="DM Mono,monospace" font-size="12" fill="#f2e7d5"><text x="${dx + 10}" y="${r1((top + FLOOR) / 2 + 4)}">≈ ${cm.toFixed(0)} cm</text><text x="${CX}" y="${r1(top - 24)}" text-anchor="middle">Ø 20 cm</text></g>`
+      `<g class="la-dims" ${ln} fill="none"><path d="M${dx} ${r1(top)}V${FLOOR}M${dx - 6} ${r1(top)}h12M${dx - 6} ${FLOOR}h12"/>` +
+      `<path d="M${x1} ${yl}H${x2}M${x1} ${r1(yl - 6)}v12M${x2} ${r1(yl - 6)}v12"/></g>` +
+      `<g class="la-dims-t" font-family="DM Mono,monospace" fill="#d9cdb9"><text data-fit="exact" font-size="12" x="${dx + 10}" y="${r1((top + FLOOR) / 2)}" dominant-baseline="central">≈ ${cm.toFixed(0)} cm</text><text data-fit="exact" font-size="12" x="${CX}" y="${r1(yl - 8)}" text-anchor="middle">Ø 20 cm</text></g>`
     );
   }
 
