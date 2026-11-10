@@ -540,11 +540,12 @@
   function dimsMarks(L, cfg) {
     const H = L.head, dx = CX + Math.max(112, L.hw + 30), top = L.headTop, cm = totalCm(cfg);
     const yl = r1(top - 14), x1 = r1(CX - H.hw), x2 = r1(CX + H.hw);
-    const ln = 'stroke="#f2e7d5" stroke-opacity=".45" stroke-width="1" vector-effect="non-scaling-stroke"';
+    // token --dark-line-strong / --dark-fg-2 lewat style (atribut presentasi sebagai cadangan di luar halaman)
+    const ln = 'stroke="#f2e7d5" stroke-opacity=".45" style="stroke:var(--dark-line-strong,rgba(242,231,213,.45));stroke-opacity:1" stroke-width="1" vector-effect="non-scaling-stroke"';
     return (
       `<g class="la-dims" ${ln} fill="none"><path d="M${dx} ${r1(top)}V${FLOOR}M${dx - 6} ${r1(top)}h12M${dx - 6} ${FLOOR}h12"/>` +
       `<path d="M${x1} ${yl}H${x2}M${x1} ${r1(yl - 6)}v12M${x2} ${r1(yl - 6)}v12"/></g>` +
-      `<g class="la-dims-t" font-family="DM Mono,monospace" fill="#d9cdb9"><text data-fit="exact" font-size="12" x="${dx + 10}" y="${r1((top + FLOOR) / 2)}" dominant-baseline="central">≈ ${cm.toFixed(0)} cm</text><text data-fit="exact" font-size="12" x="${CX}" y="${r1(yl - 8)}" text-anchor="middle">Ø 20 cm</text></g>`
+      `<g class="la-dims-t" font-family="DM Mono,monospace" fill="#d9cdb9" style="fill:var(--dark-fg-2,#d9cdb9)"><text data-fit="exact" font-size="12" x="${dx + 10}" y="${r1((top + FLOOR) / 2)}" dominant-baseline="central">≈ ${cm.toFixed(0)} cm</text><text data-fit="exact" font-size="12" x="${CX}" y="${r1(yl - 8)}" text-anchor="middle">Ø 20 cm</text></g>`
     );
   }
 
