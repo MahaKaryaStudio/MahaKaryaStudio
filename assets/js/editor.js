@@ -693,7 +693,7 @@
       .mks-confirm p{margin:0 0 6px;font-size:13px;font-weight:600}
       .mks-pill{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:200;border:0;border-radius:999px;background:#1f1a16;color:#fff;font:600 14px Inter,system-ui,sans-serif;padding:12px 18px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
       .mks-pill[hidden]{display:none}
-      @media (min-width:900px){ body.mks-has-panel{padding-right:400px} }
+      @media (min-width:900px){ body.mks-has-panel{padding-right:400px} body.mks-has-panel .nav--float{right:400px} }
       @media (max-width:760px){ .mks-editor{top:auto;height:62vh;width:100vw;border-left:0;border-top:1px solid #e4dacb;border-radius:16px 16px 0 0} }
     `;
     document.head.appendChild(s);

@@ -66,9 +66,9 @@ window.MKS_LAMP = {
     { id: "bunga", name: "Bunga", price: 115000 },
   ],
   packages: {
-    3: { name: "Trio", disc: 0.15, cm: "22–27", note: "Paling rendah, untuk rak dan meja kecil" },
+    3: { name: "Trio", disc: 0.15, cm: "22–27", note: "Paling pendek, untuk rak dan meja kecil" },
     4: { name: "Kuarto", disc: 0.22, cm: "27–35", note: "Ukuran tengah, untuk meja samping tempat tidur" },
-    5: { name: "Kuinto", disc: 0.28, cm: "31–43", note: "Paling tinggi, untuk meja kerja dan sudut ruang tamu" },
+    5: { name: "Kuinto", disc: 0.28, cm: "31–43", note: "Paling jangkung, untuk meja kerja dan sudut ruang tamu" },
   },
   // shop: link produk per edisi di marketplace (opsional). Kosong = pakai link toko dari config.js.
   presets: [

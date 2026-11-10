@@ -17,17 +17,159 @@ section { padding: var(--pad-support) 0; }
 .promo { background: var(--dark-bg); color: var(--dark-fg-2); font-size: var(--fs-small); text-align: center; padding: 8px 16px; }
 .promo strong { color: var(--dark-fg); }
 
-/* Nav (ditata ulang penuh di fase berikut; di sini hanya memakai token) */
-.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: var(--z-nav); background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--line); }
+/* ---------- Nav ----------
+   Semua halaman: .nav sticky terang (koleksi) — sembunyi saat gulir turun (.nav--hide, nav.js).
+   index.html: .nav--float = fixed 72 (HP 56), tema mengikuti seksi (data-nav-theme clear|dark|light),
+   slot kanan kontekstual (data-slot cta|mini|none), menu HP = <dialog class="menu-sheet">.
+   html --nav-offset (nav.js) = tinggi nav saat terlihat, 0 saat tersembunyi: dipakai semua elemen sticky. */
+:root { --nav-offset: var(--nav-h); }
+.nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: var(--z-nav);
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  transition: transform var(--t-med) var(--ease-out), background-color var(--t-med) var(--ease-out), border-color var(--t-med) var(--ease-out), color var(--t-med) var(--ease-out);
+}
+.nav--hide { transform: translateY(-100%); }
+html.motion-off .nav { transition: background-color var(--t-fast) linear, border-color var(--t-fast) linear, color var(--t-fast) linear; }
 .nav__inner { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); gap: 16px; }
 .nav .btn { white-space: nowrap; }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--serif); font-size: 22px; font-weight: 450; letter-spacing: -0.01em; font-variation-settings: "opsz" 36; color: var(--ink); }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--serif); font-size: 22px; font-weight: 450; letter-spacing: -0.01em; font-variation-settings: "opsz" 36; color: var(--ink); white-space: nowrap; }
 .logo em { font-style: italic; font-weight: 400; margin-left: 2px; }
 .logo--light { color: var(--dark-fg); }
 .logo--light em { color: var(--dark-fg-2); }
+.logo__icon { width: 32px; height: 32px; flex: none; }
+.logo__shade { stroke: var(--logo-shade, var(--accent-ink)); }
+.logo__base { stroke: var(--logo-base, var(--ink-2)); }
 .nav__links { display: flex; gap: 28px; }
 .nav__links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: var(--fs-ui); color: var(--ink-2); font-weight: 500; white-space: nowrap; letter-spacing: 0.01em; }
 .nav__links a:hover { color: var(--ink); }
+
+/* Nav melayang (index): tanpa blur dan bayangan, hairline mengikuti tema */
+.nav--float {
+  --nav-bg: var(--paper);
+  --nav-line: var(--line);
+  --nav-link: var(--ink-2);
+  --nav-link-on: var(--ink);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 0;
+  background: var(--nav-bg);
+  box-shadow: inset 0 -1px 0 var(--nav-line); /* hairline di dalam tinggi 72/56 */
+}
+.nav--float[data-nav-theme="clear"],
+.nav--float[data-nav-theme="dark"] {
+  --nav-bg: var(--dark-bg);
+  --nav-line: var(--dark-line);
+  --nav-link: var(--dark-muted);
+  --nav-link-on: var(--dark-fg);
+  --logo-shade: var(--amber);
+  --logo-base: var(--dark-muted);
+  --fg: var(--dark-fg);
+  --fg-2: var(--dark-fg-2);
+  --muted: var(--dark-muted);
+  --ring-c: var(--dark-fg);
+  --wa-ring-cur: 0 0 #0000;
+  color: var(--dark-fg);
+}
+.nav--float[data-nav-theme="clear"] { --nav-line: transparent; background: transparent; }
+.nav--float .logo { color: inherit; }
+.nav--float .nav__inner { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); }
+.nav--float .logo { grid-column: 1 / 4; justify-self: start; }
+.nav--float .nav__links { grid-column: 5 / 9; gap: 40px; }
+.nav--float .nav__links a { color: var(--nav-link); transition: color var(--t-fast) var(--ease-out); }
+.nav--float .nav__links a:hover,
+.nav--float .nav__links a.is-active { color: var(--nav-link-on); }
+.nav--float .nav__links a.is-active { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+@media (max-width: 1100px) { .nav--float .nav__links { gap: 28px; } }
+/* Slot kanan: hero/#kenapa → "Rakit lampumu"; #alur–#faq → ringkasan rakitan + WA "Pesan"; lainnya kosong */
+.nav__slot { grid-column: 10 / 13; justify-self: end; display: flex; align-items: center; max-width: 360px; min-height: 44px; }
+.nav__cta,
+.nav__mini { display: none; }
+.nav--float[data-slot="cta"] .nav__cta { display: inline-flex; animation: nav-in var(--t-med) var(--ease-out); }
+.nav--float[data-slot="mini"] .nav__mini { display: flex; animation: nav-in var(--t-med) var(--ease-out); }
+@keyframes nav-in { from { opacity: 0; } }
+.nav__mini { align-items: center; gap: 12px; }
+.nav__thumb { flex: none; width: 28px; height: 34px; border-radius: var(--r-frame); overflow: hidden; background: var(--stage-thumb); }
+.nav__thumb svg { width: 100%; height: 100%; }
+.nav__mini-text { display: grid; gap: 4px; justify-items: start; }
+.nav__mini-name { font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.nav__mini-price { position: relative; display: block; }
+.nav__mini-amount { display: block; }
+.nav__pesan { max-width: 160px; overflow: hidden; transition: max-width var(--t-med) var(--ease-out), padding var(--t-med) var(--ease-out), margin var(--t-med) var(--ease-out), opacity var(--t-fast) var(--ease-out), visibility 0s; }
+/* Tombol berisi lain terlihat (CTA seksi, tombol Kuinto #paket, lembar bagian): WA "Pesan" disembunyikan, teks tetap */
+.nav--quiet .nav__pesan { max-width: 0; margin-left: -12px; padding-inline: 0; opacity: 0; visibility: hidden; transition: max-width var(--t-med) var(--ease-out), padding var(--t-med) var(--ease-out), margin var(--t-med) var(--ease-out), opacity var(--t-fast) var(--ease-out), visibility 0s linear var(--t-med); }
+/* Chip delta harga: muncul 1,2 dtk tepat di bawah nav saat harga rakitan berubah */
+.nav__delta { position: absolute; left: 0; top: calc(100% + 14px); white-space: nowrap; background: color-mix(in srgb, var(--amber) 24%, var(--nav-bg)); box-shadow: var(--shadow-float); }
+.price-delta.nav__delta,
+.price-delta.orderbar__delta { opacity: 0; transform: translateY(4px); transition: opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out); pointer-events: none; }
+.price-delta.nav__delta.is-on,
+.price-delta.orderbar__delta.is-on { opacity: 1; transform: none; }
+html.motion-off .price-delta.nav__delta,
+html.motion-off .price-delta.orderbar__delta { transform: none; transition: opacity 150ms linear; }
+/* Tombol menu HP: 44×44, dua garis 18×1,5, tanpa border */
+.nav__menu-btn,
+.menu-sheet__close { position: relative; display: none; place-content: center; gap: 5px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: inherit; cursor: pointer; }
+.nav__menu-btn i,
+.menu-sheet__close i { display: block; width: 18px; height: 1.5px; border-radius: 1px; background: currentColor; }
+.menu-sheet__close { display: grid; gap: 0; }
+.menu-sheet__close i { grid-area: 1 / 1; transform: rotate(45deg); }
+.menu-sheet__close i + i { transform: rotate(-45deg); }
+@media (max-width: 900px) {
+  .nav--float .nav__inner { display: flex; justify-content: space-between; gap: 12px; }
+  .nav--float .nav__links,
+  .nav--float .nav__slot { display: none; }
+  .nav--float .nav__menu-btn { display: grid; margin-right: -10px; }
+  /* Studio rakit HP: nav disembunyikan penuh selama blok sticky [data-studio-sticky] menempel (nav.js) */
+  html.in-studio .nav--float { transform: translateY(-100%); }
+}
+@media (max-width: 760px) { .nav--float .logo__icon { width: 28px; height: 28px; } }
+@media (max-width: 359px) { .nav--float .logo__word { display: none; } }
+
+/* Menu HP: <dialog> layar penuh gelap, tautan Fraunces 28 baris 56, WA "Chat WhatsApp" */
+html.menu-open { overflow: hidden; }
+.menu-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: env(safe-area-inset-top, 0px) var(--page-margin) calc(20px + env(safe-area-inset-bottom, 0px));
+  border: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--dark-bg);
+  color: var(--dark-fg);
+  --logo-shade: var(--amber);
+  --logo-base: var(--dark-muted);
+}
+.menu-sheet[open] { display: flex; flex-direction: column; animation: nav-in var(--t-med) var(--ease-out); }
+.menu-sheet::backdrop { background: var(--dark-bg); }
+.menu-sheet__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--nav-h); margin-right: -10px; }
+.menu-sheet .logo { color: var(--dark-fg); }
+.menu-sheet .logo__icon { width: 28px; height: 28px; }
+.menu-sheet__links { display: grid; margin-top: 16px; border-top: 1px solid var(--dark-line); }
+.menu-sheet__links a {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--dark-line);
+  font: 400 var(--fs-title) / 1.2 var(--serif);
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 72;
+  color: var(--dark-fg);
+  text-decoration: none;
+}
+.menu-sheet__links a.is-active { font-style: italic; }
+.menu-sheet__foot { display: grid; gap: 12px; margin-top: auto; padding-top: 32px; }
+.menu-sheet__reply { margin: 0; max-width: none; text-align: center; font: 400 var(--fs-mono-code) / 1.4 var(--mono); color: var(--dark-muted); }
 .cart-btn { position: relative; border: 0; box-shadow: inset 0 0 0 1.5px var(--ink); background: transparent; border-radius: 999px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); }
 .cart-count { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--ink); color: var(--paper); font: 500 12px/20px var(--mono); display: none; place-items: center; }
 .cart-count.is-on { display: grid; }
@@ -234,9 +376,9 @@ section { padding: var(--pad-support) 0; }
 .menu__links a { text-decoration: none; color: var(--ink); font-weight: 500; font-size: var(--fs-ui); padding: 12px 14px; border-radius: 8px; white-space: nowrap; }
 .menu__links a:hover { background: var(--paper-2); }
 @media (max-width: 1040px) {
-  .nav__links { display: none; }
+  .nav:not(.nav--float) .nav__links { display: none; }
   .menu { display: block; }
   /* Tanpa daftar tautan, tombol CTA merapat ke tombol menu di kanan */
   .nav__inner > .btn, .nav__inner > .cart-btn { margin-left: auto; }
-  .nav__inner { gap: 12px; }
+  .nav:not(.nav--float) .nav__inner { gap: 12px; }
 }

@@ -756,8 +756,9 @@ h4 {
   min-height: 44px;
   padding: 12px 20px;
   border-radius: var(--r-pill);
-  background: var(--dark-bg-4);
+  background: var(--dark-bg-2);
   color: var(--dark-fg);
+  --ring-c: var(--dark-fg); /* cincin fokus aksi terbaca di permukaan gelap */
   /* tepi terang tipis: tetap terbaca di atas seksi gelap (#alur, #rakit) maupun terang */
   box-shadow: var(--shadow-float), inset 0 0 0 1px var(--dark-line-strong);
   font: 500 var(--fs-ui) / 1.4 var(--sans);

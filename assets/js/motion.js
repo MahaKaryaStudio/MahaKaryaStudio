@@ -1,6 +1,6 @@
 /*
  * MOTION — gerak mengikuti scroll, tanpa library, tanpa scroll-jacking.
- *  1. Nav: sembunyi saat gulir turun, muncul saat gulir naik; tautan nav mengikuti seksi aktif.
+ *  1. (Nav: sembunyi/muncul, tema, slot, dan tautan aktif ada di nav.js, juga saat gerak dikurangi.)
  *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
  *  3. Cerita terpaku #kenapa: kalimat bertukar; progres 0..1 di --story-p dan indeks di data-step.
  *  4. #tiga: ilustrasi menempel, baris aktif (.is-active) + data-focus pada #exploded.
@@ -28,26 +28,15 @@
   ready(init);
 
   function init() {
-    /* ---------- 1 + 2 + 5: dihitung per frame scroll ---------- */
-    const nav = $(".nav");
+    /* ---------- 2 + 5: dihitung per frame scroll ---------- */
     const hero = $(".lhero");
     const heroStage = $("#hero-stage");
     const hint = $("#hero-hint");
     const steps = $(".steps-l");
-    const navLinks = $$(".nav__links a[href^='#'], .menu__links a[href^='#']");
-    const sections = navLinks.map((a) => { try { return $(a.getAttribute("href")); } catch (_) { return null; } }).filter(Boolean);
-    let lastY = window.scrollY, ticking = false, hiddenNav = false;
+    let ticking = false;
 
     function frame() {
       const y = window.scrollY;
-      if (nav) {
-        const menuOpen = nav.querySelector(".menu[open], dialog[open]");
-        if (y > lastY + 4 && y > 400 && !hiddenNav && !menuOpen) { hiddenNav = true; nav.classList.add("nav--hide"); }
-        else if ((y < lastY - 4 || y < 140) && hiddenNav) { hiddenNav = false; nav.classList.remove("nav--hide"); }
-        let active = null;
-        for (const s of sections) if (s.getBoundingClientRect().top <= innerHeight * 0.4) active = s;
-        navLinks.forEach((a) => a.classList.toggle("is-active", !!active && a.getAttribute("href") === "#" + active.id));
-      }
       if (hero && heroStage) {
         const h = hero.offsetHeight || 1;
         if (y < h + 80 && !heroStage.dataset.off) {
@@ -65,7 +54,6 @@
         steps.style.setProperty("--fill", p.toFixed(3));
         $$(".step", steps).forEach((st, i, arr) => st.classList.toggle("is-done", p >= (i + 0.5) / arr.length));
       }
-      lastY = y;
       ticking = false;
     }
     const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };

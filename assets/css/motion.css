@@ -1,14 +1,13 @@
 /* Gerak mengikuti scroll. Hanya aktif bila html.motion-on (prefers-reduced-motion: no-preference).
    Dengan html.motion-off semuanya langsung tampil, tanpa transform; durasi & easing dari token base.css. */
 
-/* Nav: sembunyi/muncul + tautan aktif mengikuti seksi */
-.motion-on .nav { transition: transform var(--t-med) var(--ease-out), background-color var(--t-med) var(--ease-out); }
-.motion-on .nav--hide { transform: translateY(-100%); }
-.nav__links a { position: relative; }
-.nav__links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; transition: transform var(--t-med) var(--ease-out); }
-.nav__links a.is-active { color: var(--ink); }
-.nav__links a.is-active::after,
-.nav__links a:hover::after { transform: scaleX(1); }
+/* Nav: sembunyi/muncul ada di style.css (nav.js, juga saat gerak dikurangi). Garis bawah tautan aktif
+   yang bergeser hanya untuk nav terang koleksi; nav melayang index memakai garis bawah statis (style.css). */
+.nav:not(.nav--float) .nav__links a { position: relative; }
+.nav:not(.nav--float) .nav__links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; transition: transform var(--t-med) var(--ease-out); }
+.nav:not(.nav--float) .nav__links a.is-active { color: var(--ink); }
+.nav:not(.nav--float) .nav__links a.is-active::after,
+.nav:not(.nav--float) .nav__links a:hover::after { transform: scaleX(1); }
 .menu__links a.is-active { background: var(--paper-2); }
 
 /* Reveal sekali per seksi, hanya kepala seksi: fade + 16 px, 600 ms, stagger maks 3 × 70 ms */
@@ -17,7 +16,7 @@
 
 /* 02 #tiga: ilustrasi menempel, baris aktif ditandai hairline tinta (teks non-aktif tanpa opacity) */
 .motion-on .parts-grid--story { align-items: start; }
-.motion-on .parts-grid--story .exploded-wrap { position: sticky; top: calc(var(--nav-h) + 24px); }
+.motion-on .parts-grid--story .exploded-wrap { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); transition: top var(--t-med) var(--ease-out); }
 .motion-on .parts-grid--story .part-row { transition: border-color var(--t-med) var(--ease-out); }
 .motion-on .parts-grid--story .part-row.is-active { border-top-color: var(--fg); }
 

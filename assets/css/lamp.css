@@ -2,7 +2,7 @@
    ada di base.css; file ini hanya menata seksi. Tata letak penuh tiap seksi disusun ulang di fase berikut. */
 
 /* ---------- Hero ---------- */
-.lhero { position: relative; isolation: isolate; overflow: hidden; padding: clamp(40px, 6vw, 80px) 0 var(--pad-support); }
+.lhero { position: relative; isolation: isolate; overflow: hidden; padding: calc(var(--nav-h) + clamp(40px, 6vw, 80px)) 0 var(--pad-support); } /* nav melayang (fixed) menutupi puncak hero: padding atas + tinggi nav */
 .lhero__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(24px, 5vw, 64px); align-items: center; }
 .lhero h1 { max-width: 6.45em; } /* = 11ch Fraunces opsz 144; em (bukan ch) supaya font cadangan memecah baris sama */
 .lhero h1 span { font-style: italic; font-weight: 360; text-shadow: var(--text-glow); }
@@ -16,7 +16,7 @@
 /* Desktop: hero = layar pertama (tinggi layar − nav). Panggung dan H1 ikut tinggi layar, jadi CTA,
    saklar panggung, dan label video AI selalu di atas lipatan (1280×720, 1366×768, 1440×900). */
 @media (min-width: 861px) {
-  .lhero { display: flex; align-items: center; min-height: calc(100svh - var(--nav-h)); padding: 24px 0 72px; }
+  .lhero { display: flex; align-items: center; min-height: 100svh; padding: calc(var(--nav-h) + 24px) 0 72px; }
   .lhero h1 { font-size: min(var(--fs-h1), calc((100svh - var(--nav-h)) * 0.14)); }
   .lhero .lead { margin-bottom: 24px; }
   .lhero .stage { justify-self: end; width: min(100%, 588px, calc((100svh - var(--nav-h) - 96px) * 0.8)); }
@@ -28,13 +28,13 @@
 .lhero .stage { box-shadow: var(--shadow-float); }
 /* Label AI + tombol jeda: satu kelompok di kanan bawah video, dipaku ke lipatan layar pertama
    (bila hero lebih tinggi dari layar, kelompok tetap 16 px di atas lipatan). */
-.lhero__media { position: absolute; right: 24px; bottom: max(16px, calc(100% - 100svh + var(--nav-h) + 16px)); z-index: 2; display: flex; align-items: center; gap: 8px; }
+.lhero__media { position: absolute; right: 24px; bottom: max(16px, calc(100% - 100svh + 16px)); z-index: 2; display: flex; align-items: center; gap: 8px; }
 .lhero__note { min-height: 40px; padding: 0 16px; font: 400 var(--fs-mono-code) / 1.2 var(--mono); letter-spacing: 0.02em; text-transform: none; }
 .reel__play { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--scrim); color: var(--dark-fg-2); font-size: 14px; line-height: 1; cursor: pointer; }
 .reel__play::before { content: ""; position: absolute; inset: -2px; border-radius: 50%; } /* area sentuh 44 */
 .reel__play[hidden] { display: none; }
 @media (max-width: 860px) {
-  .lhero__bg { bottom: auto; height: min(100%, 92vw * 4 / 3 + 40px); }
+  .lhero__bg { bottom: auto; height: min(100%, 92vw * 4 / 3 + 40px + var(--nav-h)); }
   .lhero__bg::after { background: linear-gradient(180deg, color-mix(in srgb, var(--dark-bg) 70%, transparent) 0%, color-mix(in srgb, var(--dark-bg) 50%, transparent) 35%, color-mix(in srgb, var(--dark-bg) 62%, transparent) 70%, var(--dark-bg) 100%); }
   /* Video latar AI hanya di desktop (keputusan pemilik): di HP tidak dimuat/diputar, label ikut hilang */
   .lhero__bg video, .lhero__media { display: none !important; }
@@ -45,7 +45,7 @@ html.motion-off .lhero__bg video,
 html.motion-off .lhero__media,
 html.motion-off .lhero__hint { display: none !important; }
 /* Hint gulir: hanya desktop lebar, sejajar label AI, tanpa pantulan */
-.lhero__hint { position: absolute; left: 50%; bottom: max(30px, calc(100% - 100svh + var(--nav-h) + 30px)); transform: translateX(-50%); margin: 0; z-index: 2; font: 500 12px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dark-muted); display: flex; gap: 8px; align-items: center; transition: opacity var(--t-slow) var(--ease-out); }
+.lhero__hint { position: absolute; left: 50%; bottom: max(30px, calc(100% - 100svh + 30px)); transform: translateX(-50%); margin: 0; z-index: 2; font: 500 12px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dark-muted); display: flex; gap: 8px; align-items: center; transition: opacity var(--t-slow) var(--ease-out); }
 .lhero__hint.is-off { opacity: 0; }
 .lhero .stage .lamp { transition: filter var(--t-slow) var(--ease-out); filter: brightness(calc(0.5 + 0.5 * var(--dim, 1))); }
 @media (max-width: 1100px) { .lhero__hint { display: none; } }
@@ -121,7 +121,7 @@ html.motion-off .lhero__hint { display: none !important; }
 /* ---------- 01 #edisi ---------- */
 .edisi { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: clamp(20px, 4vw, 48px); align-items: start; }
 .edisi > * { min-width: 0; }
-.edisi__stage { position: sticky; top: calc(var(--nav-h) + 24px); aspect-ratio: 4 / 4.6; }
+.edisi__stage { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); transition: top var(--t-med) var(--ease-out); aspect-ratio: 4 / 4.6; }
 .edisi__stage .lamp svg { width: 100%; height: 100%; max-width: 100%; }
 .edisi__side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
 .edisi__list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-bottom: 1px solid var(--hairline); }
@@ -187,7 +187,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .preset__price { align-self: end; font: 400 12px/1.4 var(--mono); font-variant-numeric: tabular-nums; }
 .preset__price s { display: block; color: var(--dark-muted); }
 .config { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
-.preview { position: sticky; top: calc(var(--nav-h) + 12px); display: grid; gap: 16px; }
+.preview { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 12px); transition: top var(--t-med) var(--ease-out); display: grid; gap: 16px; }
 .preview .stage { aspect-ratio: 4 / 4.6; }
 .summary { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 20px; display: grid; gap: 12px; }
 .summary .badges { display: flex; flex-wrap: wrap; gap: 8px 16px; }
@@ -212,6 +212,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .summary .acts__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .summary .acts__row .btn { padding-inline: 12px; }
 .summary .reply { text-align: center; font-size: var(--fs-small); color: var(--dark-fg-2); }
+.summary__wa-hp { display: none; }
 .summary .note { font-size: var(--fs-small); color: var(--dark-muted); margin: 0; }
 .gift { border-top: 1px solid var(--dark-line); padding-top: 12px; display: grid; gap: 12px; }
 .gift__head { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; cursor: pointer; min-height: 44px; }
@@ -291,16 +292,46 @@ html.motion-off .lhero__hint { display: none !important; }
 .trust--summary { margin: 0; color: var(--dark-muted); flex-direction: column; gap: 6px; padding: 0 4px; }
 .trust--summary li::before { color: var(--dark-fg-2); }
 
-/* Bilah pesan HP (orderbar; ditata ulang di fase berikut) */
-.orderbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-orderbar); display: none; align-items: center; gap: 12px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--dark-bg); border-top: 1px solid var(--dark-line); box-shadow: var(--shadow-float); color: var(--dark-fg); }
-.orderbar[hidden] { display: none !important; }
-.orderbar__info { flex: 1; min-width: 0; line-height: 1.2; }
-.orderbar__info > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 400 12px/1.4 var(--mono); }
-.orderbar__info b { font: 400 var(--fs-price-bar) / 1 var(--serif); letter-spacing: -0.01em; display: block; }
-.orderbar__info s { color: var(--dark-muted); margin-right: 6px; }
-.orderbar__info small { color: var(--dark-fg-2); font-size: 12px; }
-.orderbar .btn { padding: 0 20px; }
-@media (max-width: 900px) { .orderbar { display: flex; } html.has-orderbar { scroll-padding-bottom: 104px; } }
+/* ---------- Orderbar HP (#orderbar, elemen terakhir di DOM; isi + kapan tampil: nav.js) ----------
+   72 + safe-area, dua baris teks ("KEBUN · 5 BAGIAN" mono 12 + harga Fraunces 24) + chip delta + WA "Pesan".
+   Tersembunyi: translateY(100%) + visibility hidden (tidak bisa difokus). Gerak dikurangi: opasitas saja. */
+.orderbar { display: none; }
+@media (max-width: 900px) {
+  .orderbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-orderbar);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    min-height: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding: 12px var(--page-margin) calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--dark-bg);
+    box-shadow: inset 0 1px 0 var(--dark-line), var(--shadow-float); /* hairline atas di dalam tinggi 72 */
+    color: var(--dark-fg);
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform var(--t-med) var(--ease-out), visibility 0s linear var(--t-med);
+  }
+  .orderbar.is-on { transform: none; visibility: visible; transition: transform var(--t-med) var(--ease-out), visibility 0s; }
+  html.has-orderbar { scroll-padding-bottom: 104px; }
+  /* #rakit HP: orderbar selalu tampil dan memegang tombol WA berisi. Ringkasan memakai tautan teks
+     (#wa-link-hp) agar aksi pesan tetap ada di urutan Tab tanpa tombol berisi kedua di viewport. */
+  #summary #wa-link { display: none; }
+  #summary .summary__wa-hp { display: inline-flex; justify-self: center; color: var(--dark-fg); }
+}
+html.motion-off .orderbar { transform: none; opacity: 0; transition: opacity 150ms linear, visibility 0s linear 150ms; }
+html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, visibility 0s; }
+.orderbar__info { display: grid; gap: 4px; min-width: 0; max-width: none; margin: 0; }
+.orderbar__name { font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--dark-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.orderbar__price { font: 400 var(--fs-price-bar) / 1 var(--serif); letter-spacing: -0.01em; font-variant-numeric: lining-nums tabular-nums; font-variation-settings: "opsz" 24; color: var(--dark-fg); white-space: nowrap; }
+.orderbar__price .rp { vertical-align: 0.6em; }
+.orderbar__btn { min-width: 132px; }
+/* Chip delta: menumpang tepi atas bar (tidak bertabrakan dengan toast di 88 px), latar padat agar terbaca di seksi mana pun */
+.orderbar__delta { position: absolute; left: var(--page-margin); top: -12px; background: color-mix(in srgb, var(--amber) 24%, var(--dark-bg)); box-shadow: inset 0 0 0 1px rgba(242, 163, 58, 0.5); color: var(--dark-fg); }
 
 /* ---------- 04 #alur (seksi .dark-2) ---------- */
 .alur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -318,29 +349,88 @@ html.motion-off .lhero__hint { display: none !important; }
 .alur__note { margin: 24px 0 0; font-size: var(--fs-small); color: var(--fg-2); }
 @media (max-width: 860px) { .alur { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: thin; } .phone { scroll-snap-align: start; } }
 
-/* ---------- 05 #paket ---------- */
-.pkgs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.pkg { position: relative; background: var(--surface-1); border-radius: var(--r-tile); padding: 24px; display: grid; gap: 16px; align-content: start; }
-.pkg.hot { box-shadow: inset 0 0 0 1.5px var(--ink); }
-.pkg__flag { position: absolute; top: -12px; left: 20px; background: var(--ink); color: var(--paper); font: 500 12px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; }
-.pkg .top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
-.pkg .n { font: 300 56px/0.85 var(--serif); letter-spacing: -0.04em; font-variant-numeric: lining-nums; font-variation-settings: "opsz" 144; }
-.pkg .n small { font: 500 12px/1 var(--mono); color: var(--fg-2); letter-spacing: 0.14em; text-transform: uppercase; display: block; margin-top: 8px; }
-.pkg h3 { margin: 0; }
-.pkg ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--fg-2); font-size: 15px; }
-.pkg ul li { display: flex; gap: 10px; align-items: start; }
-.pkg ul li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-2); flex: none; margin-top: 9px; }
-.pkg .from { border-top: 1px solid var(--hairline); padding-top: 16px; display: grid; gap: 4px; }
-.pkg .from small { font: 500 12px/1 var(--mono); color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.14em; }
-.pkg .from b { font: 400 var(--fs-title) / 1.05 var(--serif); letter-spacing: -0.02em; font-variation-settings: "opsz" 72; color: var(--fg); }
-.pkg .from s { color: var(--fg-2); font: 400 14px/1.4 var(--mono); }
-.pkg .from em { font: 400 14px/1.4 var(--mono); font-style: normal; color: var(--fg-2); }
-.pkg .btn { justify-content: center; }
-.incl { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; color: var(--fg-2); font-size: var(--fs-small); }
-.incl span { display: block; padding-left: 1.5em; text-indent: -1.5em; }
-.incl span::before { content: "✓"; color: var(--fg-2); font-weight: 600; display: inline-block; width: 1.5em; text-indent: 0; }
-@media (max-width: 860px) { .pkgs { grid-template-columns: 1fr; } }
-@media (max-width: 700px) { .incl { display: grid; gap: 8px; } }
+/* ---------- 05 #paket (ruang 05, paper) ----------
+   ≥ 1024: tabel 3 kolom hairline (kolom pilihan studio = paper-2, radius 16, tombol primer tinta).
+   < 1024: segmented 56 dua baris berharga + satu panel dengan tiga siluet berdampingan.
+   Siluet = gambar kerja (garis 1,5 px tanpa isi), skala nyata --ppc px per cm (4 desktop, 3 HP). */
+#paket .section-sub { max-width: 560px; } /* brief: lead 20 maks 560 */
+.paket__note-hp { display: none; }
+.paket__table { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--grid-gap); }
+.paket__col { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 32px 24px; border-radius: var(--r-tile); container-type: inline-size; }
+/* Hairline vertikal di gutter antarkolom biasa; sisi kolom sorotan dibatasi latarnya sendiri */
+.paket__col:not(.paket__col--hi):has(+ .paket__col:not(.paket__col--hi))::after { content: ""; position: absolute; top: 0; bottom: 0; right: calc(var(--grid-gap) / -2 - 0.5px); width: 1px; background: var(--line); }
+.paket__fig { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; height: 180px; border-bottom: 1px solid var(--line); }
+.paket__num { display: grid; gap: 8px; justify-items: start; max-width: none; margin: 0; padding-bottom: 12px; }
+.paket__n { font: 300 var(--fs-numeral) / 0.85 var(--serif); letter-spacing: -0.04em; font-variant-numeric: lining-nums; font-variation-settings: "opsz" 144; color: var(--ink); }
+.paket__num .label { margin: 0; }
+.paket__scale { --ppc: 4; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.paket__cm { font: 400 var(--fs-mono-code) / 1.3 var(--mono); letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+.paket__rule { position: relative; flex: none; width: 9px; height: calc(var(--cm) * var(--ppc) * 1px); box-shadow: inset 0 1px 0 var(--ink-2), inset 0 -1px 0 var(--ink-2); }
+.paket__rule::before { content: ""; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: var(--ink-2); }
+.paket__sil { position: relative; isolation: isolate; display: block; flex: none; height: calc(var(--cm) * var(--ppc) * 1px); margin-left: 4px; }
+/* Nyala kecil di belakang kap: hover kolom (desktop) atau paket terpilih (panel HP) */
+.paket__sil::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 22%; width: 170%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, var(--glow-1), var(--glow-2) 60%, transparent); opacity: 0; transition: opacity var(--t-slow) var(--ease-out); pointer-events: none; }
+@media (hover: hover) { .paket__col:hover .paket__sil::before { opacity: 0.6; } }
+.sil { display: block; width: auto; height: 100%; aspect-ratio: var(--sil-w) / var(--sil-h); overflow: visible; }
+.sil__s { fill: var(--sil-fill, var(--bg)); stroke: var(--sil-stroke, var(--ink)); stroke-width: 1.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.sil__f { fill: var(--sil-fill, var(--bg)); }
+.sil__l { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.sil__p { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-opacity: 0.28; stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.paket__name { margin: 32px 0 8px; }
+.paket__note { margin: 0; color: var(--ink-2); min-height: 3.2em; } /* 2 baris tetap: harga sejajar antarkolom */
+.paket__price { display: grid; justify-items: start; margin-top: 32px; }
+.paket__price .price-block__label { margin: 0 0 4px; }
+.paket__price .price-amount { margin: 0; }
+.paket__was { max-width: none; margin: 8px 0 0; font: 400 var(--fs-mono-price) / 1.4 var(--mono); color: var(--ink-2); }
+.paket__was s { color: var(--ink-2); }
+.paket__was-a, .paket__was-b { white-space: nowrap; }
+/* Kolom sempit (≈ 1024–1150): coret dan hemat bertumpuk dua baris, tanpa titik yatim */
+@container (max-width: 300px) { .paket__was { display: grid; gap: 2px; } .paket__sep { display: none; } }
+.paket__col > .btn { margin-top: 24px; }
+/* Baris isi paket: Termasuk / Termasuk / Opsional */
+.paket__incl { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--grid-gap); margin: 48px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.paket__incl li { position: relative; display: grid; gap: 8px; align-content: start; padding: 24px 24px 0; }
+.paket__incl li + li::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--grid-gap) / -2 - 0.5px); width: 1px; background: var(--line); }
+.paket__incl .label { margin: 0; }
+.paket__incl-text { font-size: var(--fs-body); line-height: 1.6; color: var(--ink); }
+@media (min-width: 1024px) { .paket__hp { display: none; } }
+@media (max-width: 1023px) {
+  .paket__table { display: none; }
+  .paket__lead-note { display: none; }
+  .paket__note-hp { display: block; margin: 16px 0 0; font-size: var(--fs-small); line-height: 1.5; color: var(--ink-2); }
+  /* Segmented dua baris: "Trio · 3" (Inter 15/500) di atas "Rp375.000" (DM Mono 14) */
+  .paket__seg > button { padding: 0 8px; }
+  .paket__seg > button > span:first-child { white-space: nowrap; }
+  .paket__seg .segmented__sub { white-space: nowrap; }
+  .paket__panel { margin-top: 24px; padding: 20px; border-radius: var(--r-tile); background: var(--paper-2); --bg: var(--paper-2); }
+  /* Sumur 160: tiga siluet berdampingan di garis dasar bersama, label ukuran di bawah */
+  .paket__well { --ppc: 3; position: relative; isolation: isolate; display: flex; justify-content: space-between; gap: 4px; padding: 0 12px; }
+  .paket__well::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: 160px; border-radius: var(--r-frame); background: var(--paper); }
+  .paket__il { position: absolute; z-index: 1; top: 16px; left: 16px; margin: 0; }
+  .paket__wfig { flex: 1 1 0; min-width: 0; display: grid; grid-template-rows: 160px auto; justify-items: center; margin: 0; --sil-fill: var(--paper); }
+  .paket__wfig .paket__sil { align-self: end; margin: 0 0 12px; }
+  .paket__wfig:not(.is-on) { --sil-stroke: var(--line-strong); }
+  .paket__wfig.is-on .paket__sil::before { opacity: 0.6; }
+  .paket__wfig figcaption { margin-top: 8px; font: 400 var(--fs-mono-code) / 1.3 var(--mono); letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+  .paket__wfig.is-on figcaption { color: var(--ink); }
+  .paket__info { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-top: 24px; }
+  .paket__info .paket__name { margin: 0; }
+  .paket__info .label { margin: 0; }
+  .paket__panel .paket__note { min-height: 0; margin-top: 8px; font-size: var(--fs-body); }
+  .paket__panel .paket__price { margin-top: 24px; }
+  .paket__panel .paket__was { display: grid; gap: 2px; }
+  .paket__panel .paket__sep { display: none; }
+  .paket__panel > .btn { margin-top: 24px; }
+  /* Isi paket: 3 baris hairline 64 */
+  .paket__incl { grid-template-columns: none; margin-top: 40px; border-top: 0; }
+  .paket__incl li { gap: 4px; align-content: center; min-height: 64px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .paket__incl li:last-child { border-bottom: 1px solid var(--line); }
+  .paket__incl li + li::before { display: none; }
+}
+/* Tablet (761–1023): panel HP tidak melebar penuh; satu kolom 640 rata kiri dengan kepala seksi */
+@media (min-width: 761px) and (max-width: 1023px) {
+  .paket__hp, .paket__note-hp, .paket__incl { max-width: 640px; }
+}
 
 /* ---------- 06 #bagian ---------- */
 .pcat { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
@@ -399,13 +489,4 @@ html.motion-off .lhero__hint { display: none !important; }
 @media (max-width: 860px) {
   .lhero__grid, .parts-grid, .how { grid-template-columns: 1fr; }
   .stage { aspect-ratio: 4 / 4.4; }
-}
-@media (max-width: 760px) {
-  .nav .btn--sm { padding: 0 12px; }
-  .nav__inner { gap: 10px; }
-  .logo { font-size: 20px; }
-}
-@media (max-width: 480px) {
-  /* Tombol nav disembunyikan: CTA hero dan bilah pesan sudah ada, dan ruangnya dipakai tombol menu */
-  .nav .btn--sm { display: none; }
 }

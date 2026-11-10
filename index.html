@@ -42,35 +42,48 @@
 <body data-page="index.html">
   <a class="skip-link" href="#konten">Lewati ke konten</a>
 
-  <header class="nav" id="top">
+  <header class="nav nav--float" id="top" data-nav-theme="clear" data-slot="cta">
     <div class="wrap nav__inner">
       <a href="#top" class="logo" aria-label="MahaKarya Studio beranda">
-        <svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true" fill="none" stroke-linecap="round"><g stroke="var(--accent)" stroke-width="6"><line x1="35.0" y1="16" x2="65.0" y2="16"/><line x1="31.0" y1="24" x2="69.0" y2="24"/><line x1="27.0" y1="32" x2="73.0" y2="32"/><line x1="23.0" y1="40" x2="77.0" y2="40"/><line x1="19.0" y1="48" x2="81.0" y2="48"/></g><circle cx="50" cy="66" r="9" fill="currentColor"/><line x1="30" y1="88" x2="70" y2="88" stroke="var(--ink-2)" stroke-width="6"/></svg>
-        <span>MahaKarya<em>Studio</em></span>
+        <svg class="logo__icon" viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke-linecap="round"><g class="logo__shade" stroke-width="6"><line x1="35.0" y1="16" x2="65.0" y2="16"/><line x1="31.0" y1="24" x2="69.0" y2="24"/><line x1="27.0" y1="32" x2="73.0" y2="32"/><line x1="23.0" y1="40" x2="77.0" y2="40"/><line x1="19.0" y1="48" x2="81.0" y2="48"/></g><circle cx="50" cy="66" r="9" fill="currentColor"/><line class="logo__base" x1="30" y1="88" x2="70" y2="88" stroke-width="6"/></svg>
+        <span class="logo__word">MahaKarya<em>Studio</em></span>
       </a>
       <nav class="nav__links" aria-label="Navigasi utama">
         <a href="#edisi">Edisi</a>
         <a href="#rakit">Rakit</a>
-        <a href="#bagian">Bagian satuan</a>
-        <a href="#cara">Cara pesan</a>
-        <a href="#faq">FAQ</a>
-        <a href="koleksi.html">Koleksi lain</a>
+        <a href="#paket">Paket</a>
+        <a href="#bagian">Bagian</a>
       </nav>
-      <a class="btn btn--ghost btn--sm" href="#rakit">Rakit lampumu</a>
-
-      <details class="menu">
-        <summary aria-label="Buka menu"><i></i><i></i><i></i></summary>
-        <nav class="menu__links" aria-label="Menu">
-        <a href="#edisi">Edisi</a>
-        <a href="#rakit">Rakit</a>
-        <a href="#bagian">Bagian satuan</a>
-        <a href="#cara">Cara pesan</a>
-        <a href="#faq">FAQ</a>
-        <a href="koleksi.html">Koleksi lain</a>
-      </nav>
-      </details>
+      <div class="nav__slot">
+        <a class="btn btn--ghost-dark btn--sm nav__cta" href="#rakit">Rakit lampumu</a>
+        <div class="nav__mini" data-dynamic>
+          <span class="nav__thumb" data-nav-thumb aria-hidden="true"></span>
+          <span class="nav__mini-text"><span class="nav__mini-name" data-nav-name>Rakitanmu</span><span class="nav__mini-price"><span class="nav__mini-amount price-amount price-amount--bar" data-nav-price></span><span class="price-delta nav__delta" data-nav-delta hidden></span></span></span>
+          <a class="btn btn--wa btn--sm nav__pesan" data-wa="order" aria-label="Pesan via WhatsApp">Pesan</a>
+        </div>
+      </div>
+      <button class="nav__menu-btn" type="button" aria-haspopup="dialog" aria-controls="menu" aria-expanded="false" data-menu-open><span class="sr-only">Buka menu</span><i></i><i></i></button>
     </div>
   </header>
+  <dialog class="menu-sheet dark" id="menu" aria-label="Menu">
+    <div class="menu-sheet__top">
+      <a href="#top" class="logo" aria-label="MahaKarya Studio beranda" data-menu-close><svg class="logo__icon" viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke-linecap="round"><g class="logo__shade" stroke-width="6"><line x1="35.0" y1="16" x2="65.0" y2="16"/><line x1="31.0" y1="24" x2="69.0" y2="24"/><line x1="27.0" y1="32" x2="73.0" y2="32"/><line x1="23.0" y1="40" x2="77.0" y2="40"/><line x1="19.0" y1="48" x2="81.0" y2="48"/></g><circle cx="50" cy="66" r="9" fill="currentColor"/><line class="logo__base" x1="30" y1="88" x2="70" y2="88" stroke-width="6"/></svg><span class="logo__word">MahaKarya<em>Studio</em></span></a>
+      <button class="menu-sheet__close" type="button" data-menu-close><span class="sr-only">Tutup menu</span><i></i><i></i></button>
+    </div>
+    <nav class="menu-sheet__links" aria-label="Menu">
+      <a href="#edisi" data-menu-close>Edisi</a>
+      <a href="#rakit" data-menu-close>Studio rakit</a>
+      <a href="#paket" data-menu-close>Paket</a>
+      <a href="#bagian" data-menu-close>Bagian satuan</a>
+      <a href="#cara" data-menu-close>Cara pesan</a>
+      <a href="#faq" data-menu-close>Tanya jawab</a>
+      <a href="koleksi.html">Koleksi dekor</a>
+    </nav>
+    <div class="menu-sheet__foot">
+      <a class="btn btn--wa btn--lg btn--block" data-wa="Halo MahaKarya Studio, saya mau tanya tentang lampu rakitan.">Chat WhatsApp</a>
+      <p class="menu-sheet__reply" data-reply data-dynamic></p>
+    </div>
+  </dialog>
 
   <main id="konten">
     <!-- HERO (gelap) -->
@@ -197,7 +210,6 @@
           </details>
         </div>
       </div>
-      <div class="orderbar" id="orderbar" data-dynamic hidden></div>
     </section>
 
     <!-- BEGINI PESANANNYA BERJALAN -->
@@ -238,14 +250,15 @@
     <section id="paket" class="paper">
       <div class="wrap">
         <p class="eyebrow">05 · Paket</p>
-        <h2 class="section-title">Tiga ukuran, pilih yang pas di mejamu.</h2>
-        <p class="section-sub">Setiap paket adalah kap + badan + alas. Harga coret adalah harga kalau semua bagian dibeli satuan dari katalog di bawah, ditambah kit. Makin banyak badan, makin besar potongannya: hingga <span id="promo-save" data-dynamic>28%</span> dari harga bagian cetak.</p>
-        <div class="pkgs room-body" id="pkgs" data-dynamic></div>
-        <div class="incl">
-          <span><b id="wiring-label-note">Kit kelistrikan (komponen bertanda SNI/K3L)</b>, <b id="wiring-price-note">Rp49.000</b> (bisa dilepas)</span>
-          <span>Kartu perawatan &amp; kunci ulir</span>
-          <span>Bola LED 5 W hangat, opsional +<b id="led-price-note">Rp25.000</b></span>
-        </div>
+        <h2 class="section-title">Tiga ukuran. Pilih yang <em>pas di mejamu.</em></h2>
+        <p class="section-sub">Setiap paket berisi kap, badan, dan alas. Makin banyak bagian, makin besar potongannya: <span id="promo-save" data-dynamic>15, 22, atau 28%</span> dari harga bagian cetak.<span class="paket__lead-note"> Harga coret adalah jumlah harga satuan bagian ditambah kit kelistrikan, sesuai katalog di bawah.</span></p>
+        <div class="paket room-body" id="pkgs" data-dynamic></div>
+        <p class="paket__note-hp">Harga coret adalah jumlah harga satuan bagian ditambah kit kelistrikan, sesuai katalog di bawah.</p>
+        <ul class="paket__incl" aria-label="Isi paket">
+          <li><span class="label">Termasuk</span> <span class="paket__incl-text">Kap + badan + alas, ulir M20</span></li>
+          <li><span class="label">Termasuk</span> <span class="paket__incl-text">Kit kelistrikan, komponen bertanda SNI/K3L — <span id="wiring-price-note" data-dynamic>Rp49.000</span>, bisa dilepas</span></li>
+          <li><span class="label">Opsional</span> <span class="paket__incl-text">Bohlam LED 5 W hangat +<span id="led-price-note" data-dynamic>Rp25.000</span></span></li>
+        </ul>
       </div>
     </section>
 
@@ -381,10 +394,16 @@
         <a data-link="email">Email</a>
       </div>
     </div>
-    <div class="wrap footer__bottom">© <span data-year></span> MahaKarya Studio · Harga dapat berubah; total final dikonfirmasi lewat WhatsApp</div>
+    <div class="wrap footer__bottom">© <span data-year></span> MahaKarya Studio · Harga dapat berubah; total final dikonfirmasi lewat WhatsApp · Gambar: ilustrasi, bukan foto (kecuali bertanda Foto asli)</div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- Bilah pesan HP: elemen terakhir di DOM agar urutan fokus mengikuti konten -->
+  <div class="orderbar dark" id="orderbar" role="region" aria-label="Rakitanmu" data-dynamic hidden>
+    <p class="orderbar__info"><span class="orderbar__name" data-ob-name>Rakitanmu</span><span class="orderbar__price" data-ob-price></span></p>
+    <span class="price-delta orderbar__delta" data-ob-delta hidden></span>
+    <a class="btn btn--wa orderbar__btn" data-wa="order" aria-label="Pesan via WhatsApp">Pesan</a>
+  </div>
 
   <script src="assets/js/nav.js"></script>
   <script src="assets/js/motion.js"></script>

@@ -169,9 +169,8 @@
   state.edition = D().popularPreset || 0; // edisi yang sedang dilihat di #edisi (tidak mengubah rakitan)
   const hero = { cfg: sanitize(clone(D().presets[0])), on: true, dim: 1 };
   const catColor = {};
-  // Bilah pesan HP: tampil saat pilihan konfigurator terlihat, kecuali selama tombol WA ringkasan terlihat
-  const obState = { ctrl: false, wa: false };
-  let waIO = null;
+  // Paket yang sedang dilihat di segmented #paket (HP); default Kuarto (keputusan pemilik), bukan state rakitan
+  let pkgView = null;
 
   // Jam balas dari config ("09.00–21.00 WIB") tidak boleh terpotong di tengah rentang
   const replyHtml = (txt) => esc(txt).replace(/(\d{1,2}[.:]\d{2})\s*[–-]\s*(\d{1,2}[.:]\d{2}(?:\s*WIB)?)/g, '<span class="nowrap">$1–$2</span>');
@@ -201,13 +200,63 @@
     });
   }
 
-  function toast(msg) {
+  // Toast (role=status, aria-live=polite) di atas orderbar. Aksi opsional:
+  //   toast("Bola (Zaitun) dipasang di Badan 1", { action: { label: "Lihat di studio ↑", href: "#rakit" } })
+  //   action.onClick(event) boleh dipakai sebagai ganti/tambahan href. Tampil 2,4 dtk (4 dtk bila ada aksi);
+  //   jeda selama kursor/fokus berada di toast.
+  function toast(msg, opts) {
     const t = $("#toast");
     if (!t) return;
-    t.textContent = msg;
+    const o = opts || {};
+    const act = o.action && o.action.label ? o.action : null;
+    t.textContent = "";
+    t.append(document.createTextNode(String(msg)));
+    if (act) {
+      const a = document.createElement(act.href ? "a" : "button");
+      a.className = "toast__action";
+      a.textContent = act.label;
+      if (act.href) a.href = act.href;
+      else a.type = "button";
+      a.addEventListener("click", (e) => {
+        if (typeof act.onClick === "function") act.onClick(e);
+        hideToast();
+      });
+      t.append(a);
+    }
+    toast.ms = o.ms || (act ? 4000 : 2400);
+    if (!t.dataset.bound) {
+      t.dataset.bound = "1";
+      const pause = () => clearTimeout(toast.t);
+      const resume = () => { if (t.classList.contains("show")) armToast(); };
+      t.addEventListener("mouseenter", pause);
+      t.addEventListener("focusin", pause);
+      t.addEventListener("mouseleave", resume);
+      t.addEventListener("focusout", (e) => { if (!t.contains(e.relatedTarget)) resume(); });
+    }
     t.classList.add("show");
+    armToast();
+  }
+  function armToast() { clearTimeout(toast.t); toast.t = setTimeout(hideToast, toast.ms || 2400); }
+  // Sembunyikan toast. Aksi yang tersisa di DOM dibuat inert (keluar dari urutan Tab saat toast tak terlihat);
+  // bila aksi sedang difokus, fokus pindah ke tujuan tautannya (mis. #rakit) alih-alih jatuh ke <body>.
+  function hideToast() {
     clearTimeout(toast.t);
-    toast.t = setTimeout(() => t.classList.remove("show"), 2400);
+    const t = $("#toast");
+    if (!t) return;
+    t.classList.remove("show");
+    t.querySelectorAll(".toast__action").forEach((x) => {
+      const had = x === document.activeElement;
+      x.tabIndex = -1;
+      x.inert = true;
+      if (!had) return;
+      const href = x.getAttribute("href") || "";
+      let target = null;
+      if (href.length > 1 && href[0] === "#") { try { target = document.querySelector(href); } catch (_) {} }
+      if (target) {
+        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+        target.focus({ preventScroll: true });
+      }
+    });
   }
 
   /* ---------- Siaran perubahan: event, [data-wa], aria-live ---------- */
@@ -360,7 +409,10 @@
           ? `<div class="gift__fields"><input id="gift-to" type="text" maxlength="40" placeholder="Nama penerima" value="${esc(state.gift.to)}" /><textarea id="gift-msg" rows="2" maxlength="120" placeholder="Pesan di kartu (maks 120 huruf)">${esc(state.gift.msg)}</textarea><label class="gift__opt"><input type="checkbox" id="gift-hide" ${state.gift.hide === false ? "" : "checked"}/> Tanpa harga di paket</label></div>`
           : "") +
         `</div>` +
+        // Desktop: tombol WA berisi. HP (≤ 900): orderbar memegang tombol berisi, jadi ringkasan memakai tautan teks
+        // (tetap di urutan Tab, tidak menambah tombol berisi kedua di viewport).
         `<div class="acts"><a class="btn btn--wa btn--lg" id="wa-link" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
+        `<a class="text-link summary__wa-hp" id="wa-link-hp" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp <span class="arrow" aria-hidden="true">→</span></a>` +
         `<small class="reply">${replyHtml(C.replyPromise || "")}</small>` +
         `<div class="acts__row"><button class="btn btn--ghost btn--sm" type="button" id="share-link">Bagikan rakitan</button>` +
         `<button class="btn btn--ghost btn--sm" type="button" id="copy-summary">Salin ringkasan</button></div>` +
@@ -368,14 +420,8 @@
         `</div>` +
         `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (edisi, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>` +
         marketRow(pi >= 0 ? D().presets[pi] : null, "mkt--dark");
-      watchWaLink();
     }
-    // Bilah pesan di HP
-    setHtml(
-      "#orderbar",
-      `<div class="orderbar__info"><span>${p.disc ? `<s class="num">${rp(anchorTotal)}</s>` : ""}<small>${p.disc ? `Hemat ${rp(p.disc)}` : `Paket ${esc(p.pkg.name)}`}</small></span><b class="num">${rp(p.total)}</b></div>` +
-        `<a class="btn btn--wa" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan</a>`
-    );
+    // Bilah pesan HP (#orderbar) diisi nav.js dari event "mks:change"
     // Strip bagian terpilih: foto asli bila ada
     setHtml(
       "#parts-strip",
@@ -465,24 +511,153 @@
         })
         .join("") + "</div>";
   }
+  /* ---------- 05 #paket ----------
+     Desktop (≥ 1024): tabel 3 kolom hairline. HP/tablet: segmented dua baris berharga + satu panel.
+     Siluet skala nyata 4 px/cm (HP 3 px/cm) dari angka cm terbesar di packages[n].cm, pada garis dasar bersama.
+     Semua harga dari minPackagePrice(); coret = harga satuan bagian + kit, hemat selalu dalam rupiah. */
+  // Konfigurasi wakil tiap ukuran (yang tertinggi di rentangnya), digambar sebagai gambar kerja
+  const PKG_SIL = {
+    3: { head: "plisir", body: ["kubus"], base: "bulat" },
+    4: { head: "plisir", body: ["heksa", "kubus"], base: "bulat" },
+    5: { head: "plisir", body: ["bola", "silinder", "bola"], base: "bulat" },
+  };
+  const pkgSpec = (n) => PKG_SIL[n] || { head: "plisir", body: Array.from({ length: Math.max(1, n - 2) }, () => "kubus"), base: "bulat" };
+  // Siluet garis (gambar kerja): isi = warna latar (menutup garis di belakang), garis 1,5 px, plisir 1 px .28.
+  // Geometri sama dengan LampArt (pusat x 160, lantai y 440).
+  function silhouetteSvg(spec, uid) {
+    const CX = 160, s = (tag, a) => `<${tag} class="sil__s" ${a}/>`;
+    let y = 440, top = 0, bottom = 440, hw = 0, g = "";
+    const bs = spec.base;
+    if (bs === "segitiga") { g += s("polygon", `points="${CX - 88},${y - 8} ${CX + 88},${y - 8} ${CX + 88},${y} ${CX - 88},${y}"`) + s("polygon", `points="${CX - 88},${y - 8} ${CX + 88},${y - 8} ${CX},${y - 30}"`); hw = 88; }
+    else if (bs === "kotak") { g += s("rect", `x="${CX - 72}" y="${y - 12}" width="144" height="12" rx="2"`) + s("rect", `x="${CX - 72}" y="${y - 26}" width="144" height="16" rx="3"`); hw = 72; }
+    else {
+      // bulat (dan cadangan untuk bunga): silinder pendek
+      g += s("ellipse", `cx="${CX}" cy="${y - 8}" rx="78" ry="14"`) + `<rect class="sil__f" x="${CX - 78}" y="${y - 22}" width="156" height="14"/>` +
+        `<path class="sil__l" d="M${CX - 78} ${y - 22}V${y - 8}M${CX + 78} ${y - 22}V${y - 8}"/>` + s("ellipse", `cx="${CX}" cy="${y - 22}" rx="78" ry="14"`);
+      hw = 78; bottom = y + 6;
+    }
+    y -= 26;
+    spec.body.forEach((id) => {
+      let h;
+      if (id === "bola") { h = 68; g += s("ellipse", `cx="${CX}" cy="${y - 34}" rx="40" ry="34"`); hw = Math.max(hw, 40); }
+      else if (id === "kubus") { h = 58; g += s("rect", `x="${CX - 32}" y="${y - 58}" width="64" height="58" rx="3"`); hw = Math.max(hw, 32); }
+      else if (id === "cincin") { h = 38; g += s("ellipse", `cx="${CX}" cy="${y - 19}" rx="50" ry="19"`); hw = Math.max(hw, 50); }
+      else if (id === "heksa") { h = 62; const m = y - 31; g += s("polygon", `points="${CX - 52},${m} ${CX - 26},${y - 62} ${CX + 26},${y - 62} ${CX + 52},${m} ${CX + 26},${y} ${CX - 26},${y}"`); hw = Math.max(hw, 52); }
+      else { h = 50; g += s("rect", `x="${CX - 34}" y="${y - 50}" width="68" height="50" rx="7"`); hw = Math.max(hw, 34); }
+      y -= h;
+    });
+    g += s("rect", `x="${CX - 10}" y="${y - 16}" width="20" height="16" rx="2"`);
+    y -= 16;
+    let pl = "";
+    if (spec.head === "kerucut") {
+      g += s("polygon", `points="${CX - 46},${y - 104} ${CX + 46},${y - 104} ${CX + 72},${y} ${CX - 72},${y}"`);
+      for (let k = -6; k <= 6; k += 2) pl += `M${CX + (k / 8) * 44} ${y - 101}L${CX + (k / 8) * 70} ${y - 3}`;
+      top = y - 104; hw = Math.max(hw, 72);
+    } else if (spec.head === "kotak") {
+      g += s("rect", `x="${CX - 56}" y="${y - 104}" width="112" height="104" rx="3"`);
+      for (let yy = y - 91; yy < y - 8; yy += 14) pl += `M${CX - 52} ${yy}H${CX + 52}`;
+      top = y - 104; hw = Math.max(hw, 56);
+    } else {
+      g += s("rect", `x="${CX - 60}" y="${y - 110}" width="120" height="110" rx="6"`);
+      for (let x = CX - 48; x <= CX + 48; x += 12) pl += `M${x} ${y - 106}V${y - 4}`;
+      top = y - 110; hw = Math.max(hw, 60);
+    }
+    g += `<path class="sil__p" d="${pl}"/>`;
+    const w = hw * 2, h = bottom - top;
+    return { vb: `${CX - hw} ${top} ${w} ${h}`, w, h, svg: `<svg class="sil" viewBox="${CX - hw} ${top} ${w} ${h}" style="--sil-w:${w};--sil-h:${h}" aria-hidden="true" focusable="false" data-uid="${uid}">${g}</svg>` };
+  }
+  // Versi berwarna (panel HP, paket yang dipilih): warna dari edisi pilihan studio, tanpa glow SVG (glow kecil lewat CSS)
+  function silhouetteLit(n, uid) {
+    const sp = pkgSpec(n), geo = silhouetteSvg(sp, uid);
+    const pre = D().presets[D().popularPreset] || D().presets[0];
+    const bodies = pre && pre.body.length ? pre.body : [{ color: D().colors[0].id }];
+    const cfg = {
+      head: { shape: sp.head, color: pre ? pre.head.color : D().shadeColors[0].id },
+      body: sp.body.map((shape, i) => ({ shape, color: bodies[i % bodies.length].color })),
+      base: { shape: sp.base, color: pre ? pre.base.color : D().colors[0].id },
+    };
+    const svg = A.renderLamp(cfg, { uid, on: false, table: false, vb: geo.vb });
+    return svg.replace("<svg ", `<svg class="sil sil--lit" style="--sil-w:${geo.w};--sil-h:${geo.h}" aria-hidden="true" focusable="false" `).replace(/ role="img" aria-label="[^"]*"/, "");
+  }
+  // Tinggi siluet = angka cm terbesar di "22–27" × px/cm (cadangan: tinggi konfigurasi wakil)
+  const pkgCm = (pk, n) => {
+    const m = String((pk && pk.cm) || "").match(/(\d+(?:[.,]\d+)?)\s*$/);
+    if (m) return parseFloat(m[1].replace(",", "."));
+    const sp = pkgSpec(n);
+    return Math.round(A.totalCm({ head: { shape: sp.head }, body: sp.body.map((shape) => ({ shape })), base: { shape: sp.base } }));
+  };
+  const pkgNote = (pk) => { const t = String((pk && pk.note) || "").trim(); return t && !/[.!?]$/.test(t) ? t + "." : t; };
+  const pkgList = () => Object.keys(D().packages).map(Number).sort((a, b) => a - b);
+  const pkgHot = () => { const pp = D().presets[D().popularPreset] || D().presets[0]; return pp ? pp.body.length + 2 : -1; }; // paket edisi pilihan studio (opini editorial, bukan klaim penjualan)
+  // "~~Rp432.000~~ satuan · hemat Rp57.000"; bila kolom terlalu sempit (atau panel HP) dua span menjadi blok tanpa "·"
+  function pkgPrice(n) {
+    const m = minPackagePrice(n);
+    const was = m.anchor > m.price
+      ? `<p class="paket__was num"><span class="paket__was-a"><s>${rp(m.anchor)}</s> satuan</span><span class="paket__sep"> · </span><span class="paket__was-b">hemat ${rp(m.anchor - m.price)}</span></p>`
+      : "";
+    return `<div class="paket__price"><p class="price-block__label">Mulai dari</p><p class="price-amount price-amount--md num">${amountHtml(m.price)}</p>${was}</div>`;
+  }
   function renderPackages() {
     const el = $("#pkgs");
     if (!el) return;
-    el.innerHTML = Object.keys(D().packages)
-      .map(Number)
-      .sort((a, b) => a - b)
-      .map((n) => {
-        const pk = D().packages[n];
-        const popPreset = D().presets[D().popularPreset] || D().presets[0];
-        const hot = !!popPreset && n === popPreset.body.length + 2; // paket edisi pilihan studio, bukan klaim penjualan
-        const m = minPackagePrice(n);
+    const list = pkgList();
+    if (!list.length) { el.innerHTML = ""; return; }
+    const hot = pkgHot();
+    if (!list.includes(pkgView)) pkgView = list.includes(4) ? 4 : list[Math.floor(list.length / 2)];
+    const table =
+      `<div class="paket__table">` +
+      list.map((n) => {
+        const pk = D().packages[n], hi = n === hot, sil = silhouetteSvg(pkgSpec(n), "pkd" + n);
         return (
-          `<div class="pkg${hot ? " hot" : ""}">${hot ? '<span class="pkg__flag">Rekomendasi kami</span>' : ""}<div class="top"><div class="n">${n}<small>bagian</small></div></div><h3>Paket ${esc(pk.name)}</h3>` +
-          `<ul><li>1 kap + ${n - 2} badan + 1 alas + kit kelistrikan</li><li>Tinggi ± ${esc(pk.cm)} cm</li><li>${esc(pk.note || "")}</li></ul>` +
-          `<div class="from"><small>mulai dari</small><b class="num">${rp(m.price)}</b>${m.price < m.anchor ? `<span><s class="num">${rp(m.anchor)}</s> <em>satuan · hemat ${rp(m.anchor - m.price)}</em></span>` : ""}</div><button class="btn ${hot ? "btn--primary" : "btn--ghost"}" type="button" data-pkg="${n}">Rakit paket ini</button></div>`
+          `<article class="paket__col${hi ? " paket__col--hi paper-2" : ""}" aria-labelledby="pk-name-${n}">` +
+          `<div class="paket__fig"><p class="paket__num"><span class="paket__n">${n}</span><span class="label">Bagian</span></p>` +
+          `<div class="paket__scale" style="--cm:${pkgCm(pk, n)}"><span class="paket__cm">${esc(pk.cm || "")} cm</span><span class="paket__rule" aria-hidden="true"></span><span class="paket__sil">${sil.svg}</span></div></div>` +
+          `<h3 class="paket__name" id="pk-name-${n}">${esc(pk.name)}</h3>` +
+          `<p class="paket__note">${esc(pkgNote(pk))}</p>` +
+          pkgPrice(n) +
+          `<button class="btn ${hi ? "btn--primary" : "btn--ghost"} btn--block" type="button" data-pkg="${n}">Rakit paket ini</button></article>`
         );
-      })
-      .join("");
+      }).join("") +
+      `</div>`;
+    const seg =
+      `<div class="segmented segmented--tall paket__seg" role="radiogroup" aria-label="Pilih ukuran paket">` +
+      list.map((n) => {
+        const on = n === pkgView;
+        return `<button type="button" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" aria-controls="pk-panel" data-pkg-view="${n}"><span>${esc(D().packages[n].name)} · ${n}</span><span class="segmented__sub num">${rp(minPackagePrice(n).price)}</span></button>`;
+      }).join("") +
+      `</div>`;
+    el.innerHTML = table + `<div class="paket__hp">${seg}<div class="paket__panel" id="pk-panel">${pkgPanelHtml(pkgView)}</div></div>`;
+  }
+  function pkgPanelHtml(n) {
+    const list = pkgList(), pk = D().packages[n];
+    if (!pk) return "";
+    return (
+      `<div class="paket__well"><span class="label paket__il">Ilustrasi</span>` +
+      list.map((k) => {
+        const p = D().packages[k], on = k === n;
+        return `<figure class="paket__wfig${on ? " is-on" : ""}" style="--cm:${pkgCm(p, k)}"><span class="paket__sil">${on ? silhouetteLit(k, "pkh" + k) : silhouetteSvg(pkgSpec(k), "pkh" + k).svg}</span><figcaption>${esc(p.cm || "")} cm</figcaption></figure>`;
+      }).join("") +
+      `</div>` +
+      `<div class="paket__info"><h3 class="paket__name">${esc(pk.name)}</h3><span class="label">${n} bagian · ${esc(pk.cm || "")} cm</span></div>` +
+      `<p class="paket__note">${esc(pkgNote(pk))}</p>` +
+      pkgPrice(n) +
+      `<button class="btn btn--ghost btn--block" type="button" data-pkg="${n}">Rakit paket ini</button>`
+    );
+  }
+  // Ganti paket yang dilihat (segmented HP): panel berganti lewat crossfade 250 ms; rakitan tidak berubah
+  function viewPackage(n, focus) {
+    if (!D().packages[n]) return;
+    pkgView = n;
+    $$("[data-pkg-view]").forEach((b) => {
+      const on = +b.dataset.pkgView === n;
+      b.setAttribute("aria-checked", on);
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    const panel = $("#pk-panel");
+    if (!panel) return;
+    panel.innerHTML = pkgPanelHtml(n);
+    if (panel.animate) panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: "cubic-bezier(.22,1,.36,1)" });
   }
   function renderCatalog() { keepFocus(renderCatalogNow); }
   function renderCatalogNow() {
@@ -543,7 +718,7 @@
       `<ul class="edisi__mat"><li>PLA matte, lapis 0,2 mm, dicetak sesuai pesanan</li><li>Ulir cetak M20 di semua bagian, tanpa lem</li><li>${esc(d.wiringLabel)} (bisa dilepas)</li></ul>` +
       // Price block: label → "Harga satuan ~~coret~~ · hemat RpX" (selalu rupiah) → harga, semua dari price()
       `<div class="edisi__total"><div class="price-block price-block--md"><p class="price-block__label">Harga edisi, termasuk kit</p>${pr.disc ? `<p class="price-block__was num">Harga satuan ${wasHtml(pr.parts + pr.wiring, pr.total)}</p>` : ""}<p class="price-block__amount num">${amountHtml(pr.total)}</p></div><span class="edisi__lead">Produksi ${esc(d.leadTime.preset)}</span></div>` +
-      `<div class="edisi__acts"><button class="btn btn--primary" type="button" data-edisi-order="${edition}">Pesan edisi ini</button><button class="btn btn--ghost" type="button" data-edisi-edit="${edition}">Ubah bagian</button></div>` +
+      `<div class="edisi__acts"><button class="btn btn--primary" type="button" data-primary-cta data-edisi-order="${edition}">Pesan edisi ini</button><button class="btn btn--ghost" type="button" data-edisi-edit="${edition}">Ubah bagian</button></div>` +
       marketRow(p, "mkt--light") +
       `</div></div>`;
     fitSvgText(el);
@@ -597,11 +772,12 @@
     renderAlur();
     setText("#led-price-note", rp(D().ledPrice));
     setText("#wiring-price-note", rp(D().wiringPrice));
-    setText("#wiring-label-note", D().wiringLabel);
     $$("[data-lead-preset]").forEach((el) => { el.textContent = D().leadTime.preset; });
     $$("[data-lead-custom]").forEach((el) => { el.textContent = D().leadTime.custom; });
-    // Persen hanya dipakai sebagai "… dari harga bagian cetak" (lead #paket)
-    setText("#promo-save", `${Math.round(Math.max(...Object.values(D().packages).map((p) => +p.disc || 0)) * 100)}%`);
+    // Persen hanya dipakai sebagai "… dari harga bagian cetak" (lead #paket), tidak pernah di samping harga coret:
+    // "15, 22, atau 28%" dari packages[n].disc, urut jumlah bagian
+    const pcts = pkgList().map((n) => Math.round((+D().packages[n].disc || 0) * 100)).filter((x) => x > 0);
+    setText("#promo-save", pcts.length > 1 ? `${pcts.slice(0, -1).join(", ")}, atau ${pcts[pcts.length - 1]}%` : pcts.length ? `${pcts[0]}%` : "0%");
   }
 
   /* ---------- Aksi ---------- */
@@ -621,6 +797,7 @@
     const D_ = D();
     if (t.id === "hero-switch") { hero.on = !hero.on; const st = $("#hero-stage"); if (st) st.dataset.auto = "1"; return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; renderPreview(); return emit("switch"); }
+    if (d.pkgView != null) return viewPackage(+d.pkgView);
     if (t.closest("#rakit, #paket, #bagian")) touched = true;
     if (t.id === "share-link") {
       const url = shareUrl(state);
@@ -691,6 +868,22 @@
     }
     if (t.id === "copy-summary") return copyText(waText(state), "Ringkasan disalin");
     if (d.copy) return copyText(d.copy, "Nomor disalin");
+  });
+  // Segmented paket (role=radiogroup): panah kiri/kanan/atas/bawah + Home/End memindah pilihan dan fokus
+  document.addEventListener("keydown", (e) => {
+    const b = e.target.closest && e.target.closest("[data-pkg-view]");
+    if (!b) return;
+    const list = $$("[data-pkg-view]", b.parentElement);
+    const i = list.indexOf(b);
+    const k = e.key;
+    let j = -1;
+    if (k === "ArrowRight" || k === "ArrowDown") j = (i + 1) % list.length;
+    else if (k === "ArrowLeft" || k === "ArrowUp") j = (i - 1 + list.length) % list.length;
+    else if (k === "Home") j = 0;
+    else if (k === "End") j = list.length - 1;
+    if (j < 0) return;
+    e.preventDefault();
+    viewPackage(+list[j].dataset.pkgView, true);
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
@@ -794,31 +987,7 @@
       offers: { "@type": "AggregateOffer", priceCurrency: "IDR", lowPrice: Math.min(...lows), highPrice: high, offerCount: ns.length, availability: "https://schema.org/InStock" },
     });
   }
-  // Bilah pesan di HP: hanya saat area pilihan konfigurator terlihat, dan disembunyikan selama
-  // tombol WhatsApp ringkasan (#wa-link) terlihat, supaya maksimal satu tombol berisi per layar.
-  function syncOrderbar() {
-    const bar = $("#orderbar");
-    if (!bar) return;
-    const on = obState.ctrl && !obState.wa;
-    bar.hidden = !on;
-    document.body.classList.toggle("has-orderbar", on);
-    document.documentElement.classList.toggle("has-orderbar", on);
-  }
-  // #wa-link dirender ulang lewat innerHTML: amati elemen yang baru setiap kali ringkasan dirender
-  function watchWaLink() {
-    if (!waIO) return;
-    waIO.disconnect();
-    const a = $("#wa-link");
-    if (a) waIO.observe(a);
-    else { obState.wa = false; syncOrderbar(); }
-  }
-  (function orderbarWatch() {
-    const target = $("#ctrl-wrap"), bar = $("#orderbar");
-    if (!target || !bar || !("IntersectionObserver" in window)) return;
-    new IntersectionObserver(([e]) => { obState.ctrl = e.isIntersecting; syncOrderbar(); }, { rootMargin: "-120px 0px 0px 0px" }).observe(target);
-    waIO = new IntersectionObserver((es) => { es.forEach((e) => { obState.wa = e.isIntersecting; }); syncOrderbar(); }, { threshold: 0 });
-    watchWaLink();
-  })();
+  // Bilah pesan HP (#orderbar): isi dan kapan tampil diatur nav.js (event "mks:change" + posisi gulir)
   // Video latar AI: hanya desktop dan tanpa "kurangi gerakan" (CSS tidak merendernya di HP / reduced motion).
   // Di sana skrip tidak memanggil load()/play() dan tidak menukar sumber, jadi HP tidak mengunduh video.
   (function reel() {
