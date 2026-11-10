@@ -32,6 +32,9 @@
 .stage--hero .stage-ui { left: 24px; right: auto; bottom: 24px; padding: 0 16px 0 8px; min-height: 44px; border-radius: var(--r-pill); }
 .stage--hero .switch { min-height: 44px; }
 .lhero__pill-cm { white-space: nowrap; }
+/* panggung sempit (laptop pendek, tablet): pil tanpa tinggi agar tidak menabrak saklar */
+.stage--hero { container-type: inline-size; }
+@container (max-width: 479px) { .lhero__pill-cm { display: none; } }
 
 @media (min-width: 861px) {
   .lhero {
@@ -49,6 +52,11 @@
   .stage.stage--hero { width: min(100%, 588px, calc((min(100svh, 960px) - var(--nav-h) - 24px - clamp(48px, 7.6svh, 72px)) * 0.8)); aspect-ratio: 4 / 5; }
   .lhero h1.is-fb { --hero-h1: min(104px, calc((100svh - var(--nav-h)) * 0.125)); } /* cadangan brief §11 #7 bila baris > kolom */
 }
+@media (max-width: 1040px) {
+  /* kolom teks < 490: catatan kit turun ke baris sendiri, tanpa titik yatim */
+  .lhero__from-note { flex-basis: 100%; }
+  .lhero__from-sep { display: none; }
+}
 @media (max-width: 860px) {
   .lhero { padding: 356px 0 72px; }
   .lhero__grid { display: block; }
@@ -57,8 +65,7 @@
   .lhero h1.is-fb { --hero-h1: 48px; }
   .lhero__from { margin-top: 12px; column-gap: 10px; row-gap: 0; } /* y 524–564 → CTA 576–628 (brief) */
   .lhero__from b { font-size: 28px; }
-  .lhero__from-note { flex-basis: 100%; font-size: var(--fs-mono-code); line-height: 1; }
-  .lhero__from-sep { display: none; } /* catatan kit di baris sendiri, tanpa titik yatim */
+  .lhero__from-note { font-size: var(--fs-mono-code); line-height: 1; }
   .lhero__cta { order: 4; width: 100%; gap: 4px; margin-top: 12px; }
   .lhero__cta .btn { width: 100%; }
   .lhero .lead { order: 5; margin-top: 24px; font-size: 17px; }
