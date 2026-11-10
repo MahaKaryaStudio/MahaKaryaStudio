@@ -104,12 +104,14 @@
 .lhero__bg { position: absolute; inset: 0; z-index: -1; background: var(--dark-bg); }
 .lhero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.28; }
 .lhero__bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent calc(100% - 160px), var(--dark-bg) 100%), linear-gradient(90deg, var(--dark-bg) 0%, rgba(21, 16, 12, 0.88) 45%, rgba(21, 16, 12, 0.5) 100%); }
-/* Label AI + tombol jeda: satu kelompok di kanan bawah hero (bila hero lebih tinggi dari layar, tetap 16 px di atas lipatan) */
-.lhero__media { position: absolute; right: 24px; bottom: max(24px, calc(100% - 100svh + 16px)); z-index: 2; display: flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 16px 0 4px; border-radius: var(--r-pill); background: var(--scrim); color: var(--dark-fg-2); }
+/* Label AI + tombol jeda: SATU pil scrim .90 di kanan bawah hero (bila hero lebih tinggi dari layar, tetap 16 px di atas lipatan) */
+.lhero__media { position: absolute; right: 24px; bottom: max(24px, calc(100% - 100svh + 16px)); z-index: 2; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px 0 6px; border-radius: var(--r-pill); background: var(--scrim); color: var(--dark-fg-2); }
 .lhero__media:has(> .reel__play[hidden]) { padding-left: 16px; }
 .lhero__note { font: 400 var(--fs-mono-code) / 1.2 var(--mono); letter-spacing: 0.02em; }
 .reel__play { position: relative; flex: none; width: 32px; height: 32px; border-radius: 50%; border: 0; background: none; color: inherit; font-size: 14px; line-height: 1; cursor: pointer; }
 @media (hover: hover) { .reel__play:hover { background: rgba(242, 231, 213, 0.12); } }
+/* jendela desktop pendek (≤ 700): pil label lebih ramping dan lebih dekat lipatan agar tidak menyentuh saklar panggung */
+@media (min-width: 861px) and (max-height: 700px) { .lhero__media { min-height: 32px; bottom: max(12px, calc(100% - 100svh + 8px)); } }
 .reel__play::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; } /* area sentuh 44 */
 .reel__play[hidden] { display: none; }
 @media (max-width: 860px) {
@@ -549,6 +551,7 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .spec .eyebrow { margin: 0; }
 .spec .fig { position: relative; background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
 .spec .fig svg { width: 100%; height: auto; display: block; }
+.spec .fig .stage__pill { top: auto; bottom: 12px; left: 12px; } /* kiri bawah: label "Ø 20 cm" rakitan tertinggi berada di kiri atas */
 .spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--fs-small); }
 .spec dt { color: var(--dark-muted); }
 .spec dd { margin: 0; font: 400 14px/1.4 var(--mono); }

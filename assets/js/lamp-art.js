@@ -29,12 +29,17 @@
  *     o.frame    [w, h] bingkai sendiri (rasio + skala), o.floor/o.lampFrac menimpa varian
  *     o.vignette false  (hero tanpa bingkai: tepi dipudarkan lewat mask CSS)
  *     o.pill     teks pil ILUSTRASI → string = svg + <span class="pill stage__pill" data-stage-pill>
-     o.ink      warna anotasi terurai (katalog di kertas: "#5b524a"), o.marks false = tanpa anotasi
-     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
-     thumb(cfg, {paper:true}) → thumb katalog di kertas (bayangan --catalog-shadow, tanpa glow)
+ *     o.ink      warna anotasi terurai (katalog di kertas: "#5b524a"), o.marks false = tanpa anotasi
+ *     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
+ *     thumb(cfg, {paper:true}) → thumb katalog di kertas (bayangan --catalog-shadow, tanpa glow)
  *     o.label    aria-label; o.decorative → aria-hidden
  *   thumb(cfg, o), silhouette(spec, uid) → {vb, w, h, svg}, geometry(cfg), anchor(cfg, variant),
  *   partSvg(kind, id, hex, uid), iconSvg(kind, id, uid), totalCm, totalKg, find, hexOf, shadeHex, VARIANTS
+ *
+ * Struktur rig malam: g.lp-lamp > g.lp-base, g.lp-body, g.lp-neck, g.lp-ao, g.lp-head (kap tanpa nyala),
+ * lalu SAUDARA setelah g.lp-head: g[data-la-off] (penggelap seluruh lampu) dan g[data-la-lit] (kap menyala).
+ * Sorotan per bagian (mis. #tiga) jangan mengandaikan lapisan nyala berada di dalam .lp-head.
+ * Atribut data-la-lit / data-la-off selalu ditulis bernilai ="" supaya string SVG sah sebagai XML.
  */
 (function () {
   const D = () => window.MKS_LAMP;

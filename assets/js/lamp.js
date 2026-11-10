@@ -440,7 +440,7 @@
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = state.on ? "Nyala" : "Mati";
     }
     setText("#cfg-height", cm);
-    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 444", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
+    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 464", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
     setText("#spec-height", cm);
     setText("#spec-weight", `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`);
     fitSvgText($("#spec-fig"));
