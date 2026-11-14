@@ -801,9 +801,10 @@ html.has-orderbar .toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px))
   font-size: var(--fs-price-lg);
   font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.03em;
+  /* opsz 72 + jarak longgar: pada opsz 144 palang tipis angka 4 menyatu antarangka ("447" terbaca seperti tercoret) */
+  letter-spacing: -0.01em;
   font-variant-numeric: lining-nums;
-  font-variation-settings: "opsz" 144;
+  font-variation-settings: "opsz" 72;
   color: var(--fg);
   white-space: nowrap;
 }

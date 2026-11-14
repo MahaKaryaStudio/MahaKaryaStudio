@@ -791,7 +791,7 @@
     if (!p) return;
     const cfg = presetCfg(i), pr = price(cfg), cm = A.totalCm(cfg).toFixed(0);
     const anchor = pr.parts + pr.wiring;
-    setHtml($("[data-ed-lamp]", el), A.renderLamp(cfg, { uid: "ed", on: true, dim: 1, dims: true, variant: "vitrine", label: `Ilustrasi lampu edisi ${p.name}: kap diameter 20 cm, tinggi sekitar ${cm} cm` }));
+    setHtml($("[data-ed-lamp]", el), A.renderLamp(cfg, { uid: "ed", on: true, dim: 1, dims: true, variant: "vitrine", label: `Ilustrasi lampu edisi ${p.name}: kap ${A.shadeSpan(cfg).text}, tinggi sekitar ${cm} cm` }));
     setText($("[data-ed-pill]", el), `Ilustrasi · Edisi ${p.name}`);
     $$(".edisi__opt", el).forEach((row) => {
       const inp = $("input", row), on = !!inp && +inp.value === i;
@@ -856,7 +856,8 @@
     if (!d.presets[i]) return;
     const follow = presetIndex(state) >= 0;
     state.edition = i;
-    if (follow) { const p = sanitize(clone(d.presets[i])); Object.assign(state, { head: p.head, body: p.body, base: p.base }); }
+    // rakitan yang ikut berganti disimpan seperti perubahan rakitan lain (muat ulang tidak kembali ke edisi awal)
+    if (follow) { const p = sanitize(clone(d.presets[i])); Object.assign(state, { head: p.head, body: p.body, base: p.base }); touched = true; }
     withTransition(
       () => {
         fillEdition();
@@ -940,11 +941,15 @@
     }
     if (d.edisiOrder != null || d.edisiEdit != null) {
       const i = +(d.edisiOrder ?? d.edisiEdit);
+      // Tombol WA plakat (#edisi): WhatsApp terbuka lewat href-nya (data-wa="preset:N" = edisi apa adanya), halaman
+      // tidak digulir dan tidak ada toast. Rakitan custom tidak ditimpa diam-diam: pesanan sudah lengkap di tautan.
+      // Bila rakitan masih berupa edisi, ia ikut menjadi edisi yang dipesan (kit kelistrikan ya, bohlam LED tidak).
+      const waOrder = d.edisiOrder != null && t.tagName === "A" && t.hasAttribute("data-wa");
+      if (waOrder && presetIndex(state) < 0) return;
       // "Pesan edisi ini" selalu memesan edisi apa adanya: rakitan = edisi, kit kelistrikan ya, bohlam LED tidak
       const p = loadPreset(i, d.edisiOrder != null ? "edition-order" : "edition-edit");
       if (!p) return;
-      // Tombol WA plakat (#edisi): WhatsApp terbuka lewat href-nya (data-wa="preset:N"), halaman tidak digulir
-      if (d.edisiOrder != null && t.tagName === "A" && t.hasAttribute("data-wa")) return;
+      if (waOrder) return;
       // Tautan #rakit menggulir sendiri (dan memindahkan titik fokus); tombol digulirkan dari sini
       if (!(t.tagName === "A" && (t.getAttribute("href") || "").charAt(0) === "#")) scrollToEl(d.edisiOrder != null ? $("#summary") || $("#rakit") : $("#rakit"), d.edisiOrder != null ? "center" : "start");
       const cw = $("#ctrl-wrap");
@@ -1151,6 +1156,13 @@
     const ro = new ResizeObserver(() => fitSvgText());
     $$(FIT_HOSTS).forEach((h) => ro.observe(h));
   }
+  // Tinggi vitrine #edisi mengikuti tinggi jendela tanpa mengubah kotak #edisi-app, jadi pengamat di atas tidak
+  // terpicu: label dipaskan ulang pada setiap perubahan ukuran jendela (sekali per frame)
+  let fitRaf = 0;
+  addEventListener("resize", () => {
+    if (fitRaf) return;
+    fitRaf = requestAnimationFrame(() => { fitRaf = 0; fitSvgText(); });
+  }, { passive: true });
 
   // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
   const wide = window.matchMedia("(min-width: 901px)");

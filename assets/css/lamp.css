@@ -166,7 +166,7 @@ html.motion-off .lhero__hint { display: none !important; }
 
 /* Scene 486 × 560 (kolom 8–12), tanpa kotak */
 /* lebar dibatasi kolom, 486, dan tinggi layar; rasio 486:560 selalu utuh supaya mask meja tetap pas dengan SVG */
-.story__scene { grid-column: 8 / 13; grid-row: 1; position: sticky; top: 120px; justify-self: end; width: min(100%, 486px, max(200px, (100svh - 144px) * 0.868)); aspect-ratio: 486 / 560; color: var(--dark-fg); }
+.story__scene { grid-column: 8 / 13; grid-row: 1; position: sticky; top: 120px; justify-self: end; width: min(100%, 486px, max(200px, (100vh - 144px) * 0.868)); width: min(100%, 486px, max(200px, (100svh - 144px) * 0.868)); aspect-ratio: 486 / 560; color: var(--dark-fg); }
 .story__art, .story__rig, .story__lamp { position: absolute; inset: 0; }
 .story__rig svg, .story__lamp svg { width: 100%; height: 100%; display: block; }
 /* meja memudar elips ke latar seksi (tanpa tepi kotak): pusat di kaki lampu */
@@ -180,18 +180,22 @@ html.motion-off .lhero__hint { display: none !important; }
 @container (max-width: 399px) { .story__pill-ed { display: none; } }
 @container (min-width: 351px) and (max-width: 399px) { .story__pill { bottom: 8px; } }
 @container (max-width: 300px) { .story__pill { right: 0; bottom: 0; } }
+/* scene belum/tidak terisi (tanpa JS): pil tidak berdiri sendiri; ruang scene dilipat lewat <noscript> di index.html */
+.story__art:empty + .story__pill { display: none; }
 
 /* Terpaku (motion.js): 200vh, pin 100svh */
 .story--pin { height: 200vh; }
-.story--pin .story__pin { position: sticky; top: 0; height: 100svh; min-height: 600px; padding-block: 0; align-items: center; overflow: hidden; }
+.story--pin .story__pin { position: sticky; top: 0; height: 100vh; height: 100svh; min-height: 600px; padding-block: 0; align-items: center; overflow: hidden; }
 .story--pin .story__text { row-gap: 0; }
 .story--pin .story__line { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); }
 .story--pin .story__line.is-on { opacity: 1; transform: none; pointer-events: auto; }
 .story--pin .story__line.is-past { opacity: 0; transform: translateY(-24px); }
-.story--pin .story__close { grid-area: 2 / 1; margin-top: 40px; opacity: 0; visibility: hidden; transition: opacity var(--t-slow) var(--ease-out), visibility 0s linear var(--t-slow); }
-.story--pin .story__close.is-on { opacity: 1; visibility: visible; transition-delay: 0s; }
+/* penutup: tersembunyi lewat opasitas (bukan visibility) supaya tetap terbaca pembaca layar dan "Lihat edisi →"
+   terjangkau Tab di kalimat 1–2; saat difokus ia tampil */
+.story--pin .story__close { grid-area: 2 / 1; margin-top: 40px; opacity: 0; pointer-events: none; transition: opacity var(--t-slow) var(--ease-out); }
+.story--pin .story__close.is-on, .story--pin .story__close:focus-within { opacity: 1; pointer-events: auto; }
 .story--pin .story__prog { display: flex; position: absolute; left: var(--story-pad); bottom: 48px; }
-.story--pin .story__scene { position: relative; top: auto; align-self: center; width: min(100%, 486px, (100svh - 160px) * 0.868); }
+.story--pin .story__scene { position: relative; top: auto; align-self: center; width: min(100%, 486px, (100vh - 160px) * 0.868); width: min(100%, 486px, (100svh - 160px) * 0.868); }
 .story--pin .story__lamp[data-k] { opacity: 0; }
 .story--pin[data-step="0"] .story__lamp[data-k="0"],
 .story--pin[data-step="1"][data-sub="0"] .story__lamp[data-k="1"],
@@ -211,11 +215,14 @@ html.motion-off .lhero__hint { display: none !important; }
   .story__line { line-height: 1.08; letter-spacing: -0.02em; }
   .story__close { margin-top: -8px; gap: 0; }
   .story__close-text { font-size: var(--fs-mono-code); }
+  /* pil di bawah garis meja, rata margin halaman (bukan tepi scene): saat scene menyempit (360, HP pendek) pil
+     tidak pernah menyentuh alas lampu */
+  .story__pill { right: max(-44px, calc((100% - 100vw) / 2 + var(--page-margin))); bottom: 0; }
   /* HP terpaku: 160vh; padding atas 72; scene → 32 → kalimat → 24 → progres → 24 → penutup */
   .story--pin { height: 160vh; }
   /* padding atas 72 (layar ≥ 720 tinggi: isi turun sedikit agar tidak menggantung di sepertiga atas) */
-  .story--pin .story__pin { min-height: 0; padding: max(72px, calc((100svh - 600px) / 2 + 28px)) var(--page-margin) 0; align-items: start; align-content: start; row-gap: 32px; }
-  .story--pin .story__scene { align-self: start; width: min(100%, 350px, max(242px, (100svh - 404px) * 1.346)); }
+  .story--pin .story__pin { min-height: 0; padding: 72px var(--page-margin) 0; padding: max(72px, calc((100svh - 600px) / 2 + 28px)) var(--page-margin) 0; align-items: start; align-content: start; row-gap: 32px; }
+  .story--pin .story__scene { align-self: start; width: min(100%, 350px, max(242px, (100vh - 404px) * 1.346)); width: min(100%, 350px, max(242px, (100svh - 404px) * 1.346)); }
   .story--pin .story__line { align-self: start; }
   .story--pin .story__prog { position: static; grid-area: 2 / 1; margin-top: 24px; }
   .story--pin .story__close { grid-area: 3 / 1; margin-top: 24px; }
@@ -249,13 +256,17 @@ html.motion-off .lhero__hint { display: none !important; }
    rail kolom 9–12 (384): indeks 5 baris × 88 → 32 → plakat (cerita, COCOK UNTUK, harga 72, WA 56, tautan).
    HP ≤ 900 (±1.480): vitrine full-bleed 390 × 360 → 24 → indeks baris 64 (thumb 48, nama 22, harga 14)
    → 24 → plakat (harga 44, WA 52). Isi dirender lamp.js (renderEditions / fillEdition). */
-#edisi { padding-bottom: var(--pad-support); }
+/* seksi punya padding atas sendiri (160/96): tautan #edisi mendarat di tepi atas layar, bukan 80/64 px di bawahnya
+   (nav tersembunyi saat menggulir turun; saat nav tampil, padding seksi sudah melewatinya) */
+#edisi { padding-bottom: var(--pad-support); scroll-margin-top: calc(-1 * (var(--nav-h) + 8px)); }
 #edisi .section-sub { max-width: 560px; }
 .edisi { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 384px); column-gap: clamp(32px, 10.5%, 126px); align-items: start; }
 .edisi > * { min-width: 0; }
 
 /* Vitrine: rig malam, radius 4, pil kiri bawah, anotasi ukur digambar di dalam SVG (lamp-art dimsMarks) */
-.edisi__stage { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); height: min(780px, 100svh - 120px); min-height: 440px; aspect-ratio: auto; transition: top var(--t-med) var(--ease-out); }
+/* tinggi mengikuti lebar kolom (690:780) dan dibatasi tinggi layar: di 901–1100 panggung tidak menjadi kolom sempit
+   jangkung dengan lampu kecil; lampu tetap ±62% tinggi bingkai */
+.edisi__stage { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); width: 100%; height: auto; aspect-ratio: 690 / 780; max-height: min(780px, 100vh - 120px); max-height: min(780px, 100svh - 120px); min-height: 440px; transition: top var(--t-med) var(--ease-out); }
 .edisi__stage .stage__pill { top: auto; bottom: 16px; left: 16px; }
 
 /* Rail */
@@ -267,7 +278,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .edisi__opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
 .edisi__ind { grid-column: 1; grid-row: 1; justify-self: center; width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); transition: background-color var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out); }
 .edisi__thumb { display: none; }
-.edisi__name { grid-column: 2; grid-row: 1; min-width: 0; font: 400 clamp(28px, 10.5cqi, 40px) / 1.05 var(--serif); letter-spacing: -0.02em; font-variation-settings: "opsz" 72; color: var(--fg); }
+.edisi__name { grid-column: 2; grid-row: 1; min-width: 0; font: 400 40px / 1.05 var(--serif); font: 400 clamp(28px, 10.5cqi, 40px) / 1.05 var(--serif); letter-spacing: -0.02em; font-variation-settings: "opsz" 72; color: var(--fg); }
 .edisi__price { grid-column: 3; grid-row: 1; font: 400 var(--fs-mono-price) / 1.4 var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); white-space: nowrap; text-align: right; }
 .edisi__meta { grid-column: 2 / -1; grid-row: 2; display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 12px; }
 .edisi__dots { display: flex; gap: 4px; flex: none; }
@@ -285,7 +296,7 @@ html.motion-off .lhero__hint { display: none !important; }
 
 /* Plakat: tumpukan teks tanpa kotak */
 .edisi__plakat { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
-.edisi__story { margin: 0; color: var(--fg-2); }
+.edisi__story { margin: 0; min-height: calc(3 * 1.6em); color: var(--fg-2); } /* 3 baris dicadangkan: harga dan tombol WA tidak melompat saat ganti edisi */
 .edisi__room { display: grid; gap: 8px; margin: 16px 0 0; font: 500 var(--fs-ui) / 1.5 var(--sans); color: var(--fg); }
 .edisi__room .label { margin: 0; }
 .edisi__buy { margin-top: 32px; }
@@ -307,7 +318,7 @@ html.motion-off .lhero__hint { display: none !important; }
 @media (max-width: 900px) {
   .edisi { grid-template-columns: minmax(0, 1fr); }
   /* 390 × 360 pada 390 (332 pada 360); tablet maks 440; HP mendatar tidak melebihi tinggi layar */
-  .edisi__stage { position: relative; top: auto; height: min(clamp(320px, 92.3vw, 440px), max(280px, 100svh - 96px)); min-height: 0; margin-inline: calc(-1 * var(--page-margin)); border-radius: 0; }
+  .edisi__stage { position: relative; top: auto; width: auto; aspect-ratio: auto; max-height: none; height: clamp(320px, 92.3vw, 440px); height: min(clamp(320px, 92.3vw, 440px), max(280px, 100svh - 96px)); min-height: 0; margin-inline: calc(-1 * var(--page-margin)); border-radius: 0; }
   .edisi__rail { margin-top: 24px; row-gap: 24px; }
   .edisi__opt { grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 12px; row-gap: 4px; min-height: 64px; padding: 0 8px; }
   .edisi__opt.is-on, .edisi__opt:has(input:focus-visible) { border-radius: var(--r-control); }
@@ -315,9 +326,9 @@ html.motion-off .lhero__hint { display: none !important; }
   .edisi__thumb { display: block; grid-column: 1; grid-row: 1 / 3; width: 48px; height: 48px; border-radius: var(--r-frame); overflow: hidden; background: var(--paper-2); }
   .edisi__thumb svg { width: 100%; height: 100%; display: block; }
   .edisi__opt.is-on .edisi__thumb { background: var(--paper); }
-  /* titik amber terpilih menumpang di sudut thumb */
-  .edisi__ind { grid-column: 1; grid-row: 1 / 3; align-self: start; justify-self: end; margin: 4px -3px 0 0; z-index: 1; opacity: 0; }
-  .edisi__opt.is-on .edisi__ind { opacity: 1; box-shadow: 0 0 0 2px var(--paper-2), 0 0 10px rgba(242, 163, 58, 0.6); }
+  /* tanpa kolom indikator di HP: titik amber terpilih berada di depan nama (di sudut thumb ia terbaca seperti lencana notifikasi) */
+  .edisi__ind { display: none; }
+  .edisi__opt.is-on .edisi__name::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px rgba(242, 163, 58, 0.6); vertical-align: 0.14em; }
   .edisi__name { align-self: end; font-size: 22px; line-height: 1.1; letter-spacing: -0.01em; font-variation-settings: "opsz" 36; }
   .edisi__price { align-self: end; }
   .edisi__meta { align-self: start; }

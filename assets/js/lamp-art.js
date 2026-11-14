@@ -534,8 +534,13 @@
       `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}" font-size="12">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}" font-size="12">ulir M20</text></g>`
     );
   }
+  // Lebar nominal kap 20 cm. Tanda Ø hanya untuk kap bundar; kap kotak diberi label lebar biasa.
+  function shadeSpan(cfg) {
+    const boxy = !!(cfg && cfg.head && headSpec(cfg.head.shape, 0).box);
+    return { round: !boxy, label: boxy ? "20 cm" : "Ø 20 cm", text: boxy ? "lebar 20 cm" : "diameter 20 cm" };
+  }
   // Anotasi ukur (vitrine #edisi, gambar spesifikasi): garis 1 px --dark-line-strong (#f2e7d5 .45), label DM Mono.
-  // "Ø 20 cm" di atas kap (garis selebar kap), tinggi total (dari lamp-data lewat totalCm) di kanan lampu.
+  // "Ø 20 cm" di atas kap (garis selebar kap; "20 cm" untuk kap kotak), tinggi total (dari lamp-data lewat totalCm) di kanan lampu.
   // Label data-fit="exact": fitSvgText (lamp.js) menjaganya tepat 12 px di layar.
   function dimsMarks(L, cfg) {
     const H = L.head, dx = CX + Math.max(112, L.hw + 30), top = L.headTop, cm = totalCm(cfg);
@@ -545,7 +550,7 @@
     return (
       `<g class="la-dims" ${ln} fill="none"><path d="M${dx} ${r1(top)}V${FLOOR}M${dx - 6} ${r1(top)}h12M${dx - 6} ${FLOOR}h12"/>` +
       `<path d="M${x1} ${yl}H${x2}M${x1} ${r1(yl - 6)}v12M${x2} ${r1(yl - 6)}v12"/></g>` +
-      `<g class="la-dims-t" font-family="DM Mono,monospace" fill="#d9cdb9" style="fill:var(--dark-fg-2,#d9cdb9)"><text data-fit="exact" font-size="12" x="${dx + 10}" y="${r1((top + FLOOR) / 2)}" dominant-baseline="central">≈ ${cm.toFixed(0)} cm</text><text data-fit="exact" font-size="12" x="${CX}" y="${r1(yl - 8)}" text-anchor="middle">Ø 20 cm</text></g>`
+      `<g class="la-dims-t" font-family="DM Mono,monospace" fill="#d9cdb9" style="fill:var(--dark-fg-2,#d9cdb9)"><text data-fit="exact" font-size="12" x="${dx + 10}" y="${r1((top + FLOOR) / 2)}" dominant-baseline="central">≈ ${cm.toFixed(0)} cm</text><text data-fit="exact" font-size="12" x="${CX}" y="${r1(yl - 8)}" text-anchor="middle">${shadeSpan(cfg).label}</text></g>`
     );
   }
 
@@ -656,5 +661,5 @@
   }
 
   const thumb = (cfg, o = {}) => renderThumb(cfg, o);
-  window.LampArt = { renderLamp, thumb, silhouette, geometry, anchor, partSvg, iconSvg, totalCm, totalKg, find, hexOf, shadeHex, VARIANTS, mix, lum };
+  window.LampArt = { renderLamp, thumb, silhouette, geometry, anchor, partSvg, iconSvg, totalCm, totalKg, shadeSpan, find, hexOf, shadeHex, VARIANTS, mix, lum };
 })();
