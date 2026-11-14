@@ -169,7 +169,7 @@
   state.on = true; // saklar panggung studio
   state.zone = zones()[0] ? zones()[0].id : null;
   state.gift = { on: false, to: "", msg: "", hide: true };
-  state.edition = D().popularPreset || 0; // edisi yang sedang dilihat di #edisi (tidak mengubah rakitan)
+  state.edition = D().popularPreset || 0; // edisi yang sedang dilihat di #edisi (rakitan ikut hanya selama masih berupa edisi, lihat selectEdition)
   const hero = { cfg: sanitize(clone(D().presets[0])), on: true, dim: 1 };
   const catColor = {};
   // Paket yang sedang dilihat di segmented #paket (HP); default Kuarto (keputusan pemilik), bukan state rakitan
