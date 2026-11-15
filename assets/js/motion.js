@@ -3,7 +3,8 @@
  *  1. (Nav: sembunyi/muncul, tema, slot, dan tautan aktif ada di nav.js, juga saat gerak dikurangi.)
  *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
  *  3. Cerita terpaku #kenapa (.story--pin): kalimat bertukar, lampu scene berevolusi; --story-p, data-step, data-sub.
- *  4. #tiga: baris aktif (.is-active pada [data-tiga-row]) + data-focus pada #exploded, kelas .tiga--live.
+ *  4. #tiga: baris aktif (.is-active pada [data-tiga-row]) + data-focus pada #exploded, kelas .tiga--live;
+ *     dihitung dari posisi garis tengah layar, hanya ≥ 1024 px dan selama seksi terlihat.
  *  5. #cara: garis progres (--fill) dan langkah .is-done.
  *  6. Reveal SEKALI per seksi, hanya kepala seksi.
  * Scroll memakai perilaku asli browser (scroll-behavior: smooth dari CSS untuk tautan #).
@@ -34,9 +35,11 @@
     const hint = $("#hero-hint");
     const steps = $(".steps-l");
     let ticking = false;
+    let tigaFrame = null; // diisi blok 4: baris aktif #tiga (hanya membaca, menulis saat barisnya berganti)
 
     function frame() {
       const y = window.scrollY;
+      if (tigaFrame) tigaFrame();
       if (hero && heroStage) {
         const h = hero.offsetHeight || 1;
         if (y < h + 80 && !heroStage.dataset.off) {
@@ -126,22 +129,36 @@
     }
 
     /* ---------- 4. #tiga: baris aktif ----------
-       Baris yang melintasi tengah layar mendapat .is-active; #exploded mendapat data-focus (bagian lain di
-       gambar meredup). Hanya pergantian kelas; tampilannya (≥ 1024 px) dan transisinya ada di CSS. */
+       Keadaan dihitung dari posisi, bukan dari peristiwa "masuk": baris aktif = baris yang memuat garis tengah
+       layar; garis tengah di atas daftar → baris pertama, di bawah daftar → baris terakhir. Jadi arah gulir
+       yang berbalik, lompatan (muat ulang, seret scrollbar, tautan #) dan ubah ukuran jendela selalu berakhir
+       di baris yang benar. Dihitung di frame scroll bersama (satu rAF, baca dulu baru tulis), hanya selama
+       #tiga terlihat dan hanya di tata letak ≥ 1024 px (di bawahnya tanda baris aktif tidak digambar).
+       Yang ditulis hanya pergantian kelas .is-active dan data-focus pada #exploded (bagian lain di gambar
+       meredup), dan hanya saat barisnya berganti; tampilan dan transisinya ada di CSS. */
     const tigaGrid = $("#tiga .tiga");
     const rows = $$("#tiga [data-tiga-row]");
-    if (rows.length && tigaGrid) {
+    if (rows.length && tigaGrid && "IntersectionObserver" in window) {
       const ex = $("#exploded");
-      const ro = io((es) => es.forEach((e) => {
-        if (!e.isIntersecting || e.target.classList.contains("is-active")) return;
-        rows.forEach((r) => r.classList.toggle("is-active", r === e.target));
-        if (ex) ex.dataset.focus = e.target.dataset.tigaRow || "";
-      }), { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
-      if (ro) {
-        tigaGrid.classList.add("tiga--live");
-        if (ex) ex.dataset.focus = (rows.find((r) => r.classList.contains("is-active")) || rows[0]).dataset.tigaRow || "";
-        rows.forEach((r) => ro.observe(r));
-      }
+      const wide = window.matchMedia("(min-width: 1024px)");
+      let cur = rows.find((r) => r.classList.contains("is-active")) || rows[0];
+      let seen = false;
+      const set = (row) => {
+        if (row !== cur) { cur = row; rows.forEach((r) => r.classList.toggle("is-active", r === row)); }
+        const key = row.dataset.tigaRow || "";
+        if (ex && ex.dataset.focus !== key) ex.dataset.focus = key;
+      };
+      tigaFrame = () => {
+        if (!seen || !wide.matches) return;
+        const mid = innerHeight / 2;
+        let pick = rows[0];
+        for (let i = 1; i < rows.length; i++) { if (rows[i].getBoundingClientRect().top <= mid) pick = rows[i]; else break; }
+        set(pick);
+      };
+      tigaGrid.classList.add("tiga--live");
+      set(cur);
+      io((es) => { seen = es[es.length - 1].isIntersecting; tigaFrame(); }, { threshold: 0 }).observe(tigaGrid);
+      if (wide.addEventListener) wide.addEventListener("change", () => tigaFrame());
     }
 
     /* ---------- 6. Reveal sekali: kepala seksi saja ---------- */

@@ -56,6 +56,31 @@ run(async ({ open, check }) => {
     check(a.active.length === 1 && a.active[0] === key && a.focus === key && dimOk && a.textOp === 1 && a.bar.filter((m) => m === 'none' || m === 'matrix(1, 0, 0, 1, 0, 0)').length === 1,
       `#tiga 1440: baris "${key}" aktif saat di tengah layar (hairline tinta, bagian lain di gambar .3, teks tanpa opacity)`, JSON.stringify({ active: a.active, focus: a.focus, op: a.op, textOp: a.textOp }));
   }
+  // Baris aktif adalah keadaan posisi, bukan jejak peristiwa: arah gulir berbalik (roda tetikus sungguhan) dan
+  // lompatan tanpa melewati baris di antaranya harus berakhir di baris yang memuat garis tengah layar.
+  const atMid = (p) => p.evaluate(() => { const m = innerHeight / 2; let k = ''; for (const r of document.querySelectorAll('#tiga [data-tiga-row]')) { if (!k || r.getBoundingClientRect().top <= m) k = r.dataset.tigaRow; } return k; });
+  for (const vp of ['desktop', 'laptop']) {
+    const q = vp === 'desktop' ? p : await open(vp);
+    await center(q, '#tiga [data-tiga-row="head"]'); await q.waitForTimeout(400);
+    await q.mouse.move(700, 400);
+    let n = 0;
+    while (n++ < 60 && (await state(q)).active[0] !== 'body') { await q.mouse.wheel(0, 40); await q.waitForTimeout(120); }
+    const down = await state(q);
+    for (let i = 0; i < 5; i++) { await q.mouse.wheel(0, -40); await q.waitForTimeout(120); }
+    await q.waitForTimeout(400);
+    const up = await state(q), want = await atMid(q);
+    check(down.active[0] === 'body' && want === 'head' && up.active.length === 1 && up.active[0] === 'head' && up.focus === 'head' && up.op.head === 1,
+      `#tiga ${vp}: gulir turun sampai "body" aktif lalu naik 200 px → "head" aktif lagi (tidak tertinggal)`, JSON.stringify({ turun: down.active, naik: up.active, focus: up.focus, tengah: want }));
+    const bad = [];
+    for (const [key, frac] of [['base', 0.2], ['head', 0.9], ['body', 0.45], ['head', 0.6], ['base', -0.2]]) {
+      // lompat seketika: sisi atas baris "key" ditaruh di frac × tinggi layar (frac 0,9 / 0,6 = garis tengah masih di atas baris itu)
+      await q.evaluate(([key, frac]) => { const r = document.querySelector(`#tiga [data-tiga-row="${key}"]`).getBoundingClientRect(); window.scrollTo({ top: scrollY + r.top - innerHeight * frac, behavior: 'instant' }); }, [key, frac]);
+      await q.waitForTimeout(450);
+      const a = await state(q), w = await atMid(q);
+      if (a.active.length !== 1 || a.active[0] !== w || a.focus !== w) bad.push(`${key}@${frac}: aktif ${a.active} fokus ${a.focus}, di tengah ${w}`);
+    }
+    check(bad.length === 0, `#tiga ${vp}: setelah lompatan seketika, baris aktif = baris di garis tengah layar`, bad.join(' | '));
+  }
   check(p.__errs.length === 0, '1440: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 
   /* ---------- 1024 dan 1200: lembar lebar yang menyempit ---------- */
