@@ -29,7 +29,9 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
 - `c20-tipografi.js [--page=koleksi.html]`: tidak ada teks < 12 px dan tidak ada bobot ≥ 700.
 - `c23-edit-migrasi.js`: suntingan Mode Edit di alamat lama tidak menimpa teks baru (tahap `STAGES` di
   `editor.js`); kasus bertambah di langkah yang mengubah teks dasar.
-- `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif,
-  panggung lengket, pita tiga baris tanpa gerak). Baris `UKUR` melaporkan tinggi seksi terhadap brief.
+- `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif
+  termasuk gulir berbalik dan lompatan, panggung lengket, lembar ringkas di tablet dan HP mendatar,
+  angka meta dari lamp-data, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
+  melaporkan tinggi seksi terhadap brief; `CATATAN` menjelaskan selisih yang sudah diterima.
 
 Angka waktu dari skrip ini berasal dari Chromium ter-throttle, bukan HP sungguhan.

@@ -148,7 +148,12 @@ run(async ({ open, check }) => {
     check(/gambar kerja · ilustrasi/i.test(s.text) && /kap · ø 20 cm/i.test(s.text) && /badan · 1–3 bagian/i.test(s.text) && /alas · berpemberat/i.test(s.text) && /ulir m20 · tanpa lem/i.test(s.text), `#tiga ${W}: pil dan empat label ada`, s.text);
     check(s.over.length === 0 && s.out.length === 0, `#tiga ${W}: label tidak bertumpuk dan tidak keluar lembar`, [...s.over, ...s.out.map((t) => 'keluar: ' + t)].join(' | '));
     check(s.sw <= W, `${W}: tanpa gulir samping`, s.sw);
-    if (vp === 'hp') info('#tiga 390: tinggi seksi', s.secH, 1150);
+    if (vp === 'hp') {
+      info('#tiga 390: tinggi seksi', s.secH, 1150);
+      // ±1.150 tidak bisa dicapai dengan ukuran huruf dan jarak yang ditetapkan untuk seksi ini: padding 144, kepala
+      // seksi ±230, lembar 380 dan tiga baris (label, H3 22 yang patah dua baris, dua baris body, meta) sudah ±1.350.
+      console.log(`CATATAN #tiga 390: sasaran nyata 1.350–1.420 px; ${s.secH <= 1430 ? 'di dalam' : 'DI LUAR'} rentang itu. Memendekkan lagi berarti memendekkan copy (keputusan pemilik).`);
+    }
     await center(p, '#tiga [data-tiga-row="base"]'); await p.waitForTimeout(400);
     a = await state(p);
     check(Object.values(a.op).every((o) => o === 1) && a.textOp === 1, `#tiga ${W}: tanpa peredupan di tata letak HP`, JSON.stringify(a.op));
