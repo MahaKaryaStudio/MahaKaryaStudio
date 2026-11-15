@@ -40,6 +40,10 @@
  *     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
  *     thumb(cfg, {paper:true}) → thumb katalog di kertas (bayangan --catalog-shadow, tanpa glow)
  *     o.label    aria-label; o.decorative → aria-hidden
+ *   sheet(cfg, {sheet: "wide" | "compact"}) → {w, h, k, svg, labels}   lembar gambar kerja #tiga (588×600 / 390×380):
+ *                lampu terurai garis tinta + garis penunjuk + kaca pembesar ulir; label HTML ditaruh pemanggil
+ *                di labels.head/body/base/thread ({x, y} dalam % bingkai)
+ *   outline(cfg) → {vb, w, h, baseHw, svg}   garis luar lampu pejal (mask siluet garis lapisan #pita)
  *   thumb(cfg, o), silhouette(spec, uid) → {vb, w, h, svg}, geometry(cfg), anchor(cfg, variant),
  *   partSvg(kind, id, hex, uid), iconSvg(kind, id, uid), totalCm, totalKg, find, hexOf, shadeHex, VARIANTS
  *
@@ -145,7 +149,7 @@
         caps: [{ d: polyPath([[CX - 72, f], [CX - 66, t], [CX + 66, t], [CX + 72, f]]), tone: 0.16 }],
         form: "flat",
         edges: [`M${P(CX - 71.2, f + 0.6)}V${r1(y - 0.8)}`],
-        foot: { cy: y - 4, rx: 74, ry: 7 }, bottom: y,
+        foot: { cy: y - 4, rx: 74, ry: 7 }, bottom: y, hole: y - 26,
       };
     }
     if (id === "segitiga") {
@@ -180,7 +184,7 @@
         caps: [{ d: flower(top), tone: 0.12 }],
         form: "cyl",
         draw: [["sil__s", flower(top + 10)], ["sil__f", `M${P(CX - 76, top)}H${r1(CX + 76)}V${r1(top + 10)}H${r1(CX - 76)}Z`], ["sil__l", `M${P(CX - 76, top)}V${r1(top + 10)}M${P(CX + 76, top)}V${r1(top + 10)}`], ["sil__s", flower(top)]],
-        foot: { cy: y - 10, rx: 76, ry: 17 }, bottom: y + 7,
+        foot: { cy: y - 10, rx: 76, ry: 17 }, bottom: y + 7, hole: top,
       };
     }
     // bulat: cakram silinder (ry 14 = 78 × 0,18)
@@ -189,7 +193,7 @@
       h: 26, hw: 78, out: solidPath(78, 78, yT, yB, 14, 14), form: "cyl",
       caps: [{ d: ellPath(CX, yT, 78, 14), tone: 0.14 }],
       spec: { cx: CX - 52, cy: y - 14, rx: 10, ry: 4 },
-      foot: { cy: yB, rx: 78, ry: 14 }, bottom: y + 6,
+      foot: { cy: yB, rx: 78, ry: 14 }, bottom: y + 6, hole: yT,
     };
   }
 
@@ -239,8 +243,9 @@
   }
 
   // Susun alas → badan → leher → kap. explode: jarak antarkelompok (gambar "Tiga bagian")
+  // explode: true = 34 satuan; angka = jarak sendiri (lembar gambar kerja #tiga)
   function stack(cfg, explode) {
-    const gap = explode ? 34 : 0;
+    const gap = typeof explode === "number" ? explode : explode ? 34 : 0;
     let y = FLOOR;
     const base = baseSpec(cfg.base.shape, y);
     base.hex = safeHex(cfg.base.hex || hexOf(cfg.base.color));
@@ -572,8 +577,10 @@
   }
 
   /* ---------- gambar kerja: garis tinta (kelas dipakai #paket dan nanti #tiga) ---------- */
-  function drawingParts(L, grouped) {
+  // studs (lembar #tiga): batang ulir M20 di bawah badan dan kap + lubang ulir di alas
+  function drawingParts(L, grouped, studs) {
     const sh = (d) => `<path class="sil__s" d="${d}"/>`;
+    const hatch = (y0, y1) => { let d = ""; for (let y = y0; y <= y1 + 0.01; y += 4) d += `M${P(CX - 10, y + 1.6)}L${P(CX + 10, y - 1.6)}`; return `<path class="sil__h" d="${d}"/>`; };
     let g = "";
     const open = (k) => { if (grouped) g += `<g data-la-part="${k}">`; };
     const close = () => { if (grouped) g += "</g>"; };
@@ -586,12 +593,15 @@
     };
     open("base");
     part(L.base);
+    if (studs && L.base.hole != null) g += `<path class="sil__l sil__l--hole" d="${ellPath(CX, L.base.hole, 11, 3.5)}"/>`;
     close();
     open("body");
+    if (studs) g += sh(solidPath(10, 10, L.bodyBottom - 8, L.bodyBottom + 13, 3, 3)) + hatch(L.bodyBottom + 3, L.bodyBottom + 11);
     L.bodies.forEach(part);
     close();
     open("head");
     g += sh(solidPath(10, 10, L.neck.top + 3, L.neck.y - 3, 3, 3));
+    if (studs) g += hatch(L.neck.top + 5, L.neck.y - 3);
     const H = L.head;
     g += sh(H.out) + sh(H.open) + sh(H.inner);
     const pl = H.pleats.filter((_, k) => k % 2 === 0).map((p) => `M${P(p.x1, p.y1)}L${P(p.x2, p.y2)}`).join("");
@@ -618,6 +628,70 @@
         `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}">ulir M20</text></g>`;
     }
     return `<svg class="sil${ex ? " sil--explode" : ""}" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"${label} data-la="drawing">${drawingParts(L, true)}${marks}</svg>`;
+  }
+  /* ---------- lembar gambar kerja #tiga (brief §7 "02 #tiga") ----------
+     Satu <svg> berukuran bingkai (wide 588×600, compact 390×380): lampu terurai sebagai garis tinta
+     (kelompok <g data-la-part="head|body|base"> untuk sorot baris aktif), garis penunjuk 1 px ke tepi
+     kiri tiap bagian, garis ukur Ø kap (wide), penanda sambungan + siku ke kaca pembesar ulir M20.
+     Label TIDAK digambar di SVG: posisi jangkarnya dikembalikan dalam persen bingkai supaya pemanggil
+     menaruh label HTML 12 px yang tidak ikut mengecil. → { w, h, k, svg, labels: {head, body, base, thread} }
+     (label bagian: tepi kanan teks di x, tengah di y; thread: tepi kanan di x, tepi bawah di y). */
+  const SHEETS = {
+    wide: { w: 588, h: 600, cx: 340, top: 96, zone: 386, gap: 32, lab: 220, jr: 18, mag: 136, kMax: 1.1, half: 92, dim: true },
+    compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 120, jr: 12, mag: 96, kMax: 0.8, half: 60, dim: false },
+  };
+  function sheet(cfg, o) {
+    o = o || {};
+    const S = SHEETS[o.sheet] || SHEETS.wide;
+    const A0 = stack(cfg), hA = A0.bottom - A0.top;
+    const k = Math.min((S.zone - 2 * S.gap) / hA, S.half / A0.hw, S.kMax);
+    const L = stack(cfg, S.gap / k), H = L.head;
+    const top = S.top + Math.max(0, (S.zone - (hA * k + 2 * S.gap)) / 2);
+    const X = (x) => S.cx + (x - CX) * k, Y = (y) => top + (y - L.top) * k;
+    const mid = L.bodies[Math.floor(L.bodies.length / 2)];
+    const rows = [["head", (L.headTop + L.headBottom) / 2, H.box ? H.hw : (H.rxT + H.rxB) / 2]];
+    if (mid) rows.push(["body", mid.y - mid.h / 2, mid.hw]);
+    rows.push(["base", L.base.foot.cy, L.base.hw]);
+    const labels = {};
+    let lead = "", dots = "";
+    rows.forEach(([key, ly, hw]) => {
+      const y = Y(ly), xe = X(CX - hw) + 6;
+      lead += `M${P(S.lab + 10, y)}H${r1(xe)}`;
+      dots += `<circle class="sil__dot" cx="${r1(xe)}" cy="${r1(y)}" r="2"/>`;
+      labels[key] = { x: r1((S.lab / S.w) * 100), y: r1((y / S.h) * 100) };
+    });
+    if (S.dim) { const y = r1(Y(L.headTop) - 16), x0 = r1(X(CX - H.hw)), x1 = r1(X(CX + H.hw)); lead += `M${x0} ${y}H${x1}M${x0} ${y - 6}V${y + 6}M${x1} ${y - 6}V${y + 6}`; }
+    // sambungan badan–alas → kaca pembesar di kanan bawah
+    const mr = S.mag / 2, mcx = S.w - 16 - mr, mcy = S.h - 16 - mr, topY = mcy - mr;
+    const jy = Y(L.bodyBottom + 8);
+    if (jy < topY - 4) lead += `M${P(S.cx + S.jr, jy)}H${r1(mcx)}V${r1(topY)}`;
+    else lead += `M${P(S.cx + S.jr, jy)}H${r1(mcx - Math.sqrt(Math.max(0, mr * mr - (jy - mcy) * (jy - mcy))))}`;
+    labels.thread = o.sheet === "compact"
+      ? { x: r1(((mcx - mr - 12) / S.w) * 100), y: r1(((mcy + mr) / S.h) * 100) }
+      : { x: r1(((mcx + mr) / S.w) * 100), y: r1((Math.min(jy - 10, topY - 24) / S.h) * 100) };
+    // ulir di dalam kaca: batang bergerigi (7 gang) + 7 garis heliks
+    const d = S.mag, rw = d * 0.16, pch = d * 0.1, amp = d * 0.03, y0 = mcy - 3.5 * pch, ext = Math.sqrt(mr * mr - (rw + amp) * (rw + amp)) - 1.5;
+    let edge = `M${P(mcx - rw, mcy - ext)}V${r1(y0)}`;
+    for (let i = 0; i < 7; i++) edge += `L${P(mcx - rw - amp, y0 + (i + 0.5) * pch)}L${P(mcx - rw, y0 + (i + 1) * pch)}`;
+    edge += `V${r1(mcy + ext)}M${P(mcx + rw, mcy - ext)}V${r1(y0 - pch / 2)}`;
+    for (let i = 0; i < 7; i++) edge += `L${P(mcx + rw + amp, y0 + i * pch)}L${P(mcx + rw, y0 + (i + 0.5) * pch)}`;
+    edge += `V${r1(mcy + ext)}`;
+    let hel = "";
+    for (let i = 0; i < 7; i++) { const y = y0 + (i + 0.5) * pch; hel += `M${P(mcx - rw, y + pch * 0.5)}L${P(mcx + rw, y)}`; }
+    const svg =
+      `<svg class="gk__svg" viewBox="0 0 ${S.w} ${S.h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" data-la="sheet">` +
+      `<g class="gk__lamp" transform="translate(${r1(S.cx - CX * k)} ${r1(top - L.top * k)}) scale(${Math.round(k * 1000) / 1000})">${drawingParts(L, true, true)}</g>` +
+      `<path class="sil__lead" d="${lead}"/><circle class="sil__lead" cx="${S.cx}" cy="${r1(jy)}" r="${S.jr}"/>${dots}` +
+      `<g class="gk__mag"><circle class="gk__lens" cx="${r1(mcx)}" cy="${r1(mcy)}" r="${r1(mr - 0.75)}"/><path class="sil__l" d="${edge}"/><path class="sil__h" d="${hel}"/></g></svg>`;
+    return { w: S.w, h: S.h, k, svg, labels };
+  }
+  // Garis luar lampu utuh sebagai satu <svg> pejal (mask siluet garis lapisan di pita): {vb, w, h, svg}
+  function outline(cfg) {
+    const L = stack(cfg), w = r1(L.hw * 2), h = r1(L.bottom - L.top);
+    // satu <path> per bagian: arah gambar tiap bentuk berbeda, jadi jangan digabung dalam satu path (nonzero)
+    const d = [L.base.out].concat(L.bodies.map((b) => b.out), [solidPath(10, 10, L.neck.top + 3, L.neck.y - 3, 3, 3), L.head.out]).map((x) => `<path d="${x}"/>`).join("");
+    const vb = `${r1(CX - L.hw)} ${r1(L.top)} ${w} ${h}`;
+    return { vb, w, h, baseHw: L.base.hw, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${w}" height="${h}">${d}</svg>` };
   }
   // Siluet paket (lamp.js #paket): spec {head, body:[…], base} → {vb, w, h, svg}
   function silhouette(spec, uid) {
@@ -661,5 +735,5 @@
   }
 
   const thumb = (cfg, o = {}) => renderThumb(cfg, o);
-  window.LampArt = { renderLamp, thumb, silhouette, geometry, anchor, partSvg, iconSvg, totalCm, totalKg, shadeSpan, find, hexOf, shadeHex, VARIANTS, mix, lum };
+  window.LampArt = { renderLamp, thumb, silhouette, sheet, outline, geometry, anchor, partSvg, iconSvg, totalCm, totalKg, shadeSpan, find, hexOf, shadeHex, VARIANTS, mix, lum };
 })();

@@ -183,7 +183,7 @@
      Label ukuran (Ø 20 cm, ≈ 39 cm) dan anotasi (KAP, ulir M20) ditulis dalam satuan viewBox.
      Saat SVG mengecil (HP), font-size dinaikkan supaya teks tetap ≥ 12 px di layar. */
   const MIN_TEXT_PX = 12;
-  const FIT_HOSTS = "#edisi-app, #spec-fig, #exploded";
+  const FIT_HOSTS = "#edisi-app, #spec-fig";
   function fitSvgText(host) {
     (host ? [host] : $$(FIT_HOSTS)).forEach((h) => {
       if (!h) return;
@@ -880,27 +880,59 @@
     // huruf pertama kecil karena muncul di tengah kalimat; "WIB" tetap kapital
     setHtml("[data-reply-inline]", replyHtml(lowerFirst(C.replyPromise || "")));
   }
-  // Geser untuk ganti warna badan di ilustrasi "Tiga bagian"
-  const EX = { head: { shape: "plisir", color: "gading" }, body: [{ shape: "bola", color: "salmon" }, { shape: "kubus", color: "zaitun" }], base: { shape: "bulat", color: "hitam" } };
-  const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const mix = (a, b, t) => "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
-  function renderExploded(t) {
+  /* ---------- 02 #tiga: lembar gambar kerja (brief §7 "02 #tiga") ----------
+     #exploded diisi LampArt.sheet(): edisi pilihan studio terurai sebagai garis tinta, garis penunjuk,
+     kaca pembesar ulir M20. Label ditaruh sebagai HTML 12 px di jangkar persen dari renderer, jadi tidak
+     ikut mengecil bersama SVG. Lembar lebar (588×600) dari 1024 px, lembar ringkas (390×380) di bawahnya.
+     Sorot baris aktif: motion.js menulis data-focus="head|body|base" pada #exploded (CSS meredupkan sisanya). */
+  const tigaNarrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
+  function renderExploded() {
     const el = $("#exploded");
-    if (!el) return;
-    const cols = D().colors.filter((c) => c.stock !== false);
-    const cfg = sanitize(clone(EX));
-    if (t != null && cols.length > 1) {
-      const pos = t * (cols.length - 1), i = Math.min(cols.length - 2, Math.floor(pos)), f = pos - i;
-      cfg.body[0].hex = mix(hex2rgb(cols[i].hex), hex2rgb(cols[i + 1].hex), f);
-      const near = cols[Math.round(pos)];
-      setText("#swipe-name", `· ${near.name}`);
-    }
-    el.innerHTML = A.renderLamp(cfg, { uid: "ex", on: false, explode: true, table: false, vb: "20 70 300 400" });
-    fitSvgText(el);
+    if (!el || !A.sheet) return;
+    const d = D();
+    const pi = d.presets[d.popularPreset] ? d.popularPreset : 0;
+    const cfg = presetCfg(pi), pre = d.presets[pi];
+    const kind = tigaNarrow.matches ? "compact" : "wide";
+    const sh = A.sheet(cfg, { sheet: kind });
+    const span = A.shadeSpan(cfg).label;
+    const n = cfg.body.length + 2, cm = A.totalCm(cfg).toFixed(0);
+    const lab = (key, a, b) => {
+      const at = sh.labels[key];
+      return at ? `<span class="gk__lab gk__lab--${key}" style="left:${at.x}%;top:${at.y}%"><span class="gk__lab-a">${esc(a)}</span><span class="gk__lab-sep"> · </span><span class="gk__lab-b">${esc(b)}</span></span>` : "";
+    };
+    el.dataset.sheet = kind;
+    el.style.setProperty("--gk-ratio", `${sh.w} / ${sh.h}`);
+    el.setAttribute("role", "img");
+    el.setAttribute("aria-label", `Gambar kerja (ilustrasi) edisi ${pre.name}: kap, badan, dan alas terurai; ketiganya disambung ulir M20 tanpa lem.`);
+    el.innerHTML =
+      sh.svg +
+      `<span class="gk__pill">Gambar kerja · Ilustrasi</span>` +
+      lab("head", "Kap", span) +
+      lab("body", "Badan", `1–${d.maxBodies || 3} bagian`) +
+      lab("base", "Alas", "Berpemberat") +
+      lab("thread", "Ulir M20", "Tanpa lem") +
+      `<span class="gk__title">Edisi ${esc(pre.name)}<span class="gk__title-x"> · ${n} bagian · ≈ ${cm} cm</span></span>`;
+  }
+  if (tigaNarrow.addEventListener) tigaNarrow.addEventListener("change", () => renderExploded());
+
+  /* ---------- #pita: siluet garis lapisan cetak ----------
+     Garis luar edisi pilihan studio menjadi mask (data URI); garis 1,5 px tiap 6 px digambar CSS
+     (repeating-linear-gradient), jadi tetap tajam di ukuran berapa pun dan tidak perlu render ulang. */
+  function renderBand() {
+    const el = $("#pita-sil");
+    if (!el || !A.outline) return;
+    const d = D();
+    const o = A.outline(presetCfg(d.presets[d.popularPreset] ? d.popularPreset : 0));
+    el.style.setProperty("--sil-mask", `url("data:image/svg+xml,${encodeURIComponent(o.svg)}")`);
+    el.style.setProperty("--sil-ratio", `${o.w} / ${o.h}`);
+    // tepi kanan badan teratas dan tepi kiri alas, sebagai fraksi lebar siluet (jangkar garis penunjuk anotasi)
+    el.style.setProperty("--sil-base", (o.baseHw / (o.w / 2)).toFixed(3));
+    el.classList.add("is-on");
   }
 
   function renderStatic() {
-    renderExploded(null);
+    renderExploded();
+    renderBand();
     renderStory();
     renderEditions();
     renderAlur();
@@ -1050,7 +1082,6 @@
   });
   document.addEventListener("input", (e) => {
     const t = e.target;
-    if (t.id === "swipe-range") { renderExploded(+t.value / 1000); return; }
     if (t.id === "gift-to" || t.id === "gift-msg") {
       touched = true;
       state.gift[t.id === "gift-to" ? "to" : "msg"] = t.value;

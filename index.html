@@ -157,28 +157,48 @@
     <section id="tiga" class="paper-2">
       <div class="wrap">
         <p class="eyebrow">02 · Cara kerjanya</p>
-        <h2 class="section-title">Tiga bagian, satu ulir yang sama.</h2>
-        <p class="section-sub">Kap, badan, dan alas disambung dengan ulir cetak M20 yang sama di semua bagian. Tanpa lem. Bagian apa pun bisa dilepas dan diganti kapan saja, termasuk yang kamu beli belakangan.</p>
-        <div class="parts-grid room-body">
-          <div class="exploded-wrap">
-            <div class="exploded" id="exploded" data-dynamic></div>
-            <div class="swipe" id="swipe">
-              <label for="swipe-range"><b>Tahan dan geser</b> untuk ganti warna badan <span class="swipe__name" id="swipe-name" data-dynamic></span></label>
-              <input type="range" id="swipe-range" min="0" max="1000" value="0" aria-label="Geser untuk mengganti warna badan" />
-            </div>
+        <h2 class="section-title">Tiga bagian, <em>satu ulir yang sama.</em></h2>
+        <p class="section-sub">Kap, badan, dan alas disambung ulir cetak M20 yang sama. Tanpa lem; bagian apa pun bisa dilepas dan diganti kapan saja, termasuk yang kamu beli belakangan.</p>
+        <div class="tiga room-body">
+          <div class="tiga__fig">
+            <div class="gk" id="exploded" data-dynamic></div>
           </div>
-          <div>
-            <div class="part-row"><span class="tag">Kap</span><div><h3>Head. Meredam dan mengarahkan cahaya.</h3><p>Silinder plisir, kerucut, atau kotak. Fitting E27 tertanam di leher kap, jadi bola lampu tinggal diputar masuk.</p></div></div>
-            <div class="part-row"><span class="tag">Badan</span><div><h3>Body. Bagian yang membangun karakter lampu.</h3><p>Susun satu sampai tiga bentuk: bola, kubus, cincin, heksagon, silinder. Campur warna sesuka hati; kabel lewat di dalam.</p></div></div>
-            <div class="part-row"><span class="tag">Alas</span><div><h3>Base. Penopang dan jalur kabel keluar.</h3><p>Bulat, segitiga, kotak, atau bunga. Diberi pemberat di dalam supaya lampu tidak mudah goyah walau badannya tinggi.</p></div></div>
+          <div class="tiga__rows">
+            <div class="tiga__row is-active" data-tiga-row="head">
+              <p class="label tiga__tag">Kap</p>
+              <h3>Kap — meredam dan mengarahkan cahaya.</h3>
+              <p class="tiga__text">Silinder plisir, kerucut, atau kotak. Bohlam tinggal diputar ke fitting di lehernya.</p>
+              <p class="tiga__meta">3 bentuk · Ø 20 cm · fitting E27</p>
+            </div>
+            <div class="tiga__row" data-tiga-row="body">
+              <p class="label tiga__tag">Badan</p>
+              <h3>Badan — membangun karakter lampu.</h3>
+              <p class="tiga__text">Susun satu sampai tiga bentuk: bola, kubus, cincin, heksagon, atau silinder.</p>
+              <p class="tiga__meta">1–3 bagian · 5 warna · kabel lewat di dalam</p>
+            </div>
+            <div class="tiga__row" data-tiga-row="base">
+              <p class="label tiga__tag">Alas</p>
+              <h3>Alas — penopang dan jalur kabel.</h3>
+              <p class="tiga__text">Bulat, segitiga, kotak, atau bunga. Pemberat di dalamnya menjaga lampu tetap tegak.</p>
+              <p class="tiga__meta">4 bentuk · berpemberat</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PITA TIPOGRAFI -->
+    <!-- PITA TIPOGRAFI: gerbang ke babak gelap, tepat sebelum studio rakit. Tanpa CTA.
+         Siluet garis lapisan (#pita-sil) diisi lamp.js dari garis luar edisi pilihan studio. -->
     <section class="band dark" id="pita" aria-label="Dicetak satu per satu di Jakarta">
-      <div class="wrap"><p class="band__text"><span>Dicetak satu per satu.</span> <em>Di Jakarta.</em></p><p class="band__sub">Setiap lampu dicetak dan dirakit di studio kami, lalu kami kirim foto rakitannya sebelum berangkat.</p></div>
+      <div class="wrap band__grid">
+        <p class="band__text"><span class="band__l">Dicetak satu</span> <span class="band__l">per satu.</span> <em class="band__l">Di Jakarta.</em></p>
+        <p class="band__sub">Setiap lampu dicetak dan dirakit di studio kami, lalu kami kirim foto rakitannya sebelum berangkat.</p>
+        <div class="band__art" aria-hidden="true">
+          <div class="band__sil" id="pita-sil" data-dynamic></div>
+          <span class="band__lead"></span>
+          <span class="band__ann">Lapis 0,2 mm</span>
+        </div>
+      </div>
     </section>
 
     <!-- KONFIGURATOR (gelap) -->
