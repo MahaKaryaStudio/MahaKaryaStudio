@@ -20,4 +20,16 @@ node tools/qa/shoot.js http://localhost:8800/ /tmp/shots --vp=desktop,hp --sel="
 - `shoot.js`: tangkapan per seksi; `--vp=desktop,laptop,hp,hp360,hpshort`, `--full`,
   `--reduce`, `--page=koleksi.html`.
 
+Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembantu bersama):
+
+- `c06-layout-props.js [--sel="#tiga,#pita"]`: hanya transform, opacity, warna, box-shadow, dan visibility
+  yang dianimasikan di seksi yang sudah dibangun (daftar `SEKSI` di skrip bertambah per langkah).
+- `c11-ilustrasi.js [--only=tiga,hero]`: setiap gambar lampu berlabel ilustrasi, di empat ukuran layar.
+- `c15-istilah.js [--scope="#tiga,#pita"]`: tanpa "—", "konfigurator", Head/Body/Base di teks terlihat.
+- `c20-tipografi.js [--page=koleksi.html]`: tidak ada teks < 12 px dan tidak ada bobot ≥ 700.
+- `c23-edit-migrasi.js`: suntingan Mode Edit di alamat lama tidak menimpa teks baru (tahap `STAGES` di
+  `editor.js`); kasus bertambah di langkah yang mengubah teks dasar.
+- `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif,
+  panggung lengket, pita tiga baris tanpa gerak). Baris `UKUR` melaporkan tinggi seksi terhadap brief.
+
 Angka waktu dari skrip ini berasal dari Chromium ter-throttle, bukan HP sungguhan.
