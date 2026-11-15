@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prototipe: rig SVG vs lampu 3D</title>
+<link rel="stylesheet" href="repo/assets/css/base.css" />
+<link rel="stylesheet" href="repo/assets/css/lamp.css" />
+<style>
+  body { margin: 0; background: var(--dark-bg); color: var(--dark-fg); font-family: var(--sans); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font: 500 20px/1.3 var(--sans); margin: 0 0 4px; }
+  .sub { font: 400 14px/1.5 var(--sans); color: var(--dark-muted); margin: 0 0 20px; max-width: none; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin: 0 0 20px; }
+  .eds { display: flex; flex-wrap: wrap; gap: 8px; }
+  .eds button, .rot button { min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--dark-line-strong); background: none; color: var(--dark-fg); font: 500 14px/1 var(--sans); cursor: pointer; }
+  .eds button[aria-pressed="true"] { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); }
+  .rot { display: flex; gap: 8px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .col h2 { font: 500 12px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--dark-muted); margin: 0 0 8px; }
+  .stage3d .lamp { position: absolute; inset: 0; z-index: 1; }
+  .stage3d .lamp::after { display: none; }
+  .meta { font: 400 12px/1.5 var(--mono); color: var(--dark-muted); margin-top: 8px; min-height: 36px; }
+  @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } .wrap { padding: 16px 16px 40px; } }
+  body.bare h1, body.bare .sub, body.bare .bar, body.bare .meta { display: none; }
+  body.bare .wrap { padding: 12px; }
+</style>
+</head>
+<body class="dark">
+<div class="wrap">
+  <h1>Rig SVG (sekarang) vs lampu 3D (prototipe three.js)</h1>
+  <p class="sub">Konfigurasi dan saklar yang sama menggerakkan keduanya. Geser lampu 3D untuk memutar; tombol panah juga bisa.</p>
+  <div class="bar">
+    <div class="eds" id="eds" role="group" aria-label="Edisi"></div>
+    <button class="switch" id="sw" role="switch" aria-checked="true"><i></i><span>Nyalakan</span></button>
+    <div class="rot"><button id="rl" aria-label="Putar ke kiri">◀ Putar</button><button id="rr" aria-label="Putar ke kanan">Putar ▶</button></div>
+  </div>
+  <div class="pair">
+    <div class="col"><h2>SVG · LampArt night</h2>
+      <div class="stage" id="st-svg" style="--dim:1"><div class="lamp" id="svg-lamp"></div><span class="pill stage__pill">Ilustrasi</span></div>
+      <p class="meta" id="m-svg"></p>
+    </div>
+    <div class="col"><h2>3D · three.js</h2>
+      <div class="stage stage3d" id="st-3d"><div class="lamp" id="gl-lamp"></div><span class="pill stage__pill">Ilustrasi 3D</span></div>
+      <p class="meta" id="m-3d" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+<script src="repo/assets/js/lamp-data.js"></script>
+<script src="repo/assets/js/lamp-art.js"></script>
+<script type="module">
+  const q = new URLSearchParams(location.search);
+  const D = window.MKS_LAMP, A = window.LampArt;
+  let ed = +(q.get("ed") || 0), lit = q.get("lit") !== "0";
+  if (q.get("bare")) document.body.classList.add("bare");
+  const cfgOf = (i) => { const p = D.presets[i]; return { head: p.head, body: p.body, base: p.base }; };
+  const stSvg = document.getElementById("st-svg"), svgLamp = document.getElementById("svg-lamp"), sw = document.getElementById("sw");
+  function drawSvg() {
+    svgLamp.innerHTML = A.renderLamp(cfgOf(ed), { uid: "p", mode: "night", variant: "stage", on: true, dim: 1, label: "Ilustrasi lampu edisi " + D.presets[ed].name });
+    document.getElementById("m-svg").textContent = "SVG " + svgLamp.innerHTML.length + " karakter · tinggi ≈ " + A.totalCm(cfgOf(ed)) + " cm";
+  }
+  const eds = document.getElementById("eds");
+  D.presets.forEach((p, i) => { const b = document.createElement("button"); b.textContent = p.name; b.setAttribute("aria-pressed", i === ed); b.onclick = () => setEd(i); eds.appendChild(b); });
+  let lamp = null;
+  function setEd(i) { ed = i; [...eds.children].forEach((b, k) => b.setAttribute("aria-pressed", k === i)); drawSvg(); if (lamp) lamp.setConfig(cfgOf(i)); }
+  function setLit(on, instant) { lit = on; sw.setAttribute("aria-checked", on); stSvg.style.setProperty("--dim", on ? 1 : 0); if (lamp) lamp.setLit(on, instant); }
+  sw.onclick = () => setLit(!lit);
+  drawSvg(); stSvg.style.setProperty("--dim", lit ? 1 : 0);
+  performance.mark("svg-ready");
+  window.__svgReady = performance.now();
+  if (q.get("no3d")) { window.__done = true; throw new Error("no3d"); }
+  const t0 = performance.now();
+  const { createLamp3D } = await import("./dist/lamp3d.min.js");
+  window.__create = createLamp3D;
+  const tLoaded = performance.now();
+  const host = document.getElementById("gl-lamp");
+  host.addEventListener("lamp3d:firstframe", () => {
+    window.__firstFrame = performance.now();
+    const s = lamp ? lamp.stats() : {};
+    document.getElementById("m-3d").textContent = "modul " + Math.round(tLoaded - t0) + " ms · frame pertama " + Math.round(window.__firstFrame - t0) + " ms sejak impor";
+  });
+  lamp = createLamp3D(host, cfgOf(ed), { lit, yaw: (+(q.get("yaw") || 0) * Math.PI) / 180, auto: q.get("auto") !== "0", label: () => "Ilustrasi 3D lampu edisi " + D.presets[ed].name + ". Geser atau tekan tombol panah untuk memutar." });
+  if (!lamp) document.getElementById("m-3d").textContent = "WebGL tidak tersedia: tetap pakai ilustrasi SVG.";
+  if (lamp && q.get("pitch")) lamp.setPitch((+q.get("pitch") * Math.PI) / 180);
+  document.getElementById("rl").onclick = () => lamp && lamp.rotateBy(-Math.PI / 8);
+  document.getElementById("rr").onclick = () => lamp && lamp.rotateBy(Math.PI / 8);
+  window.__lamp = lamp; window.__setLit = setLit; window.__setEd = setEd; window.__t = { t0, tLoaded };
+</script>
+</body>
+</html>
