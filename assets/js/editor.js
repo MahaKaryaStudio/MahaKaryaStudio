@@ -13,12 +13,17 @@
  */
 (function () {
   const KEY = "mks-edits-v2";
-  /* ---------- Migrasi alamat teks ke tata letak v3 (kunci localStorage tetap "mks-edits-v2") ----------
-     v3 membungkus seksi dalam <main id="konten">, memindah .band, memberi id pada hero/.band/.final, dan
-     menambah label ruang. Suntingan teks lama dipindah ke alamat baru HANYA bila elemennya sama persis
-     (teks dasarnya tidak berubah). Suntingan untuk elemen yang teks dasarnya diganti di v3 atau sudah
-     dihapus tidak diterapkan lagi (bisa jatuh ke elemen lain), tetapi disimpan di state.textV2. */
-  const LAYOUT = 3;
+  /* ---------- Migrasi alamat teks (kunci localStorage tetap "mks-edits-v2") ----------
+     Suntingan teks disimpan per alamat elemen (tag:indeks). Setiap kali teks dasar dipindah, dihapus, atau
+     ditulis ulang, LAYOUT dinaikkan dan satu tahap baru ditambahkan ke STAGES. Tiap tahap hanya dijalankan
+     pada simpanan yang layout-nya lebih tua dari tahap itu, berurutan, jadi alamat yang sah di tata letak
+     baru tidak ikut terbuang. Suntingan dipindah (rename) HANYA bila elemennya sama dan teks dasarnya tidak
+     berubah; suntingan untuk elemen yang teks dasarnya diganti atau sudah dihapus (drop) tidak diterapkan
+     lagi (bisa jatuh ke elemen lain), tetapi disimpan di state.textV2.
+     Tahap 3 (v2 → v3): seksi dibungkus <main id="konten">, .band dipindah, hero/.band/.final diberi id,
+     label ruang ditambah. Tahap 4: 02 #tiga menjadi gambar kerja + tiga baris hairline (lead dan H3 ditulis
+     ulang, isi baris tidak lagi dibungkus <div>, label baris dari <span> menjadi <p>). */
+  const LAYOUT = 4;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -30,6 +35,13 @@
       drop: ["#top/div:0/details:0/summary:0", "#faq/div:0/div:0/details:5/summary:0"],
     },
   };
+  const MOVED_4 = {
+    "index.html": {
+      rename: {"#tiga/div:0/div:0/div:1/div:0/span:0": "#tiga/div:0/div:0/div:1/div:0/p:0", "#tiga/div:0/div:0/div:1/div:1/span:0": "#tiga/div:0/div:0/div:1/div:1/p:0", "#tiga/div:0/div:0/div:1/div:2/span:0": "#tiga/div:0/div:0/div:1/div:2/p:0"},
+      drop: ["#tiga/div:0/p:1", "#tiga/div:0/div:0/div:1/div:0/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:0/div:0/p:0", "#tiga/div:0/div:0/div:1/div:1/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:1/div:0/p:0", "#tiga/div:0/div:0/div:1/div:2/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:2/div:0/p:0"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;
@@ -76,22 +88,26 @@
   function migrateText(s) {
     if (s.layout >= LAYOUT) return false;
     let changed = false;
-    Object.keys(MOVED).forEach((page) => {
-      const t = s.text[page];
-      if (!t || typeof t !== "object" || !Object.keys(t).length) return;
-      const m = MOVED[page], out = {}, kept = {};
-      Object.entries(t).forEach(([path, html]) => {
-        let np = (m.rename && m.rename[path]) || null;
-        if (!np && ((m.drop && m.drop.includes(path)) || (m.dropPrefix && path.startsWith(m.dropPrefix)))) { kept[path] = html; return; }
-        if (!np) np = m.prefix && path.startsWith(m.prefix[0]) ? m.prefix[1] + path.slice(m.prefix[0].length) : path;
-        out[np] = html;
+    STAGES.forEach(([to, table]) => {
+      if ((+s.layout || 0) >= to) return;
+      Object.keys(table).forEach((page) => {
+        const t = s.text[page];
+        if (!t || typeof t !== "object" || !Object.keys(t).length) return;
+        const m = table[page], out = {}, kept = {};
+        Object.entries(t).forEach(([path, html]) => {
+          let np = (m.rename && m.rename[path]) || null;
+          if (!np && ((m.drop && m.drop.includes(path)) || (m.dropPrefix && path.startsWith(m.dropPrefix)))) { kept[path] = html; return; }
+          if (!np) np = m.prefix && path.startsWith(m.prefix[0]) ? m.prefix[1] + path.slice(m.prefix[0].length) : path;
+          out[np] = html;
+        });
+        if (Object.keys(kept).length) {
+          s.textV2 = s.textV2 && typeof s.textV2 === "object" ? s.textV2 : {};
+          s.textV2[page] = Object.assign({}, s.textV2[page], kept);
+        }
+        s.text[page] = out;
+        changed = true;
       });
-      if (Object.keys(kept).length) {
-        s.textV2 = s.textV2 && typeof s.textV2 === "object" ? s.textV2 : {};
-        s.textV2[page] = Object.assign({}, s.textV2[page], kept);
-      }
-      s.text[page] = out;
-      changed = true;
+      s.layout = to;
     });
     s.layout = LAYOUT;
     return changed;
@@ -168,7 +184,7 @@
   }
 
   const EXCLUDE = "[data-dynamic],[data-dynamic-text],.mks-editor,.mks-pill";
-  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,.eyebrow,.promo,.mat b,.mat span,.footer a:not([data-link]),.footer h4,.nav__links a,.estimate__label,.card-why__num,.step span,.part-row .tag,.spec dt,.spec dd:not([id]),.contact-line span:first-child";
+  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,.eyebrow,.promo,.mat b,.mat span,.footer a:not([data-link]),.footer h4,.nav__links a,.estimate__label,.card-why__num,.step span,.spec dt,.spec dd:not([id]),.contact-line span:first-child";
   const editables = () => $$(SEL).filter((el) => !el.closest(EXCLUDE) && el.tagName !== "BUTTON");
 
   function applyText() {

@@ -916,17 +916,20 @@
   if (tigaNarrow.addEventListener) tigaNarrow.addEventListener("change", () => renderExploded());
 
   /* ---------- #pita: siluet garis lapisan cetak ----------
-     Garis luar edisi pilihan studio menjadi mask (data URI); garis 1,5 px tiap 6 px digambar CSS
-     (repeating-linear-gradient), jadi tetap tajam di ukuran berapa pun dan tidak perlu render ulang. */
+     Garis luar edisi pilihan studio menjadi mask (data URI); garis 1 px tiap 6 px digambar CSS
+     (repeating-linear-gradient), jadi tetap tajam di ukuran berapa pun dan tidak perlu render ulang.
+     Variabel ditulis sekali di .band__art (induk siluet, garis penunjuk, dan anotasi). */
   function renderBand() {
     const el = $("#pita-sil");
     if (!el || !A.outline) return;
     const d = D();
     const o = A.outline(presetCfg(d.presets[d.popularPreset] ? d.popularPreset : 0));
-    el.style.setProperty("--sil-mask", `url("data:image/svg+xml,${encodeURIComponent(o.svg)}")`);
-    el.style.setProperty("--sil-ratio", `${o.w} / ${o.h}`);
-    // tepi kanan badan teratas dan tepi kiri alas, sebagai fraksi lebar siluet (jangkar garis penunjuk anotasi)
-    el.style.setProperty("--sil-base", (o.baseHw / (o.w / 2)).toFixed(3));
+    const box = el.parentElement || el;
+    box.style.setProperty("--sil-mask", `url("data:image/svg+xml,${encodeURIComponent(o.svg)}")`);
+    box.style.setProperty("--sil-ratio", `${o.w} / ${o.h}`);
+    // lebar/tinggi siluet dan setengah lebar alas sebagai fraksi setengah lebar siluet (jangkar garis penunjuk anotasi)
+    box.style.setProperty("--sil-ar", (o.w / o.h).toFixed(3));
+    box.style.setProperty("--sil-base", (o.baseHw / (o.w / 2)).toFixed(3));
     el.classList.add("is-on");
   }
 

@@ -637,7 +637,7 @@
      menaruh label HTML 12 px yang tidak ikut mengecil. → { w, h, k, svg, labels: {head, body, base, thread} }
      (label bagian: tepi kanan teks di x, tengah di y; thread: tepi kanan di x, tepi bawah di y). */
   const SHEETS = {
-    wide: { w: 588, h: 600, cx: 340, top: 96, zone: 386, gap: 32, lab: 220, jr: 18, mag: 136, kMax: 1.1, half: 92, dim: true },
+    wide: { w: 588, h: 600, cx: 330, top: 84, zone: 440, gap: 32, lab: 212, jr: 18, mag: 136, kMax: 1.2, half: 98, dim: true },
     compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 120, jr: 12, mag: 96, kMax: 0.8, half: 60, dim: false },
   };
   function sheet(cfg, o) {

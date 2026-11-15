@@ -14,11 +14,13 @@
 .motion-on [data-rv] { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--rv-i, 0) * 70ms); }
 .motion-on [data-rv].in { opacity: 1; transform: none; }
 
-/* 02 #tiga: ilustrasi menempel, baris aktif ditandai hairline tinta (teks non-aktif tanpa opacity) */
-.motion-on .parts-grid--story { align-items: start; }
-.motion-on .parts-grid--story .exploded-wrap { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); transition: top var(--t-med) var(--ease-out); }
-.motion-on .parts-grid--story .part-row { transition: border-color var(--t-med) var(--ease-out); }
-.motion-on .parts-grid--story .part-row.is-active { border-top-color: var(--fg); }
+/* 02 #tiga: baris aktif. Hairline tinta masuk 250 ms dan keluar 150 ms; bagian gambar yang tidak dibahas meredup.
+   Hanya transform dan opacity; panggung lengketnya (lamp.css) tidak punya transisi. */
+@media (min-width: 1024px) {
+  .motion-on .tiga__row::before { transition: transform var(--t-fast) var(--ease-out); }
+  .motion-on .tiga__row.is-active::before { transition-duration: var(--t-med); }
+  .motion-on .tiga--live .gk [data-la-part] { transition: opacity var(--t-med) var(--ease-out); }
+}
 
 /* 07 #cara: garis progres terisi mengikuti scroll, titik langkah menyala satu per satu */
 .motion-on .steps-l { position: relative; --fill: 0; }

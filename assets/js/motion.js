@@ -3,7 +3,7 @@
  *  1. (Nav: sembunyi/muncul, tema, slot, dan tautan aktif ada di nav.js, juga saat gerak dikurangi.)
  *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
  *  3. Cerita terpaku #kenapa (.story--pin): kalimat bertukar, lampu scene berevolusi; --story-p, data-step, data-sub.
- *  4. #tiga: ilustrasi menempel, baris aktif (.is-active) + data-focus pada #exploded.
+ *  4. #tiga: baris aktif (.is-active pada [data-tiga-row]) + data-focus pada #exploded, kelas .tiga--live.
  *  5. #cara: garis progres (--fill) dan langkah .is-done.
  *  6. Reveal SEKALI per seksi, hanya kepala seksi.
  * Scroll memakai perilaku asli browser (scroll-behavior: smooth dari CSS untuk tautan #).
@@ -125,19 +125,23 @@
       if ("MutationObserver" in window) new MutationObserver(onStory).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     }
 
-    /* ---------- 4. #tiga: baris aktif (desktop) ---------- */
-    const rows = $$("#tiga [data-tiga-row], #tiga .part-row");
-    const grid = $("#tiga .parts-grid");
-    if (rows.length && grid && matchMedia("(min-width: 861px)").matches) {
-      grid.classList.add("parts-grid--story");
+    /* ---------- 4. #tiga: baris aktif ----------
+       Baris yang melintasi tengah layar mendapat .is-active; #exploded mendapat data-focus (bagian lain di
+       gambar meredup). Hanya pergantian kelas; tampilannya (≥ 1024 px) dan transisinya ada di CSS. */
+    const tigaGrid = $("#tiga .tiga");
+    const rows = $$("#tiga [data-tiga-row]");
+    if (rows.length && tigaGrid) {
+      const ex = $("#exploded");
       const ro = io((es) => es.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const i = rows.indexOf(e.target);
+        if (!e.isIntersecting || e.target.classList.contains("is-active")) return;
         rows.forEach((r) => r.classList.toggle("is-active", r === e.target));
-        const tiga = $("#tiga"); if (tiga) tiga.dataset.active = String(i);
-        const ex = $("#exploded"); if (ex) ex.dataset.focus = ["head", "body", "base"][i] || "";
+        if (ex) ex.dataset.focus = e.target.dataset.tigaRow || "";
       }), { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
-      if (ro) rows.forEach((r) => ro.observe(r));
+      if (ro) {
+        tigaGrid.classList.add("tiga--live");
+        if (ex) ex.dataset.focus = (rows.find((r) => r.classList.contains("is-active")) || rows[0]).dataset.tigaRow || "";
+        rows.forEach((r) => ro.observe(r));
+      }
     }
 
     /* ---------- 6. Reveal sekali: kepala seksi saja ---------- */

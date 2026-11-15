@@ -228,28 +228,64 @@ html.motion-off .lhero__hint { display: none !important; }
   .story--pin .story__close { grid-area: 3 / 1; margin-top: 24px; }
 }
 
-/* ---------- 02 #tiga ---------- */
-.parts-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 5vw, 64px); align-items: center; }
-.exploded-wrap { display: grid; gap: 12px; }
-.exploded { background: var(--dark-bg-2); border-radius: var(--r-frame); padding: 18px; }
-.exploded svg { width: 100%; height: auto; display: block; }
-.exploded .lp-head, .exploded .lp-body, .exploded .lp-base { transition: opacity var(--t-slow), filter var(--t-slow); }
-.exploded[data-focus="head"] .lp-body, .exploded[data-focus="head"] .lp-base,
-.exploded[data-focus="body"] .lp-head, .exploded[data-focus="body"] .lp-base,
-.exploded[data-focus="base"] .lp-head, .exploded[data-focus="base"] .lp-body { opacity: 0.28; }
-.exploded[data-focus="head"] .lp-head, .exploded[data-focus="body"] .lp-body, .exploded[data-focus="base"] .lp-base { filter: drop-shadow(0 0 14px rgba(242, 163, 58, 0.55)); }
-.part-row { display: grid; grid-template-columns: 72px 1fr; gap: 16px; padding: 24px 0; border-top: 1px solid var(--hairline); }
-.part-row:last-child { border-bottom: 1px solid var(--hairline); }
-.part-row .tag { font: 500 12px/1 var(--mono); color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; padding-top: 8px; }
-.part-row h3 { margin-bottom: 8px; }
-.part-row p { color: var(--fg-2); margin: 0; }
-.swipe { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 12px 16px; color: var(--dark-fg); display: grid; gap: 8px; }
-.swipe label { font-size: var(--fs-small); color: var(--dark-muted); }
-.swipe label b { color: var(--dark-fg); }
-.swipe__name { font: 400 12px/1.4 var(--mono); color: var(--dark-fg-2); }
-.swipe input[type="range"] { width: 100%; height: 30px; margin: 0; appearance: none; background: linear-gradient(90deg, #efe3cb, #2b2622, #c4522f, #5c8040, #e8836f); border-radius: 999px; border: 1px solid var(--dark-line); touch-action: pan-y; }
-.swipe input[type="range"]::-webkit-slider-thumb { appearance: none; width: 30px; height: 30px; border-radius: 50%; background: var(--dark-fg); border: 3px solid var(--dark-bg); box-shadow: var(--shadow-float); cursor: grab; }
-.swipe input[type="range"]::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: var(--dark-fg); border: 3px solid var(--dark-bg); cursor: grab; }
+/* ---------- 02 #tiga (ruang 02, paper-2) — brief §7 "02 #tiga" ----------
+   Desktop ≥ 1024 (±1.180): lembar gambar kerja kolom 1–6 (588 × 600, lengket) | kolom 7 kosong | tiga baris
+   hairline kolom 8–12 (486), masing-masing min 200: label → H3 28 → body 17 → meta mono 14.
+   < 1024 (±1.150): lembar ringkas 390 × 380 (full-bleed sampai 760) lalu tiga baris hairline.
+   Lembar (#exploded.gk) diisi lamp.js renderExploded(): SVG LampArt.sheet() + label HTML 12 px di jangkar persen.
+   Baris aktif: motion.js memindah .is-active dan menulis data-focus pada #exploded (kelas .tiga--live);
+   tanpa gerak baris pertama tetap bertanda dan gambar tidak diredupkan. Teks non-aktif tidak pernah diberi opacity. */
+#tiga .section-sub { max-width: 560px; }
+.tiga { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.tiga__fig { margin-inline: calc(-1 * var(--page-margin)); }
+.gk { --sil-fill: var(--paper); --sil-stroke: var(--ink); --sil-lead: var(--ink-2); position: relative; aspect-ratio: var(--gk-ratio, 390 / 380); overflow: hidden; background-color: var(--paper); background-image: radial-gradient(circle at 0.5px 0.5px, rgba(31, 26, 22, 0.08) 1px, transparent 1.5px); background-size: 24px 24px; background-position: 11.5px 11.5px; color: var(--ink-2); }
+.gk__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.gk .sil__h { fill: none; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.gk .sil__dot { fill: var(--ink-2); }
+.gk .sil__l--hole { stroke-width: 1px; }
+.gk__lens { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.gk__pill, .gk__lab, .gk__title { position: absolute; margin: 0; font: 500 var(--fs-label) / 1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--ink-2); }
+.gk__pill { left: 12px; top: 12px; display: inline-flex; align-items: center; min-height: 24px; padding: 4px 12px; border-radius: var(--r-pill); background: var(--paper-2); box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--ink); }
+.gk__lab { transform: translate(-100%, -50%); padding-right: 0; text-align: right; }
+.gk__lab-a { color: var(--ink); }
+.gk__lab--thread { transform: translate(-100%, -100%); }
+.gk__title { left: 12px; bottom: 12px; }
+.gk[data-sheet="compact"] .gk__lab:not(.gk__lab--thread) .gk__lab-sep { display: none; }
+.gk[data-sheet="compact"] .gk__lab:not(.gk__lab--thread) .gk__lab-b { display: block; margin-top: 2px; }
+.gk[data-sheet="compact"] .gk__title { display: none; } /* lembar ringkas: sudut kiri bawah dipakai label ulir; nama edisi ada di aria-label */
+.tiga__rows { display: grid; align-content: start; }
+.tiga__row { position: relative; padding: 24px 0; border-top: 1px solid var(--hairline); }
+.tiga__row:last-child { border-bottom: 1px solid var(--hairline); }
+.tiga__tag { margin: 0 0 8px; color: var(--fg-2); }
+.tiga__row h3 { margin: 0 0 8px; line-height: 1.2; }
+.tiga__text { margin: 0; max-width: 40ch; color: var(--fg-2); }
+.tiga__meta { margin: 8px 0 0; max-width: none; font: 400 var(--fs-label) / 1.5 var(--mono); letter-spacing: 0.02em; color: var(--fg-2); }
+@media (min-width: 761px) and (max-width: 1023px) {
+  .tiga { max-width: 720px; }
+  .tiga__fig { margin-inline: 0; max-width: 560px; }
+  .gk { border-radius: var(--r-frame); }
+}
+@media (min-width: 1024px) {
+  .tiga { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: 0; align-items: start; }
+  /* lengket di bawah nav; ruang nav selalu dicadangkan (tinggi tetap), jadi top tidak pernah berubah dan tidak ditransisi */
+  .tiga__fig { grid-column: 1 / span 6; margin-inline: 0; position: sticky; top: calc(var(--nav-h) + 24px); }
+  .gk { border-radius: var(--r-frame); }
+  .gk__pill, .gk__title { left: 16px; }
+  .gk__pill { top: 16px; }
+  .gk__title { bottom: 16px; }
+  .tiga__rows { grid-column: 8 / span 5; }
+  .tiga__row { min-height: 200px; }
+  .tiga__tag, .tiga__row h3 { margin-bottom: 12px; }
+  .tiga__row h3 { line-height: 1.15; }
+  .tiga__meta { font-size: 14px; }
+  /* baris aktif: hairline atas terisi tinta 2 px (statis; transisinya di motion.css) */
+  .tiga__row::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--fg); transform: scaleX(0); transform-origin: 0 50%; }
+  .tiga__row.is-active::before { transform: none; }
+  /* sorot bagian di gambar hanya saat baris aktif mengikuti scroll (.tiga--live dari motion.js) */
+  .tiga--live .gk[data-focus="head"] [data-la-part]:not([data-la-part="head"]),
+  .tiga--live .gk[data-focus="body"] [data-la-part]:not([data-la-part="body"]),
+  .tiga--live .gk[data-focus="base"] [data-la-part]:not([data-la-part="base"]) { opacity: 0.3; }
+}
 
 /* ---------- 01 #edisi (ruang 01, paper) — brief §7 "01 #edisi" ----------
    Desktop (±1.510): kontainer 1200 = vitrine kolom 1–7 (690 × min(780, 100svh − 120), lengket) | kolom 8 kosong |
@@ -349,12 +385,31 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
 .mkt small { font-size: var(--fs-small); color: var(--fg-2); }
 .mkt__row { display: flex; flex-wrap: wrap; gap: 0 24px; }
 
-/* ---------- .band (pita tipografi) ---------- */
-.band { padding: var(--pad-support) 0; text-align: center; }
-.band__text { margin: 0 auto; max-width: none; font: 340 var(--fs-band) / 0.95 var(--serif); letter-spacing: -0.035em; font-variation-settings: "opsz" 144; color: var(--dark-fg); }
-.band__text em { display: block; font-style: italic; font-weight: 320; padding-bottom: 0.08em; text-shadow: var(--text-glow); }
-.band__sub { margin: 24px auto 0; max-width: 44ch; font-size: var(--fs-lead); line-height: 1.5; color: var(--dark-fg-2); }
-@media (max-width: 760px) { .band__text { line-height: 0.98; letter-spacing: -0.03em; } }
+/* ---------- .band / #pita (pita tipografi, gelap) — brief §7 ".band" ----------
+   Gerbang ke babak gelap tepat sebelum #rakit. Rata kiri, tanpa CTA, tanpa gerak.
+   Desktop ≥ 1024 (±620): display 96 tiga baris terkunci di kolom 1–8, sub 20 (maks 36ch), siluet garis lapisan
+   360 × 520 di kolom 9–12 (opacity .10) dengan anotasi "LAPIS 0,2 MM". < 1024 (±420): display 48, siluet
+   160 × 240 rata kanan di belakang teks (opacity .08), tanpa anotasi.
+   Siluet = garis 1 px tiap 6 px (4 px di bawah 1024, gradien CSS) yang ditopeng garis luar edisi pilihan studio (lamp.js renderBand). */
+.band { position: relative; overflow: hidden; padding: var(--pad-support) 0; box-shadow: inset 0 -1px 0 var(--dark-line); }
+.band__grid { position: relative; }
+.band__text { position: relative; z-index: 1; margin: 0; max-width: none; font: 340 var(--fs-band) / 0.98 var(--serif); letter-spacing: -0.03em; font-variation-settings: "opsz" 144; color: var(--dark-fg); }
+.band__l { display: block; width: max-content; max-width: 100%; }
+.band__text em { font-style: italic; font-weight: 320; padding-bottom: 0.08em; text-shadow: var(--text-glow); }
+.band__sub { position: relative; z-index: 1; margin: 20px 0 0; max-width: 36ch; font-size: var(--fs-lead); line-height: 1.5; color: var(--dark-fg-2); }
+.band__art { position: absolute; z-index: 0; right: 0; top: 50%; width: 160px; height: 240px; transform: translateY(-50%); pointer-events: none; }
+.band__sil { display: none; position: absolute; right: 0; top: 0; height: 100%; aspect-ratio: var(--sil-ratio, 1 / 2); background: repeating-linear-gradient(to bottom, var(--dark-fg) 0 1px, transparent 1px var(--sil-step, 4px)); -webkit-mask: var(--sil-mask) center / 100% 100% no-repeat; mask: var(--sil-mask) center / 100% 100% no-repeat; opacity: 0.08; }
+.band__sil.is-on { display: block; }
+.band__lead, .band__ann { display: none; }
+@media (min-width: 1024px) {
+  .band__text { line-height: 0.95; letter-spacing: -0.035em; }
+  .band__sub { margin-top: 32px; }
+  .band__art { width: 360px; height: 520px; }
+  .band__sil { --sil-step: 6px; right: auto; left: 50%; transform: translateX(-50%); opacity: 0.1; }
+  /* anotasi: label di kiri bawah, garis penunjuk 1 px ke tepi kiri alas siluet */
+  .band__sil.is-on ~ .band__ann { display: block; position: absolute; left: 0; bottom: 22px; font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; color: var(--dark-muted); transform: translateX(-100%); padding-right: 12px; }
+  .band__sil.is-on ~ .band__lead { display: block; position: absolute; left: 0; bottom: 27px; height: 1px; width: calc(50% - var(--sil-base, 1) * var(--sil-ar, 0.5) * 260px + 6px); background: var(--dark-line-strong); }
+}
 
 /* ---------- 03 #rakit (konfigurator) ---------- */
 .presets p { font-size: var(--fs-small); color: var(--dark-muted); margin: 0 0 12px; }
@@ -672,6 +727,6 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .copy:hover { color: var(--dark-fg); box-shadow: inset 0 0 0 1px var(--dark-fg); }
 
 @media (max-width: 860px) {
-  .parts-grid, .how { grid-template-columns: 1fr; }
+  .how { grid-template-columns: 1fr; }
   .stage:not(.stage--hero):not(.stage--vitrine) { aspect-ratio: 4 / 4.4; }
 }
