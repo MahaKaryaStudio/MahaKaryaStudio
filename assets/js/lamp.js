@@ -926,7 +926,6 @@
     const o = A.outline(presetCfg(d.presets[d.popularPreset] ? d.popularPreset : 0));
     const box = el.parentElement || el;
     box.style.setProperty("--sil-mask", `url("data:image/svg+xml,${encodeURIComponent(o.svg)}")`);
-    box.style.setProperty("--sil-ratio", `${o.w} / ${o.h}`);
     // lebar/tinggi siluet dan setengah lebar alas sebagai fraksi setengah lebar siluet (jangkar garis penunjuk anotasi)
     box.style.setProperty("--sil-ar", (o.w / o.h).toFixed(3));
     box.style.setProperty("--sil-base", (o.baseHw / (o.w / 2)).toFixed(3));
