@@ -33,7 +33,7 @@ jobs:
       - name: Siapkan folder situs
         run: |
           mkdir -p _site
-          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' --exclude 'ops' --exclude 'tools' \
+          rsync -a --exclude '.git' --exclude '.github' --exclude '.claude' --exclude '_site' --exclude 'ops' --exclude 'tools' \
             --exclude 'reports' --exclude 'research_notes' --exclude 'finance' --exclude 'dist' \
             --exclude 'README.md' --exclude '.gitignore' ./ _site/
       - uses: actions/upload-pages-artifact@v3
