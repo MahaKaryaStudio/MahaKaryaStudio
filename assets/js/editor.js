@@ -22,8 +22,10 @@
      lagi (bisa jatuh ke elemen lain), tetapi disimpan di state.textV2.
      Tahap 3 (v2 → v3): seksi dibungkus <main id="konten">, .band dipindah, hero/.band/.final diberi id,
      label ruang ditambah. Tahap 4: 02 #tiga menjadi gambar kerja + tiga baris hairline (lead dan H3 ditulis
-     ulang, isi baris tidak lagi dibungkus <div>, label baris dari <span> menjadi <p>). */
-  const LAYOUT = 4;
+     ulang, isi baris tidak lagi dibungkus <div>, label baris dari <span> menjadi <p>). Tahap 5: baris meta
+     Kap di #tiga ditulis ulang ("Ø 20 cm" menjadi "lebar 20 cm"; angka bentuk/warna kini diisi lamp.js lewat
+     <span data-tiga-n>). Meta Badan dan Alas tidak berubah kata, jadi suntingannya tetap berlaku. */
+  const LAYOUT = 5;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -41,7 +43,12 @@
       drop: ["#tiga/div:0/p:1", "#tiga/div:0/div:0/div:1/div:0/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:0/div:0/p:0", "#tiga/div:0/div:0/div:1/div:1/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:1/div:0/p:0", "#tiga/div:0/div:0/div:1/div:2/div:0/h3:0", "#tiga/div:0/div:0/div:1/div:2/div:0/p:0"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4]];
+  const MOVED_5 = {
+    "index.html": {
+      drop: ["#tiga/div:0/div:0/div:1/div:0/p:2"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;

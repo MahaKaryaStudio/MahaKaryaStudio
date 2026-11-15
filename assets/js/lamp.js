@@ -884,7 +884,8 @@
      #exploded diisi LampArt.sheet(): edisi pilihan studio terurai sebagai garis tinta, garis penunjuk,
      kaca pembesar ulir M20. Label ditaruh sebagai HTML 12 px di jangkar persen dari renderer, jadi tidak
      ikut mengecil bersama SVG. Lembar lebar (588×600) dari 1024 px, lembar ringkas (390×380) di bawahnya.
-     Sorot baris aktif: motion.js menulis data-focus="head|body|base" pada #exploded (CSS meredupkan sisanya). */
+     Sorot baris aktif: motion.js menulis data-focus="head|body|base" pada #exploded (CSS meredupkan sisanya).
+     Sekalian mengisi angka baris meta ([data-tiga-n="heads|bases|colors|maxBodies"]) dari lamp-data. */
   const tigaNarrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
   function renderExploded() {
     const el = $("#exploded");
@@ -896,9 +897,11 @@
     const sh = A.sheet(cfg, { sheet: kind });
     const span = A.shadeSpan(cfg).label;
     const n = cfg.body.length + 2, cm = A.totalCm(cfg).toFixed(0);
+    // DM Mono menggambar nol dengan garis miring: tanda Ø di sebelahnya ditulis dengan huruf sans supaya "Ø 20" terbaca
+    const diam = (t) => esc(t).replace(/Ø/g, '<span class="gk__diam">Ø</span>');
     const lab = (key, a, b) => {
       const at = sh.labels[key];
-      return at ? `<span class="gk__lab gk__lab--${key}" style="left:${at.x}%;top:${at.y}%"><span class="gk__lab-a">${esc(a)}</span><span class="gk__lab-sep"> · </span><span class="gk__lab-b">${esc(b)}</span></span>` : "";
+      return at ? `<span class="gk__lab gk__lab--${key}" style="left:${at.x}%;top:${at.y}%"><span class="gk__lab-a">${esc(a)}</span><span class="gk__lab-sep"> · </span><span class="gk__lab-b">${diam(b)}</span></span>` : "";
     };
     el.dataset.sheet = kind;
     el.style.setProperty("--gk-ratio", `${sh.w} / ${sh.h}`);
@@ -912,6 +915,13 @@
       lab("base", "Alas", "Berpemberat") +
       lab("thread", "Ulir M20", "Tanpa lem") +
       `<span class="gk__title">Edisi ${esc(pre.name)}<span class="gk__title-x"> · ${n} bagian · ≈ ${cm} cm</span></span>`;
+    // Angka di baris meta (#tiga) mengikuti lamp-data, jadi tidak basi saat bentuk atau warna ditambah lewat Mode Edit.
+    // Angka yang diketik di HTML hanya cadangan tanpa JS.
+    $$("#tiga [data-tiga-n]").forEach((s) => {
+      const k = s.dataset.tigaN;
+      const v = k === "maxBodies" ? +d.maxBodies : ["heads", "bases", "colors"].includes(k) && Array.isArray(d[k]) ? d[k].length : 0;
+      if (v > 0) s.textContent = String(v);
+    });
   }
   if (tigaNarrow.addEventListener) tigaNarrow.addEventListener("change", () => renderExploded());
 

@@ -14,6 +14,11 @@ const KASUS = [
     text: { '#tiga/div:0/p:1': 'LEAD V2', [ROW + '2/span:0']: 'KAKI', [ROW + '2/div:0/h3:0']: 'H3 V2', 'main:0/section:8/div:0/p:0': 'PITA V2', '#edisi/div:0/h2:0': 'JUDUL EDISI V2' },
     harap: { '#tiga .section-sub': /^Kap, badan, dan alas disambung/, '#tiga [data-tiga-row="base"] .tiga__tag': /^KAKI$/, '#tiga [data-tiga-row="base"] h3': /^Alas: penopang/, '#pita .band__text': /^PITA V2$/, '#edisi .section-title': /^Lima edisi/ },
     arsip: ['#tiga/div:0/p:1', ROW + '2/div:0/h3:0', '#edisi/div:0/h2:0'], pindah: { [ROW + '2/p:0']: 'KAKI', '#pita/div:0/p:0': 'PITA V2' } },
+  // tahap 5: meta Kap ditulis ulang (diarsipkan); meta Badan dan isi baris tidak berubah kata (tetap diterapkan)
+  { nama: 'tahap 5 (meta Kap #tiga), simpanan layout 4', layout: 4,
+    text: { [ROW + '0/p:2']: 'META KAP LAMA', [ROW + '1/p:2']: 'META BADAN SUNTINGAN', [ROW + '0/p:1']: 'ISI KAP SUNTINGAN' },
+    harap: { '#tiga [data-tiga-row="head"] .tiga__meta': /^3 bentuk · lebar 20 cm · fitting E27$/, '#tiga [data-tiga-row="body"] .tiga__meta': /^META BADAN SUNTINGAN$/, '#tiga [data-tiga-row="head"] .tiga__text': /^ISI KAP SUNTINGAN$/ },
+    arsip: [ROW + '0/p:2'], pindah: { [ROW + '1/p:2']: 'META BADAN SUNTINGAN', [ROW + '0/p:1']: 'ISI KAP SUNTINGAN' } },
 ];
 run(async ({ open, check }) => {
   for (const k of KASUS) {
@@ -24,7 +29,7 @@ run(async ({ open, check }) => {
     check(bad.length === 0, `C23 ${k.nama}: teks baru tidak tertimpa, suntingan yang sah tetap diterapkan`, bad.join(' | '));
     const t = (r.st.text || {})['index.html'] || {}, v2 = (r.st.textV2 || {})['index.html'] || {};
     const badS = [...k.arsip.filter((a) => a in t || !(a in v2)).map((a) => 'tidak diarsipkan: ' + a), ...Object.entries(k.pindah).filter(([a, v]) => t[a] !== v).map(([a]) => 'tidak pindah: ' + a)];
-    check(badS.length === 0 && r.st.layout >= 4, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 4)`, badS.join(' | ') + ' layout ' + r.st.layout);
+    check(badS.length === 0 && r.st.layout >= 5, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 5)`, badS.join(' | ') + ' layout ' + r.st.layout);
     check(p.__errs.length === 0, `C23 ${k.nama}: tanpa error JS`, p.__errs.join(' | ').slice(0, 200));
   }
   // Mode Edit tetap terbuka dan baris #tiga bisa disunting; label di dalam gambar kerja dan pita tidak ikut

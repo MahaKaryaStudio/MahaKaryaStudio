@@ -22,7 +22,7 @@
  *
  * API (semua pemanggil v2 tetap jalan):
  *   renderLamp(cfg, o) → string <svg>   cfg = {head:{shape,color[,hex]}, body:[…], base:{…}}
- *     o.uid, o.on (alias o.lit), o.dim, o.explode, o.table, o.vb, o.dims, o.cover   (v2)
+ *     o.uid, o.on (alias o.lit), o.dim, o.table, o.vb, o.dims, o.cover   (v2)
  *     o.mode     "night" | "catalog" | "drawing" | "thumb" | "matte"
  *                (tanpa mode: table:false → catalog, selain itu night)
  *     o.variant  "hero" | "hero-hp" | "vitrine" | "studio" | "scene" | "scene-hp" | "final" | "thumb"  (bingkai rig malam)
@@ -36,12 +36,11 @@
  *                menjaganya tepat 12 px di layar pada skala SVG berapa pun (font-size naik bila SVG mengecil,
  *                transform scale turun bila SVG membesar; font-size atribut tidak pernah < 12)
  *     o.pill     teks pil ILUSTRASI → string = svg + <span class="pill stage__pill" data-stage-pill>
- *     o.ink      warna anotasi terurai (katalog di kertas: "#5b524a"), o.marks false = tanpa anotasi
- *     mode "drawing" + o.explode → gambar kerja terurai dengan .sil__lead / .sil__t dan <g data-la-part>
  *     thumb(cfg, {paper:true}) → thumb katalog di kertas (bayangan --catalog-shadow, tanpa glow)
  *     o.label    aria-label; o.decorative → aria-hidden
  *   sheet(cfg, {sheet: "wide" | "compact"}) → {w, h, k, svg, labels}   lembar gambar kerja #tiga (588×600 / 390×380):
- *                lampu terurai garis tinta + garis penunjuk + kaca pembesar ulir; label HTML ditaruh pemanggil
+ *                lampu terurai garis tinta (<g data-la-part>) + garis penunjuk .sil__lead + kaca pembesar ulir;
+ *                satu-satunya tampilan terurai (opsi lama o.explode / o.marks / o.ink sudah dihapus); label HTML ditaruh pemanggil
  *                di labels.head/body/base/thread ({x, y} dalam % bingkai)
  *   outline(cfg) → {vb, w, h, baseHw, svg}   garis luar lampu pejal (mask siluet garis lapisan #pita)
  *   thumb(cfg, o), silhouette(spec, uid) → {vb, w, h, svg}, geometry(cfg), anchor(cfg, variant),
@@ -242,10 +241,9 @@
     };
   }
 
-  // Susun alas → badan → leher → kap. explode: jarak antarkelompok (gambar "Tiga bagian")
-  // explode: true = 34 satuan; angka = jarak sendiri (lembar gambar kerja #tiga)
-  function stack(cfg, explode) {
-    const gap = typeof explode === "number" ? explode : explode ? 34 : 0;
+  // Susun alas → badan → leher → kap. gap: jarak antarkelompok dalam satuan gambar (lembar gambar kerja #tiga); 0 = utuh
+  function stack(cfg, gap) {
+    gap = +gap || 0;
     let y = FLOOR;
     const base = baseSpec(cfg.base.shape, y);
     base.hex = safeHex(cfg.base.hex || hexOf(cfg.base.color));
@@ -274,7 +272,7 @@
     const hw = Math.max(base.hw, head.hw, ...bodies.map((b) => b.hw));
     // Sambungan (AO): alas–badan, antarbadan, badan–leher, leher–kap
     const joints = [];
-    if (!explode) {
+    if (!gap) {
       joints.push({ y: baseTop, rx: Math.min(bodies.length ? bodies[0].hw : 30, base.hw) * 0.62 });
       for (let i = 1; i < bodies.length; i++) joints.push({ y: bodies[i].y, rx: Math.min(bodies[i].hw, bodies[i - 1].hw) * 0.55 });
       joints.push({ y: bodyTop, rx: 14 });
@@ -443,7 +441,7 @@
     const matte = mode === "matte";
     const dim = !on ? 0 : o.dim == null ? 1 : Math.max(0, Math.min(1, +o.dim));
     const rigOn = o.layers !== "lamp", lampOn = o.layers !== "rig"; // scene #kenapa: rig dan lampu sebagai lapisan terpisah
-    const L = stack(cfg, o.explode);
+    const L = stack(cfg);
     const H = L.head;
     // Lapisan cahaya: di rig malam mengikuti --dim wadah (fallback o.dim); di katalog nilai tetap
     const dv = (k) => (night && on ? `style="opacity:${k === 1 ? `var(--dim, ${dim})` : `calc(var(--dim, ${dim}) * ${k})`}"` : `opacity="${Math.round(dim * k * 100) / 100}"`);
@@ -478,15 +476,13 @@
         out += `<rect x="${big.x}" y="${r1(f.fe)}" width="${big.w}" height="1" fill="#f2e7d5" fill-opacity=".08"/>`;
       }
       // 4 genangan cahaya di meja (× --dim)
-      if (on && lampOn && !o.explode) out += `<g data-la-lit="" ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
+      if (on && lampOn) out += `<g data-la-lit="" ${dv(1)} clip-path="url(#${u}-tc)"><ellipse cx="${CX}" cy="${r1(L.foot.cy + 6)}" rx="${r1(Math.max(150, L.hw * 2.3))}" ry="${r1(Math.max(30, (f.fe - f.J) * 0.62))}" fill="url(#${u}-pl)"/></g>`;
     }
     if (!lampOn) return out + "</svg>"; // lapisan rig saja
     // 5 bayangan kontak statis
-    if (!o.explode) {
-      const ft = L.foot;
-      out += `<ellipse cx="${CX}" cy="${r1(ft.cy + 3)}" rx="${r1(ft.rx * 1.18 + 8)}" ry="${r1(ft.ry * 1.5 + 7)}" fill="url(#${u}-cs)"/>`;
-      if (night) out += `<ellipse cx="${CX}" cy="${r1(ft.cy + 1)}" rx="${r1(ft.rx + 2)}" ry="${r1(ft.ry + 2)}" fill="#000" fill-opacity=".38"/>`;
-    }
+    const ft = L.foot;
+    out += `<ellipse cx="${CX}" cy="${r1(ft.cy + 3)}" rx="${r1(ft.rx * 1.18 + 8)}" ry="${r1(ft.ry * 1.5 + 7)}" fill="url(#${u}-cs)"/>`;
+    if (night) out += `<ellipse cx="${CX}" cy="${r1(ft.cy + 1)}" rx="${r1(ft.rx + 2)}" ry="${r1(ft.ry + 2)}" fill="#000" fill-opacity=".38"/>`;
     // catalog menyala (tombol preset di latar gelap): glow kecil di belakang kap
     if (!night && on) out += `<ellipse cx="${CX}" cy="${r1(L.shadeCy)}" rx="230" ry="240" fill="url(#${u}-gl)" ${dv(1)}/>`;
 
@@ -516,29 +512,12 @@
     // 7 vinyet
     if (night && f.vig) out += `<rect x="${big.x}" y="${r1(f.top - f.Hf)}" width="${big.w}" height="${r1(f.Hf * 3)}" fill="url(#${u}-vg)" pointer-events="none"/>`;
 
-    if (o.explode && o.marks !== false) out += explodeMarks(L, o.ink);
     if (o.dims) out += dimsMarks(L, cfg);
     out += "</svg>";
     if (o.pill) out += `<span class="pill stage__pill" data-stage-pill>${esc(o.pill)}</span>`;
     return out;
   }
 
-  function explodeMarks(L, ink) {
-    const lx = CX + 100, H = L.head;
-    const hc = (L.headTop + L.headBottom) / 2, bc = (L.bodyTop + L.bodyBottom) / 2;
-    const col = esc(ink || "#a89a85");
-    const tf = `font-family="DM Mono,monospace" font-size="12" fill="${col}"`;
-    return (
-      `<g stroke="${col}" stroke-opacity=".6" stroke-dasharray="3 4">` +
-      `<line x1="${CX + H.hw + 10}" y1="${r1(hc)}" x2="${lx}" y2="${r1(hc)}"/>` +
-      `<line x1="${CX + 56}" y1="${r1(bc)}" x2="${lx}" y2="${r1(bc)}"/>` +
-      `<line x1="${CX + 82}" y1="${r1(L.baseTop + 12)}" x2="${lx}" y2="${r1(L.baseTop + 12)}"/>` +
-      `<line x1="${CX}" y1="${r1(L.headBottom + 2)}" x2="${CX}" y2="${r1(L.bodyTop - 2)}" stroke-dasharray="2 3"/>` +
-      `<line x1="${CX}" y1="${r1(L.bodyBottom + 2)}" x2="${CX}" y2="${r1(L.baseTop - 2)}" stroke-dasharray="2 3"/></g>` +
-      `<g ${tf}><text x="${lx + 6}" y="${r1(hc + 4)}">KAP</text><text x="${lx + 6}" y="${r1(bc + 4)}">BADAN</text><text x="${lx + 6}" y="${r1(L.baseTop + 16)}">ALAS</text>` +
-      `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}" font-size="12">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}" font-size="12">ulir M20</text></g>`
-    );
-  }
   // Lebar nominal kap 20 cm. Tanda Ø hanya untuk kap bundar; kap kotak diberi label lebar biasa.
   function shadeSpan(cfg) {
     const boxy = !!(cfg && cfg.head && headSpec(cfg.head.shape, 0).box);
@@ -609,36 +588,25 @@
     close();
     return g;
   }
-  // o.explode: tampilan terurai (#tiga) dengan garis penunjuk + label mono (kelas .sil__lead / .sil__t,
-  // warna dari CSS: garis 1 px --ink-2). Kelompok bagian membawa data-la-part untuk sorot baris aktif.
+  // Lampu utuh sebagai garis tinta (mode "drawing"). Tampilan terurai ada di sheet().
   function renderDrawing(cfg, o) {
-    const L = stack(cfg, o.explode);
-    const ex = !!o.explode;
-    const top = L.top - (ex ? 10 : 2), bot = L.bottom + (ex ? 10 : 2), hw = L.hw + 2;
-    const vb = o.vb || (ex ? `${r1(CX - hw - 10)} ${r1(top)} ${r1(hw * 2 + 110)} ${r1(bot - top)}` : `${r1(CX - hw)} ${r1(top)} ${r1(hw * 2)} ${r1(bot - top)}`);
+    const L = stack(cfg);
+    const top = L.top - 2, bot = L.bottom + 2, hw = L.hw + 2;
+    const vb = o.vb || `${r1(CX - hw)} ${r1(top)} ${r1(hw * 2)} ${r1(bot - top)}`;
     const label = o.label ? ` role="img" aria-label="${esc(o.label)}"` : ' aria-hidden="true" focusable="false"';
-    let marks = "";
-    if (ex) {
-      const lx = CX + L.hw + 22, H = L.head;
-      const hc = (L.headTop + L.headBottom) / 2, bc = (L.bodyTop + L.bodyBottom) / 2, ac = L.baseTop + 12;
-      marks =
-        `<path class="sil__lead" d="M${P(CX + H.hw + 8, hc)}H${r1(lx)}M${P(CX + 58, bc)}H${r1(lx)}M${P(CX + L.base.hw + 6, ac)}H${r1(lx)}"/>` +
-        `<path class="sil__lead sil__lead--thread" d="M${P(CX, L.headBottom + 2)}V${r1(L.bodyTop - 2)}M${P(CX, L.bodyBottom + 2)}V${r1(L.baseTop - 2)}"/>` +
-        `<g class="sil__t" font-family="DM Mono,monospace" font-size="12"><text x="${r1(lx + 6)}" y="${r1(hc + 4)}">KAP</text><text x="${r1(lx + 6)}" y="${r1(bc + 4)}">BADAN</text><text x="${r1(lx + 6)}" y="${r1(ac + 4)}">ALAS</text>` +
-        `<text x="${CX + 8}" y="${r1((L.headBottom + L.bodyTop) / 2 + 4)}">ulir M20</text><text x="${CX + 8}" y="${r1((L.bodyBottom + L.baseTop) / 2 + 4)}">ulir M20</text></g>`;
-    }
-    return `<svg class="sil${ex ? " sil--explode" : ""}" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"${label} data-la="drawing">${drawingParts(L, true)}${marks}</svg>`;
+    return `<svg class="sil" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"${label} data-la="drawing">${drawingParts(L, true)}</svg>`;
   }
   /* ---------- lembar gambar kerja #tiga (brief §7 "02 #tiga") ----------
      Satu <svg> berukuran bingkai (wide 588×600, compact 390×380): lampu terurai sebagai garis tinta
      (kelompok <g data-la-part="head|body|base"> untuk sorot baris aktif), garis penunjuk 1 px ke tepi
-     kiri tiap bagian, garis ukur Ø kap (wide), penanda sambungan + siku ke kaca pembesar ulir M20.
+     kiri tiap bagian, penanda sambungan + siku ke kaca pembesar ulir M20. Ukuran kap ada di labelnya
+     (tidak ada garis ukur tanpa angka).
      Label TIDAK digambar di SVG: posisi jangkarnya dikembalikan dalam persen bingkai supaya pemanggil
      menaruh label HTML 12 px yang tidak ikut mengecil. → { w, h, k, svg, labels: {head, body, base, thread} }
      (label bagian: tepi kanan teks di x, tengah di y; thread: tepi kanan di x, tepi bawah di y). */
   const SHEETS = {
-    wide: { w: 588, h: 600, cx: 330, top: 84, zone: 440, gap: 32, lab: 212, jr: 18, mag: 136, kMax: 1.2, half: 98, dim: true },
-    compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 120, jr: 12, mag: 96, kMax: 0.8, half: 60, dim: false },
+    wide: { w: 588, h: 600, cx: 330, top: 84, zone: 440, gap: 32, lab: 212, jr: 18, mag: 136, kMax: 1.2, half: 98 },
+    compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 120, jr: 12, mag: 96, kMax: 0.8, half: 60 },
   };
   function sheet(cfg, o) {
     o = o || {};
@@ -660,7 +628,6 @@
       dots += `<circle class="sil__dot" cx="${r1(xe)}" cy="${r1(y)}" r="2"/>`;
       labels[key] = { x: r1((S.lab / S.w) * 100), y: r1((y / S.h) * 100) };
     });
-    if (S.dim) { const y = r1(Y(L.headTop) - 16), x0 = r1(X(CX - H.hw)), x1 = r1(X(CX + H.hw)); lead += `M${x0} ${y}H${x1}M${x0} ${y - 6}V${y + 6}M${x1} ${y - 6}V${y + 6}`; }
     // sambungan badan–alas → kaca pembesar di kanan bawah
     const mr = S.mag / 2, mcx = S.w - 16 - mr, mcy = S.h - 16 - mr, topY = mcy - mr;
     const jy = Y(L.bodyBottom + 8);

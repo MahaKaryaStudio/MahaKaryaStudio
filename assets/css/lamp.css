@@ -230,15 +230,21 @@ html.motion-off .lhero__hint { display: none !important; }
 
 /* ---------- 02 #tiga (ruang 02, paper-2) — brief §7 "02 #tiga" ----------
    Desktop ≥ 1024 (±1.180): lembar gambar kerja kolom 1–6 (588 × 600, lengket) | kolom 7 kosong | tiga baris
-   hairline kolom 8–12 (486), masing-masing min 200: label → H3 28 → body 17 → meta mono 14.
-   < 1024 (±1.150): lembar ringkas 390 × 380 (full-bleed sampai 760) lalu tiga baris hairline.
+   hairline kolom 8–12 (486), ±200 per baris: label → H3 28 → body 17 → meta mono 14. Kolom baris setinggi
+   lembar (sisa ruang dibagi rata ke tiga baris), jadi hairline terakhir sejajar tepi bawah lembar di 1440;
+   di kolom yang lebih sempit teksnya lebih tinggi dari lembar dan lembar ikut lengket.
+   < 1024: lembar ringkas 390 × 380 lalu tiga baris hairline. Kertasnya (.tiga__fig) selebar kolom (full-bleed
+   sampai 760, berbingkai di 761–1023); gambarnya (.gk) di tengah kertas dengan tinggi dibatasi
+   min(480 px, 80vh), paling kecil 320 px lebar, supaya tablet dan HP mendatar tidak mendapat lembar setinggi
+   dua layar. Tinggi seksi di 390 nyatanya ±1.420: padding, kepala seksi, lembar 380 dan tiga baris bertipe
+   brief (label, H3 22 yang patah dua baris, dua baris body, meta) tidak muat di ±1.150.
    Lembar (#exploded.gk) diisi lamp.js renderExploded(): SVG LampArt.sheet() + label HTML 12 px di jangkar persen.
    Baris aktif: motion.js memindah .is-active dan menulis data-focus pada #exploded (kelas .tiga--live);
    tanpa gerak baris pertama tetap bertanda dan gambar tidak diredupkan. Teks non-aktif tidak pernah diberi opacity. */
 #tiga .section-sub { max-width: 560px; }
-.tiga { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.tiga { --gk-paper: var(--paper) radial-gradient(circle at 0.5px 0.5px, rgba(31, 26, 22, 0.08) 1px, transparent 1.5px) 11.5px 11.5px / 24px 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .tiga__fig { margin-inline: calc(-1 * var(--page-margin)); container-type: inline-size; }
-.gk { --sil-fill: var(--paper); --sil-stroke: var(--ink); --sil-lead: var(--ink-2); position: relative; aspect-ratio: var(--gk-ratio, 390 / 380); overflow: hidden; background-color: var(--paper); background-image: radial-gradient(circle at 0.5px 0.5px, rgba(31, 26, 22, 0.08) 1px, transparent 1.5px); background-size: 24px 24px; background-position: 11.5px 11.5px; color: var(--ink-2); }
+.gk { --sil-fill: var(--paper); --sil-stroke: var(--ink); --sil-lead: var(--ink-2); position: relative; aspect-ratio: var(--gk-ratio, 390 / 380); overflow: hidden; background: var(--gk-paper); color: var(--ink-2); }
 .gk__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
 .gk .sil__h { fill: none; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .gk .sil__dot { fill: var(--ink-2); }
@@ -248,6 +254,7 @@ html.motion-off .lhero__hint { display: none !important; }
 .gk__pill { left: 12px; top: 12px; display: inline-flex; align-items: center; min-height: 24px; padding: 4px 12px; border-radius: var(--r-pill); background: var(--paper-2); box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--ink); }
 .gk__lab { transform: translate(-100%, -50%); padding-right: 0; text-align: right; }
 .gk__lab-a { color: var(--ink); }
+.gk__diam { font-family: var(--sans); letter-spacing: 0; } /* Ø sans di sebelah nol DM Mono yang bergaris miring */
 .gk__lab--thread { transform: translate(-100%, -100%); }
 .gk__title { left: 12px; bottom: 12px; }
 .gk[data-sheet="compact"] .gk__lab:not(.gk__lab--thread) .gk__lab-sep { display: none; }
@@ -265,10 +272,16 @@ html.motion-off .lhero__hint { display: none !important; }
 .tiga__row h3 { margin: 0 0 8px; line-height: 1.2; }
 .tiga__text { margin: 0; max-width: 40ch; color: var(--fg-2); }
 .tiga__meta { margin: 8px 0 0; max-width: none; font: 400 var(--fs-label) / 1.5 var(--mono); letter-spacing: 0.02em; color: var(--fg-2); }
+@media (max-width: 1023px) {
+  /* kertas pindah ke .tiga__fig; .gk tetap berasio lembar (label HTML berjangkar persen padanya) dan ditaruh di tengah.
+     Pil tetap di sudut kiri atas kertas: digeser keluar .gk sejauh selisih lebar kertas dan gambar. */
+  .tiga__fig { background: var(--gk-paper); overflow: hidden; }
+  .gk { --gk-w: min(100cqw, max(320px, min(480px, 80vh) * 390 / 380)); width: var(--gk-w); margin-inline: auto; overflow: visible; background: none; }
+  .gk__pill { left: calc(12px - (100cqw - var(--gk-w)) / 2); }
+}
 @media (min-width: 761px) and (max-width: 1023px) {
   .tiga { max-width: 720px; }
-  .tiga__fig { margin-inline: 0; max-width: 560px; }
-  .gk { border-radius: var(--r-frame); }
+  .tiga__fig { margin-inline: 0; border-radius: var(--r-frame); }
 }
 @media (min-width: 1024px) {
   .tiga { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: 0; align-items: start; }
@@ -278,10 +291,10 @@ html.motion-off .lhero__hint { display: none !important; }
   .gk__pill, .gk__title { left: 16px; }
   .gk__pill { top: 16px; }
   .gk__title { bottom: 16px; }
-  .tiga__rows { grid-column: 8 / span 5; }
-  .tiga__row { min-height: 200px; }
-  .tiga__tag, .tiga__row h3 { margin-bottom: 12px; }
-  .tiga__row h3 { line-height: 1.15; }
+  /* kolom baris setinggi lembar: sisa ruang dibagi rata ke tiga baris (±200 di 1440) */
+  .tiga__rows { grid-column: 8 / span 5; align-self: stretch; align-content: stretch; }
+  .tiga__row { padding: 20px 0; }
+  .tiga__row h3 { margin-bottom: 12px; line-height: 1.15; }
   .tiga__meta { font-size: 14px; }
   /* baris aktif: hairline atas terisi tinta 2 px (statis; transisinya di motion.css) */
   .tiga__row::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--fg); transform: scaleX(0); transform-origin: 0 50%; }
@@ -395,30 +408,35 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
    Desktop ≥ 1024 (±620): display 96 tiga baris terkunci di kolom 1–8, sub 20 (maks 36ch), siluet garis lapisan
    360 × 520 di kolom 9–12 (opacity .10) dengan anotasi "LAPIS 0,2 MM". < 1024 (±420): display 48, siluet
    160 × 240 rata kanan di belakang teks (opacity .08), tanpa anotasi.
+   Teks hasil Mode Edit (baris lebih panjang, atau simpanan lama <span>…</span> <em>…</em> tanpa .band__l) tetap
+   aman: <em> selalu satu baris sendiri, di ≥ 1024 teks dibatasi di kiri kolom siluet, dan pita selalu cukup
+   tinggi untuk siluetnya (ukuran kotak siluet --art-w × --art-h ada di .band__grid).
    Siluet = garis 1 px tiap 6 px (4 px di bawah 1024, gradien CSS) yang ditopeng garis luar edisi pilihan studio (lamp.js renderBand). */
 .band { position: relative; overflow: hidden; padding: var(--pad-support) 0; box-shadow: inset 0 -1px 0 var(--dark-line); }
-.band__grid { position: relative; }
+.band__grid { --art-h: 240px; --art-w: calc(var(--art-h) * 2 / 3); position: relative; }
 .band__text { position: relative; z-index: 1; margin: 0; max-width: none; font: 340 var(--fs-band) / 0.98 var(--serif); letter-spacing: -0.03em; font-variation-settings: "opsz" 144; color: var(--dark-fg); }
 .band__l { display: block; width: max-content; max-width: 100%; }
-.band__text em { font-style: italic; font-weight: 320; padding-bottom: 0.08em; text-shadow: var(--text-glow); }
+.band__text em { display: block; font-style: italic; font-weight: 320; padding-bottom: 0.08em; text-shadow: var(--text-glow); }
 .band__sub { position: relative; z-index: 1; margin: 20px 0 0; max-width: 36ch; font-size: var(--fs-lead); line-height: 1.5; color: var(--dark-fg-2); }
 /* kotak siluet --art-w × --art-h; siluet mengisi kotak tanpa mengubah rasio lampunya (--sil-ar dari lamp.js),
    jadi edisi pendek-lebar pun tidak keluar kotak: --sil-h = min(tinggi kotak, lebar kotak / rasio) */
-.band__art { --art-h: 240px; --art-w: calc(var(--art-h) * 2 / 3); --sil-h: min(var(--art-h), var(--art-w) / var(--sil-ar, 0.5)); --sil-w: calc(var(--sil-h) * var(--sil-ar, 0.5)); position: absolute; z-index: 0; right: 0; top: 50%; width: var(--art-w); height: var(--art-h); transform: translateY(-50%); pointer-events: none; }
+.band__art { --sil-h: min(var(--art-h), var(--art-w) / var(--sil-ar, 0.5)); --sil-w: calc(var(--sil-h) * var(--sil-ar, 0.5)); position: absolute; z-index: 0; right: 0; top: 50%; width: var(--art-w); height: var(--art-h); transform: translateY(-50%); pointer-events: none; }
 .band__sil { --sil-step: 4px; display: none; position: absolute; right: 0; top: 50%; width: var(--sil-w); height: var(--sil-h); transform: translateY(-50%); background: repeating-linear-gradient(to bottom, var(--dark-fg) 0 1px, transparent 1px var(--sil-step)); -webkit-mask: var(--sil-mask) center / 100% 100% no-repeat; mask: var(--sil-mask) center / 100% 100% no-repeat; opacity: 0.08; }
 .band__sil.is-on { display: block; }
 .band__lead, .band__ann { display: none; }
 @media (min-width: 1024px) {
-  .band__text { line-height: 0.95; letter-spacing: -0.035em; }
-  .band__sub { margin-top: 32px; }
-  /* 360 × 520 dari 1200 px; 305 × 440 di 1024–1199 supaya tidak menyentuh tepi seksi */
-  .band__art { --art-h: 440px; --art-w: calc(var(--art-h) * 9 / 13); --ann-y: calc((var(--art-h) - var(--sil-h)) / 2 + var(--sil-h) * 0.04); }
+  /* 360 × 520 dari 1200 px; 305 × 440 di 1024–1199 supaya tidak menyentuh tepi seksi.
+     Isi di tengah vertikal; tinggi minimum = kotak siluet + 48 px di atas dan bawah (dikurangi padding seksi). */
+  .band__grid { --art-h: 440px; --art-w: calc(var(--art-h) * 9 / 13); display: flex; flex-direction: column; justify-content: center; min-height: calc(var(--art-h) + 96px - 2 * var(--pad-support)); }
+  .band__text { max-width: calc(100% - var(--art-w) - var(--grid-gap)); line-height: 0.95; letter-spacing: -0.035em; }
+  .band__sub { max-width: min(36ch, 100% - var(--art-w) - var(--grid-gap)); margin-top: 32px; }
+  .band__art { --ann-y: calc((var(--art-h) - var(--sil-h)) / 2 + var(--sil-h) * 0.04); }
   .band__sil { --sil-step: 6px; right: auto; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; }
   /* anotasi: label di kiri bawah, garis penunjuk 1 px ke tepi kiri alas siluet */
   .band__sil.is-on ~ .band__ann { display: block; position: absolute; left: -8px; bottom: var(--ann-y); font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; color: var(--dark-muted); transform: translate(-100%, 50%); padding-right: 12px; }
   .band__sil.is-on ~ .band__lead { display: block; position: absolute; left: -8px; bottom: var(--ann-y); height: 1px; width: calc(50% - var(--sil-base, 1) * var(--sil-w) / 2 + 14px); background: var(--dark-line-strong); }
 }
-@media (min-width: 1200px) { .band__art { --art-h: 520px; } }
+@media (min-width: 1200px) { .band__grid { --art-h: 520px; } }
 
 /* ---------- 03 #rakit (konfigurator) ---------- */
 .presets p { font-size: var(--fs-small); color: var(--dark-muted); margin: 0 0 12px; }
@@ -620,10 +638,8 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .sil__f { fill: var(--sil-fill, var(--bg)); }
 .sil__l { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .sil__p { fill: none; stroke: var(--sil-stroke, var(--ink)); stroke-opacity: 0.28; stroke-width: 1px; vector-effect: non-scaling-stroke; }
-/* gambar kerja terurai (LampArt mode "drawing" + explode): garis penunjuk 1 px --ink-2, label mono 12 */
+/* garis penunjuk lembar gambar kerja #tiga (LampArt.sheet): 1 px --ink-2 */
 .sil__lead { fill: none; stroke: var(--sil-lead, var(--ink-2)); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.sil__lead--thread { stroke-dasharray: 2 3; }
-.sil__t { fill: var(--sil-lead, var(--ink-2)); letter-spacing: 0.06em; }
 .paket__name { margin: 32px 0 8px; }
 .paket__note { margin: 0; color: var(--ink-2); min-height: 3.2em; } /* 2 baris tetap: harga sejajar antarkolom */
 .paket__price { display: grid; justify-items: start; margin-top: 32px; }

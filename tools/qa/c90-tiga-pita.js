@@ -1,8 +1,11 @@
 // Cek langkah tiga-band (brief v3 §7 "02 #tiga" dan ".band", adendum v3.1 §7): tata letak dan perilaku.
 // Pakai: node tools/qa/c90-tiga-pita.js <url>
 // #tiga: lembar gambar kerja 588×600 (1440) / 390×380 (390), pil, empat label, kaca pembesar 136, tanpa slider,
-//        tiga baris ≥ 200, baris aktif mengikuti scroll (statis saat reduced motion), top panggung lengket tetap.
-// #pita: display 96/48 tiga baris rata kiri, sub 20, siluet garis lapisan + "LAPIS 0,2 MM", tanpa CTA, tanpa gerak.
+//        tiga baris ±200 yang bersama-sama setinggi lembar, baris aktif = baris di garis tengah layar (juga setelah
+//        gulir berbalik dan lompatan; statis saat reduced motion), top panggung lengket tetap, lembar ringkas
+//        dibatasi tingginya di lebar antara (tablet, HP mendatar), angka baris meta mengikuti lamp-data.
+// #pita: display 96/48 tiga baris rata kiri, sub 20, siluet garis lapisan + "LAPIS 0,2 MM", tanpa CTA, tanpa gerak;
+//        teks suntingan lama/lebih panjang tidak masuk ke bawah siluet dan tidak memotongnya.
 const { run } = require('./_lib');
 const near = (a, b, t = 2) => Math.abs(a - b) <= t;
 // Tinggi seksi adalah angka kira-kira di brief (±): dicetak sebagai UKUR, tidak dihitung lulus/gagal.
@@ -18,10 +21,11 @@ run(async ({ open, check }) => {
     // label juga tidak boleh menimpa gambar: bagian lampu (kap/badan/alas) dan kaca pembesar
     const art = [...g.querySelectorAll('[data-la-part], .gk__lens')].map((el) => { const b = el.getBoundingClientRect(); return { x: b.left - r.left, y: b.top - r.top, w: b.width, h: b.height, t: el.dataset.laPart || 'kaca pembesar' }; });
     labs.forEach((a) => art.forEach((b) => { if (a.x < b.x + b.w - 1 && b.x < a.x + a.w - 1 && a.y < b.y + b.h - 1 && b.y < a.y + a.h - 1) over.push(a.t + ' × gambar ' + b.t); }));
-    const out = labs.filter((b) => b.x < 0 || b.y < 0 || b.x + b.w > r.width + 0.5 || b.y + b.h > r.height + 0.5).map((b) => b.t);
+    const f = document.querySelector('#tiga .tiga__fig').getBoundingClientRect();
+    const out = labs.filter((b) => b.x + r.left < f.left - 0.5 || b.y + r.top < f.top - 0.5 || b.x + r.left + b.w > f.right + 0.5 || b.y + r.top + b.h > f.bottom + 0.5).map((b) => b.t);
     const lens = g.querySelector('.gk__lens').getBoundingClientRect();
     const sec = document.querySelector('#tiga').getBoundingClientRect();
-    return { x: r.left, w: r.width, h: r.height, text: labs.map((b) => b.t).join(' | '), over, out, lens: lens.width, secH: Math.round(sec.height), range: document.querySelectorAll('#tiga input[type=range], #swipe-range').length, sw: document.documentElement.scrollWidth, iw: innerWidth };
+    return { x: r.left, w: r.width, h: r.height, fig: { x: f.left, w: f.width, h: f.height }, ih: innerHeight, text: labs.map((b) => b.t).join(' | '), over, out, lens: lens.width, secH: Math.round(sec.height), range: document.querySelectorAll('#tiga input[type=range], #swipe-range').length, sw: document.documentElement.scrollWidth, iw: innerWidth };
   });
   const center = (p, sel) => p.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center', behavior: 'instant' }), sel);
   const state = (p) => p.evaluate(() => ({
@@ -43,8 +47,19 @@ run(async ({ open, check }) => {
   check(near(s.lens, 136, 3), '#tiga 1440: kaca pembesar 136', s.lens.toFixed(1));
   check(s.range === 0, '#tiga: slider pelangi tidak ada');
   info('#tiga 1440: tinggi seksi', s.secH, 1180);
-  const rows = await p.evaluate(() => [...document.querySelectorAll('#tiga [data-tiga-row]')].map((r) => ({ h: r.getBoundingClientRect().height, h3: parseFloat(getComputedStyle(r.querySelector('h3')).fontSize), body: parseFloat(getComputedStyle(r.querySelector('.tiga__text')).fontSize), meta: getComputedStyle(r.querySelector('.tiga__meta')).fontFamily, t: r.querySelector('h3').textContent })));
-  check(rows.length === 3 && rows.every((r) => r.h >= 200 && near(r.h3, 28, 0.5) && near(r.body, 17, 0.5) && /mono/i.test(r.meta)), '#tiga 1440: tiga baris ≥ 200, H3 28, body 17, meta mono', rows.map((r) => `${Math.round(r.h)}/${r.h3}/${r.body}`).join(' · '));
+  const rows = await p.evaluate(() => [...document.querySelectorAll('#tiga [data-tiga-row]')].map((r) => ({ h: r.getBoundingClientRect().height, bottom: r.getBoundingClientRect().bottom, h3: parseFloat(getComputedStyle(r.querySelector('h3')).fontSize), body: parseFloat(getComputedStyle(r.querySelector('.tiga__text')).fontSize), meta: getComputedStyle(r.querySelector('.tiga__meta')).fontFamily, t: r.querySelector('h3').textContent })));
+  check(rows.length === 3 && rows.every((r) => r.h >= 180 && r.h <= 240 && near(r.h3, 28, 0.5) && near(r.body, 17, 0.5) && /mono/i.test(r.meta)), '#tiga 1440: tiga baris ±200 (180–240), H3 28, body 17, meta mono', rows.map((r) => `${Math.round(r.h)}/${r.h3}/${r.body}`).join(' · '));
+  const figBottom = await p.evaluate(() => document.querySelector('#exploded').getBoundingClientRect().bottom);
+  check(near(rows.reduce((a, r) => a + r.h, 0), s.h, 2) && near(rows[2].bottom, figBottom, 2), '#tiga 1440: tiga baris bersama-sama setinggi lembar (hairline terakhir sejajar tepi bawah lembar)', `baris ${Math.round(rows.reduce((a, r) => a + r.h, 0))} vs lembar ${Math.round(s.h)}; bawah ${Math.round(rows[2].bottom)} vs ${Math.round(figBottom)}`);
+  // angka di baris meta dan label lembar mengikuti lamp-data (bukan angka mati di HTML)
+  const meta = async () => p.evaluate(() => ({ d: window.MKS_LAMP, t: [...document.querySelectorAll('#tiga .tiga__meta')].map((m) => m.textContent.replace(/\s+/g, ' ').trim()), lab: (document.querySelector('#exploded .gk__lab--body') || {}).textContent }));
+  let m = await meta();
+  check(m.t[0] === `${m.d.heads.length} bentuk · lebar 20 cm · fitting E27` && m.t[1] === `1–${m.d.maxBodies} bagian · ${m.d.colors.length} warna · kabel lewat di dalam` && m.t[2] === `${m.d.bases.length} bentuk · berpemberat`, '#tiga: baris meta = jumlah bentuk/warna di lamp-data; kap "lebar 20 cm" (benar juga untuk kap kotak)', m.t.join(' | '));
+  await p.evaluate(() => { window.MKS_LAMP.maxBodies = 2; window.MKS_LAMP.bases.pop(); window.MKSLamp.refresh(); });
+  m = await meta();
+  check(/^1–2 bagian/.test(m.t[1]) && /1–2 bagian/i.test(m.lab) && /^3 bentuk/.test(m.t[2]), '#tiga: angka meta dan label lembar ikut berubah saat lamp-data berubah (maxBodies 2, satu alas dihapus)', `${m.t[1]} | ${m.t[2]} | ${m.lab}`);
+  await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(700);
+  await center(p, '#exploded'); await p.waitForTimeout(300);
   check(rows.every((r) => /^(Kap|Badan|Alas): /.test(r.t)), '#tiga: H3 "Kap: …", "Badan: …", "Alas: …" (titik dua)', rows.map((r) => r.t).join(' | '));
   const st = await p.evaluate(() => { const f = document.querySelector('#tiga .tiga__fig'), cs = getComputedStyle(f), a = cs.top; document.documentElement.style.setProperty('--nav-offset', '0px'); const b = getComputedStyle(f).top; document.documentElement.style.removeProperty('--nav-offset'); return { pos: cs.position, a, b, tp: cs.transitionProperty, td: cs.transitionDuration, navH: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) }; });
   check(st.pos === 'sticky' && st.a === st.b && near(parseFloat(st.a), st.navH + 24, 0.5), '#tiga 1440: panggung lengket, top tetap (tinggi nav + 24) walau --nav-offset berubah', `${st.pos} ${st.a} → ${st.b}`);
@@ -91,8 +106,19 @@ run(async ({ open, check }) => {
     check(s.over.length === 0 && s.out.length === 0 && /ulir m20/i.test(s.text) && s.sw <= w, `#tiga ${w}: label tidak bertumpuk, tidak menimpa gambar, tidak keluar lembar; tanpa gulir samping`, [...s.over, ...s.out.map((t) => 'keluar: ' + t)].join(' | ') + ` lembar ${Math.round(s.w)} × ${Math.round(s.h)}`);
   }
 
+  /* ---------- lebar antara (tablet, HP mendatar): lembar ringkas dibatasi tingginya, gambar di tengah kertas ---------- */
+  for (const [w, h, mob] of [[600, 900, true], [760, 1000, true], [820, 1100, false], [1000, 700, false], [740, 360, true], [844, 390, true]]) {
+    p = await open([w, h, mob]);
+    await center(p, '#exploded'); await p.waitForTimeout(300);
+    s = await sheet(p);
+    const cap = Math.max(320 * 380 / 390, Math.min(480, 0.8 * s.ih));
+    const mid = near(s.x + s.w / 2, s.fig.x + s.fig.w / 2, 1);
+    check(s.h <= cap + 1 && near(s.w / s.h, 390 / 380, 0.02) && near(s.fig.h, s.h, 1) && mid && s.over.length === 0 && s.out.length === 0 && s.sw <= w,
+      `#tiga ${w}×${h}: lembar ringkas ≤ min(480, 80% tinggi layar) (min 320 lebar), gambar di tengah kertas, label rapi, tanpa gulir samping`, `gambar ${Math.round(s.w)} × ${Math.round(s.h)} di kertas ${Math.round(s.fig.w)} × ${Math.round(s.fig.h)}, batas ${Math.round(cap)}; ` + [...s.over, ...s.out.map((t) => 'keluar: ' + t)].join(' | '));
+  }
+
   /* ---------- edisi pilihan studio bisa diganti lewat Mode Edit: lembar tetap rapi untuk kelima edisi ---------- */
-  for (const vp of ['desktop', [1024, 800, false], 'hp', 'hp360']) {
+  for (const vp of ['desktop', [1024, 800, false], [820, 1100, false], 'hp', 'hp360']) {
     p = await open(vp);
     const bad = [];
     const n = await p.evaluate(() => window.MKS_LAMP.presets.length);
@@ -152,6 +178,20 @@ run(async ({ open, check }) => {
   check(b.cta === 0, '#pita: tanpa CTA (tidak ada tautan atau tombol)', b.cta);
   check(b.moving === 0, '#pita 1440: tanpa gerak (tidak ada transisi atau animasi)', b.moving);
   info('#pita 1440: tinggi seksi', b.h, 620);
+  // Teks pita hasil Mode Edit: simpanan lama (<span>…</span> <em>…</em>, tanpa .band__l) dan baris yang lebih panjang
+  // tidak boleh menjadi satu baris yang lewat di bawah siluet atau membuat pita lebih pendek dari siluetnya.
+  for (const [nama, html] of [['simpanan lama', '<span>Dicetak satu demi satu.</span> <em>Di Jakarta.</em>'], ['satu baris pendek', '<span class="band__l">Dicetak.</span>'], ['baris panjang', '<span class="band__l">Dicetak satu per satu di studio kami,</span> <em class="band__l">di Jakarta Selatan.</em>']]) {
+    for (const vp of ['desktop', [1024, 768, false]]) {
+      p = await open(vp, { init: (s) => { try { localStorage.setItem('mks-edits-v2', s); } catch (_) {} }, initArg: JSON.stringify({ layout: 5, text: { 'index.html': { '#pita/div:0/p:0': html } }, products: null, config: null }) });
+      await center(p, '#pita'); await p.waitForTimeout(300);
+      const e = await p.evaluate(() => {
+        const sec = document.querySelector('#pita'), r = sec.getBoundingClientRect(), t = sec.querySelector('.band__text'), art = sec.querySelector('.band__art').getBoundingClientRect(), sil = sec.querySelector('.band__sil').getBoundingClientRect(), ann = sec.querySelector('.band__ann');
+        const kids = [...t.children].map((c) => c.getBoundingClientRect()), em = t.querySelector('em'), eb = em && em.getBoundingClientRect();
+        return { right: Math.max(...kids.map((k) => k.right), sec.querySelector('.band__sub').getBoundingClientRect().right), artL: art.left, emOwn: !em || (Math.abs(eb.left - t.getBoundingClientRect().left) < 1 && [...t.children].every((c) => c === em || c.getBoundingClientRect().bottom - eb.top < eb.height * 0.4)), silIn: sil.top >= r.top && sil.bottom <= r.bottom, ann: getComputedStyle(ann).display !== 'none' && ann.getBoundingClientRect().bottom <= r.bottom, h: Math.round(r.height), sw: document.documentElement.scrollWidth, iw: innerWidth };
+      });
+      check(e.right <= e.artL + 0.5 && e.emOwn && e.silIn && e.ann && e.sw <= e.iw, `#pita ${Array.isArray(vp) ? vp[0] : 1440} suntingan "${nama}": teks di kiri kolom siluet, <em> di baris sendiri, siluet dan anotasi utuh`, JSON.stringify(e));
+    }
+  }
   for (const vp of ['hp', 'hp360', [320, 640, true]]) {
     p = await open(vp); await center(p, '#pita'); await p.waitForTimeout(300);
     b = await band(p);
