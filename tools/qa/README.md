@@ -23,7 +23,7 @@ node tools/qa/shoot.js http://localhost:8800/ <folder-tangkapan> --vp=desktop,hp
 Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembantu bersama):
 
 - `c01-gerak-hapus.js`: C1 (tanpa penulisan style per frame pada .story, #hero-stage, <html>; `--story-p`,
-  `--nav-offset`, reveal dan hint hero tidak ada di sumber), C4 (hero menyala sekali ≤ 1,2 s tanpa gulir), C5 (tanpa
+  `--nav-offset`, reveal dan hint hero tidak ada di sumber), C4 (hero menyala sekali: --dim dan opasitas lapisan cahaya penuh ≤ 1,2 s tanpa gulir, transisi 600 ms + delay 200 ms), C5 (tanpa
   teks ber-opasitas 0 di luar daftar pengecualian), C17 (reduce: tanpa animasi, cerita bertumpuk), garis #cara
   scaleY, kalimat cerita keluar −12 px 250 ms, perubahan prefers-reduced-motion selama kunjungan.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
@@ -31,7 +31,7 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
 - `c18-scroll.js [--rate=4]` (lewat `serve-gz.js`): biaya gaya per frame pin #kenapa dan nav sembunyi/muncul
   dengan CPU 4x (angka lab; tiga lintasan karena derau ±3 ms).
 - `c24-sticky.js [--shots=<folder>]`: top panggung lengket tetap saat nav berganti (1440, 1366); di HP nav tidak
-  menutupi panggung #rakit.
+  menutupi panggung #rakit; uji celah di atas panggung dicetak N/A selama panggung HP masih statis (langkah rakit).
 - `c06-layout-props.js [--sel="#tiga,#pita"]`: hanya transform, opacity, warna, box-shadow, dan visibility
   yang dianimasikan di seksi yang sudah dibangun (daftar `SEKSI` di skrip bertambah per langkah).
 - `c11-ilustrasi.js [--only=tiga,hero]`: setiap gambar lampu berlabel ilustrasi, di empat ukuran layar.
