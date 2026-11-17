@@ -90,7 +90,7 @@ run(async ({ open, check }) => {
   await p.evaluate(() => { const el = document.querySelector('#hero .lead'); el.textContent = 'LEAD DARI MODE EDIT'; el.dispatchEvent(new Event('input', { bubbles: true })); });
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(1000);
   const sv = await p.evaluate(() => ({ lead: document.querySelector('#hero .lead').textContent.trim(), st: JSON.parse(localStorage.getItem('mks-edits-v2') || '{}'), prices: window.MKS_LAMP.presets.map((pr) => window.MKSLamp.price({ head: pr.head, body: pr.body, base: pr.base, wiring: true, led: false })).map((r) => [r.total, r.parts + r.wiring]) }));
-  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 10, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 10)', `${sv.lead} · layout ${sv.st.layout}`);
+  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 11, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 11)', `${sv.lead} · layout ${sv.st.layout}`);
   check(JSON.stringify(sv.prices) === JSON.stringify([[464000, 626000], [447000, 602000], [454000, 612000], [427000, 533000], [383000, 442000]]), 'C14: harga dan coret lima edisi tidak berubah', JSON.stringify(sv.prices));
   check(p.__errs.length === 0, 'C23 Mode Edit: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 });

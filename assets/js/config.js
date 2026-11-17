@@ -29,7 +29,9 @@ window.MKS_CONFIG = {
     note: "Perkiraan; ongkir pasti dikonfirmasi di WhatsApp sebelum bayar.",
   },
 
-  // Ambang gratis ongkir (dipakai sebagai insentif menaikkan nilai order).
+  // Gratis ongkir (halaman koleksi): true = berlaku dan tampil di keranjang; false = seluruh kalimat dan bilah gratis ongkir
+  // tidak dirender. Ambang dipakai sebagai insentif menaikkan nilai order.
+  freeShipping: true,
   freeShippingMin: 500000,
 
   // Estimator pesanan custom

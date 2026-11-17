@@ -44,8 +44,14 @@
      <details id="spec"> dengan summary "Spesifikasi rakitanmu" (eyebrow lama diarsipkan, dt/dd ikut pindah). 09 #faq: kepala
      (eyebrow, H2) dibungkus .faq__head dan daftar mendapat id faq-list; semua tanya-jawab pindah tanpa ganti kata. Footer: h4
      kolom menjadi h3 (pindah), tautan "Konfigurator" menjadi "Studio rakit" (diarsipkan), baris kontak WhatsApp pindah ke
-     kolom merek sebagai tombol (label lama diarsipkan) sehingga baris Instagram naik satu; baris Email baru di urutan kedua. */
-  const LAYOUT = 10;
+     kolom merek sebagai tombol (label lama diarsipkan) sehingga baris Instagram naik satu; baris Email baru di urutan kedua.
+     Tahap 11 (koleksi-qa, koleksi.html): pita promo (body div:0) dihapus, jadi div:0 kini menunjuk div lain (.scrim):
+     suntingannya diarsipkan. Nomor 01–04 kartu "Kenapa" dihapus (kartu menjadi baris hairline; h3/p tetap). Tombol hero
+     dan bisnis memakai huruf kalimat, "Anda" menjadi "kamu" (bisnis kartu 2, H2 proses, FAQ 7), em dash di kartu 1 dan
+     baris material PLA diganti: teks dasarnya berubah, suntingan lama diarsipkan. Footer memakai komponen index: h4 → h3
+     (pindah, kata sama), tautan "WhatsApp" di kolom Kontak menjadi tombol "Chat WhatsApp" di kolom merek (diarsipkan),
+     logo footer 40 px (markup berubah, diarsipkan). */
+  const LAYOUT = 11;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -104,7 +110,16 @@
       drop: ["#cara/div:0/div:0/div:0/div:2/div:0/h3:0", "#cara/div:0/div:1/p:0", FT + "1/div:0/span:0", FT + "2/a:0", FQ + "8/p:0", "#aman/div:0/div:0/div:2/p:0"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9], [10, MOVED_10]];
+  const KF = "footer:0/div:0/div:", KW = "#konten/section:1/div:0/div:0/article:";
+  const MOVED_11 = {
+    "koleksi.html": {
+      rename: { [KF + "1/h4:0"]: KF + "1/h3:0", [KF + "2/h4:0"]: KF + "2/h3:0", [KF + "3/h4:0"]: KF + "3/h3:0" },
+      drop: ["div:0", KW + "0/span:0", KW + "1/span:0", KW + "2/span:0", KW + "3/span:0", KW + "0/p:0",
+        "#konten/section:0/div:0/div:0/div:0/a:0", "#konten/section:0/div:0/div:0/div:0/a:1", "#bisnis/div:0/div:0/article:1/p:0", "#bisnis/div:0/div:1/a:0",
+        "#proses/div:0/h2:0", "#konten/section:6/div:0/div:0/ul:0/li:0", "#faq/div:0/div:0/details:6/p:0", KF + "0/a:0", KF + "3/a:0"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9], [10, MOVED_10], [11, MOVED_11]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;
@@ -254,7 +269,7 @@
   }
 
   const EXCLUDE = "[data-dynamic],[data-dynamic-text],.mks-editor,.mks-pill";
-  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,.eyebrow,.promo,.mat b,.mat span,.footer a:not([data-link]),.footer h4,.nav__links a,.estimate__label,.card-why__num,.step span,.spec dt,.spec dd:not([id]),.contact-line span:first-child";
+  const SEL = "h1,h2,h3,h4,p,li,summary,legend,a.btn,a.text-link,.hero__wa,.eyebrow,.mat b,.mat span,.footer a:not([data-link]),.footer h4,.nav__links a,.menu__links a,.field > span,.estimate__label,.step span,.spec dt,.spec dd:not([id]),.contact-line span:first-child";
   const editables = () => $$(SEL).filter((el) => !el.closest(EXCLUDE) && el.tagName !== "BUTTON");
 
   function applyText() {
@@ -564,6 +579,7 @@
       ${((config.shipping && config.shipping.zones) || []).map((z, i) => `<tr><td><input data-s="zones.${i}.label" value="${esc(z.label)}"/></td><td><input data-s="zones.${i}.price" type="number" value="${z.price}"/></td></tr>`).join("")}
       </tbody></table>
       <label>Catatan ongkir<input data-s="note" value="${esc((config.shipping && config.shipping.note) || "")}"/></label>
+      <label class="mks-switch"><input type="checkbox" data-cb="freeShipping" ${config.freeShipping !== false ? "checked" : ""}/> <span>Gratis ongkir berlaku (keranjang koleksi)</span></label>
       ${f("freeShippingMin", "Minimal belanja gratis ongkir (Rp, halaman koleksi)", "number", 'min="0" step="10000"')}
       <p class="mks-help mks-muted">Estimator di bawah dipakai halaman <b>koleksi.html</b> (pesanan custom dekorasi).</p>
       ${table("Estimator — ukuran", "sizes", [{ k: "label", label: "Label" }, { k: "base", label: "Harga dasar (Rp)", type: "number" }, { k: "hours", label: "Jam cetak", type: "number", attrs: 'step="0.5"' }])}
@@ -576,7 +592,12 @@
         <label>Desain baru (Rp)<input data-e="designFee.custom" type="number" value="${E.designFee.custom}" /></label>
       </div>
       <div class="mks-row"><button type="button" class="mks-btn" data-reset-config>Kembalikan pengaturan asli</button></div>`;
+    body.addEventListener("change", (e) => {
+      const cb = e.target.closest("[data-cb]");
+      if (cb) { config[cb.dataset.cb] = cb.checked; configChanged(); }
+    });
     body.addEventListener("input", (e) => {
+      if (e.target.closest("[data-cb]")) return;
       const c = e.target.closest("[data-c]");
       if (c) {
         config[c.dataset.c] = c.type === "number" ? +c.value || 0 : c.value.trim();

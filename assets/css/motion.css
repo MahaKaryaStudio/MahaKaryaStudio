@@ -35,9 +35,3 @@
 .motion-on .steps-l__fill { transform: scaleY(0); }
 .motion-on .steps-l .step > span { background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line-strong); transition: background-color var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out); }
 .motion-on .steps-l .step.is-done > span { background: var(--fg); box-shadow: none; }
-
-/* Hover hanya untuk kartu produk koleksi (−2 px); ubin #bagian punya aturan sendiri di lamp.css */
-@media (hover: hover) {
-  .motion-on .product { transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out); }
-  .motion-on .product:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
-}

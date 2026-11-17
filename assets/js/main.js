@@ -45,7 +45,15 @@
       const col = el.closest("[data-marketplace-col]") || el;
       el.hidden = [...col.querySelectorAll("a[data-link]")].filter((a) => MK_RE[a.dataset.link]).every((a) => a.hidden);
     });
-    $$("[data-free-ship]").forEach((el) => (el.textContent = rp(C.freeShippingMin)));
+    $$("[data-wa-text]").forEach((el) => (el.textContent = "+" + C.whatsapp));
+    $$("[data-wa-copy]").forEach((el) => (el.dataset.copy = "+" + C.whatsapp));
+    $$("[data-ig]").forEach((el) => (el.textContent = "@" + C.instagram));
+    $$("[data-email]").forEach((el) => {
+      el.innerHTML = esc(C.email || "").replace("@", "<wbr>@");
+      const line = el.closest(".contact-line");
+      if (line) line.hidden = !C.email;
+    });
+    $$("[data-reply]").forEach((el) => (el.textContent = C.replyPromise || ""));
     $$("[data-city]").forEach((el) => (el.textContent = C.city));
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
   }
@@ -61,7 +69,7 @@
   let filter = "all";
   const filtersEl = $("[data-filters]");
   filtersEl.innerHTML = CATEGORIES.map(
-    (c) => `<button role="tab" class="chip${c.id === filter ? " is-active" : ""}" aria-selected="${c.id === filter}" data-cat="${c.id}">${c.label}</button>`
+    (c) => `<button type="button" class="chip${c.id === filter ? " is-active" : ""}" aria-pressed="${c.id === filter}" data-cat="${c.id}">${c.label}</button>`
   ).join("");
   filtersEl.addEventListener("click", (e) => {
     const b = e.target.closest("[data-cat]");
@@ -70,11 +78,13 @@
     $$(".chip", filtersEl).forEach((x) => {
       const on = x === b;
       x.classList.toggle("is-active", on);
-      x.setAttribute("aria-selected", on);
+      x.setAttribute("aria-pressed", on);
     });
     renderProducts();
   });
 
+  // Label ilustrasi pada setiap gambar yang bukan foto (semua gambar ilustrasi berlabel; foto asli tidak diberi pil)
+  const ilPill = (p) => (p.image ? "" : `<span class="pill product__il" aria-hidden="true">Ilustrasi</span>`);
   const grid = $("[data-products]");
   function renderProducts() {
     const list = filter === "all" ? P : P.filter((p) => p.category === filter);
@@ -85,13 +95,14 @@
         <button class="product__art" data-view="${esc(p.id)}" aria-label="Lihat detail ${esc(p.name)}">
           ${(p.tags || []).map((t) => `<span class="badge badge--${esc(t)}">${TAG_LABEL[t] || esc(t)}</span>`).join("")}
           ${MKSArt.render(p, { small: true })}
+          ${ilPill(p)}
         </button>
         <div class="product__info">
           <span class="product__col">${esc(p.collection)}</span>
           <h3>${esc(p.name)}</h3>
           <div class="product__row">
             <span class="price">${rp(p.price)}</span>
-            <button class="btn btn--sm" data-add="${esc(p.id)}">+ Keranjang</button>
+            <button type="button" class="btn btn--ghost btn--sm product__add" data-add="${esc(p.id)}">+ Keranjang</button>
           </div>
         </div>
       </article>`
@@ -113,7 +124,7 @@
     if (!p) return;
     $("[data-modal-body]").innerHTML = `
       <button class="icon-btn modal__close" data-close-modal aria-label="Tutup">✕</button>
-      <div class="modal__art">${MKSArt.render(p)}</div>
+      <div class="modal__art">${MKSArt.render(p)}${ilPill(p)}</div>
       <div class="modal__info">
         <span class="product__col">Koleksi ${esc(p.collection)}</span>
         <h3>${esc(p.name)}</h3>
@@ -190,10 +201,14 @@
     $("[data-cart-total]").textContent = rp(total);
     $("[data-checkout]").disabled = !lines.length;
 
+    // Gratis ongkir hanya bila saklar config.freeShipping menyala (A7); mati = bilah, kalimat, dan barisnya tidak dirender
+    const ship = C.freeShipping !== false && C.freeShippingMin > 0;
     const left = C.freeShippingMin - total;
-    const pct = Math.min(100, (total / C.freeShippingMin) * 100);
-    $("[data-ship-bar]").innerHTML = lines.length
-      ? `<p>${left > 0 ? `Tambah <b>${rp(left)}</b> lagi untuk gratis ongkir` : "<b>Selamat!</b> Pesanan Anda gratis ongkir"}</p><div class="bar"><i style="width:${pct}%"></i></div>`
+    const frac = ship ? Math.min(1, total / C.freeShippingMin) : 0;
+    const bar = $("[data-ship-bar]");
+    bar.hidden = !(ship && lines.length);
+    bar.innerHTML = ship && lines.length
+      ? `<p>${left > 0 ? `Tambah <b>${rp(left)}</b> lagi untuk gratis ongkir` : "<b>Selamat!</b> Pesananmu gratis ongkir"}</p><div class="bar"><i style="transform:scaleX(${frac.toFixed(3)})"></i></div>`
       : "";
 
     $("[data-cart-items]").innerHTML = lines.length
@@ -250,6 +265,18 @@
     drawer.setAttribute("aria-hidden", "true");
   }
   $$("[data-open-cart]").forEach((b) => b.addEventListener("click", openCart));
+  // Salin nomor WhatsApp (footer): teks tombol berganti sebentar sebagai tanda
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-wa-copy]");
+    if (!b) return;
+    const done = (ok) => {
+      b.textContent = ok ? "Tersalin" : "Gagal menyalin";
+      clearTimeout(b._t);
+      b._t = setTimeout(() => (b.textContent = "Salin"), ok ? 1600 : 3000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b.dataset.copy).then(() => done(true), () => done(false));
+    else done(false);
+  });
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-close-cart]")) closeCart();
   });
