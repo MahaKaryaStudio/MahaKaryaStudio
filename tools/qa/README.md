@@ -54,7 +54,7 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   panggung HP 260/200 (lampu tidak tertutup pil/saklar/label, pil dan saklar tidak bertumpuk) dan tidak lengket di
   tinggi 520; C15, C20 kalimat ringkasan >= 16 px, C11 pil studio; ARIA tabs + papan ketik; bagian SVG desktop; orderbar
   dan nav HP; panggung desktop/laptop lengket di nav + 24; `UKUR` tinggi #rakit terhadap brief.
-- `c13-alur-bagian.js [--only=c12,jujur,c15,c16,c11,c9,c20,ukur,lembar,gerak,c8,saring,karusel,ekspor]`: 04 #alur dan
+- `c13-alur-bagian.js [--only=c12,jujur,c15,c16,c11,c9,c20,ukur,lembar,gerak,c8,saring,karusel,ekspor,rapi]`: 04 #alur dan
   06 #bagian: label "Simulasi alur pesan" terlihat di kepala seksi (390, 1440); teks #alur tanpa nama orang, pujian, emoji,
   pola resi; kolom desktop tanpa bingkai ponsel; C15 tanpa "konfigurator"/"—" (juga di lembar bagian) dan kepala kolom tanpa
   durasi; C16 HTML mentah tanpa "Rp" + angka; C11 pil thumb #alur, baris label #bagian, pil lembar; C9 chip saring, ubin,
@@ -63,6 +63,9 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   orderbar tersembunyi, satu tombol berisi, Pasang + toast beraksi tanpa gulir otomatis, WA pesan satuan); gerak masuk
   250 / keluar 150 (reduce seketika); C8 kontrol lembar; chip saring dari lamp-data; karusel HP (snap, fokus + panah,
   intip, titik, tanpa gulir samping 320/360/390); C23 suntingan lama gelembung/.alur__note tidak muncul di halaman dan Ekspor.
+  `rapi`: kartu karusel setinggi isi, nama di rincian utuh, pil thumb di atas tanpa role=img bersarang, chip saring muat
+  (360) atau memudar di tepi (320), tombol sel penutup sejajar, warna lembar ikut ke ubin, toast sisa disembunyikan saat
+  lembar dibuka, tombol lembar terlihat di 320 × 640.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
   (HP) dihitung tertutup, sama seperti di bawah nav (rantai dari tepi atas: panggung lalu tab tepat di bawahnya).
