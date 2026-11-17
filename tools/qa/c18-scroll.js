@@ -41,15 +41,20 @@ run(async ({ open, check, opt, browser }) => {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate });
     // pin #kenapa
     const range = await p.evaluate(() => { const s = document.querySelector('.story'); return [s.offsetTop, s.offsetTop + s.offsetHeight - innerHeight]; });
-    await p.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), range[0] - 60);
-    await p.waitForTimeout(400);
-    await browser.startTracing(p, { categories: CATS });
-    await p.evaluate(([a, b]) => new Promise((r) => { let y = a - 60; const go = () => { y += 30; window.scrollTo({ top: y, behavior: 'instant' }); if (y < b + 60) requestAnimationFrame(go); else setTimeout(r, 200); }; requestAnimationFrame(go); }), range);
-    const t1 = (await browser.stopTracing()).toString();
-    const f1 = frames(t1);
+    // tiga lintasan turun (angka throttle berderau ±3 ms per frame): statistik atas semua frame, ditambah maks per lintasan
+    const f1 = [], perRun = [];
+    for (let rep = 0; rep < 3; rep++) {
+      await p.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), range[0] - 60);
+      await p.waitForTimeout(700);
+      await browser.startTracing(p, { categories: CATS });
+      await p.evaluate(([a, b]) => new Promise((r) => { let y = a - 60; const go = () => { y += 30; window.scrollTo({ top: y, behavior: 'instant' }); if (y < b + 60) requestAnimationFrame(go); else setTimeout(r, 200); }; requestAnimationFrame(go); }), range);
+      const fr = frames((await browser.stopTracing()).toString());
+      f1.push(...fr); perRun.push(stat(fr.map((f) => f.style)).max);
+    }
     const s1 = stat(f1.map((f) => f.style));
+    s1.perRun = perRun;
     res[vp + ' pin'] = s1;
-    check(s1.n > 20 && s1.max <= 5, `C18 ${vp} CPU ${rate}x: gaya per frame selama pin #kenapa <= 5 ms`, `maks ${s1.max} ms, p95 ${s1.p95}, median ${s1.med} (${s1.n} frame)`);
+    check(s1.n > 60 && s1.max <= 5, `C18 ${vp} CPU ${rate}x: gaya per frame selama pin #kenapa <= 5 ms`, `maks ${s1.max} ms (per lintasan ${perRun.join(' / ')}), p95 ${s1.p95}, median ${s1.med} (${s1.n} frame, 3 lintasan)`);
     // nav sembunyi/muncul di #alur
     const a0 = await p.evaluate(() => document.querySelector('#alur').offsetTop + 200);
     await p.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), a0);

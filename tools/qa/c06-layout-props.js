@@ -4,7 +4,7 @@
 // keyframes animasi yang berjalan hanya boleh memuat transform, opacity, warna, box-shadow, visibility.
 // Daftar selektor bawaan = seksi yang sudah lulus cek ini; langkah berikutnya menambah seksinya di SEKSI.
 const { run } = require('./_lib');
-const SEKSI = ['#tiga', '#pita'];
+const SEKSI = ['#tiga', '#pita', '.nav', '.nav__pesan', '#hero', '.story', '#cara .steps-l', '.edisi__stage', '#rakit .preview']; // gerak-hapus: nav, hero, cerita, garis #cara, panggung lengket
 run(async ({ open, check, opt }) => {
   const sels = opt.sel ? String(opt.sel).split(',') : SEKSI;
   for (const vp of ['desktop', 'hp']) for (const reduce of [false, true]) {
@@ -13,12 +13,21 @@ run(async ({ open, check, opt }) => {
       const OK = /^(transform|opacity|visibility|box-shadow|color|background-color|border(-(top|right|bottom|left))?-color|outline-color|text-decoration-color|fill|stroke|none)$/;
       const ms = (s) => (s.endsWith('ms') ? parseFloat(s) : parseFloat(s) * 1000);
       const out = [];
+      // peta @keyframes nama -> properti yang dianimasikan (CSSOM, termasuk di dalam @media)
+      const KF = {};
+      const walkKF = (list) => { for (const r of list) { if (r.type === 7) KF[r.name] = [...new Set([...r.cssRules].flatMap((k) => [...k.style]))]; else if (r.cssRules) walkKF(r.cssRules); } };
+      for (const sh of document.styleSheets) { try { walkKF(sh.cssRules); } catch (_) {} }
       const one = (el, pseudo) => {
         const cs = getComputedStyle(el, pseudo || null);
         if (pseudo && (cs.content === 'none' || cs.content === 'normal')) return;
         const props = cs.transitionProperty.split(',').map((x) => x.trim()), durs = cs.transitionDuration.split(',').map((x) => ms(x.trim()));
         props.forEach((pr, i) => { const d = durs[i % durs.length]; if (d > 0 && !OK.test(pr)) out.push(`${el.tagName.toLowerCase()}.${String(el.className.baseVal ?? el.className).split(' ')[0]}${pseudo || ''} transition ${pr} ${d}ms`); });
-        if (cs.animationName !== 'none' && ms(cs.animationDuration.split(',')[0]) > 0) out.push(`${el.tagName.toLowerCase()}.${String(el.className.baseVal ?? el.className).split(' ')[0]}${pseudo || ''} animation ${cs.animationName}`);
+        // animasi CSS yang dideklarasikan: properti di @keyframes-nya (bukan hanya yang sedang berjalan) harus lolos OK
+        if (cs.animationName !== 'none' && ms(cs.animationDuration.split(',')[0]) > 0) cs.animationName.split(',').map((x) => x.trim()).forEach((name) => {
+          const props = KF[name];
+          if (!props) out.push(`${el.tagName.toLowerCase()}.${String(el.className.baseVal ?? el.className).split(' ')[0]}${pseudo || ''} animation ${name} (keyframes tidak ditemukan)`);
+          else props.filter((k) => !OK.test(k)).forEach((k) => out.push(`${el.tagName.toLowerCase()}.${String(el.className.baseVal ?? el.className).split(' ')[0]}${pseudo || ''} animation ${name}: ${k}`));
+        });
       };
       sels.forEach((s) => document.querySelectorAll(`${s}, ${s} *`).forEach((el) => { one(el); one(el, '::before'); one(el, '::after'); }));
       // animasi yang sedang berjalan: periksa properti keyframe-nya
