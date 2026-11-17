@@ -33,6 +33,15 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   reduce; C17; 20 ganti cepat (paling banyak dua lampu, tanpa id ganda, tangkapan sama dengan render tunggal);
   C20 catatan kit ≥ 16 px di HP; C13 kalimat kit dan daftar izin SNI; C14 harga/coret/pesan WA lima edisi dan
   'Pilihan studio' tepat sekali dan terlihat di setiap edisi. C2 (ketukan beruntun) tetap di `c02-taps.js`.
+- `c04-gerak-sentuh.js [--only=token,c7,c8,c10,c11,c16,c13,c23,c14,toast]`: token gerak dan pendamping, tabel
+  breakpoint di kepala base.css; C7 hover digerbang `(hover: hover) and (pointer: fine)` dan hanya pada yang bisa diklik;
+  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP) di empat
+  ukuran layar, biasa (transform atau warna) dan reduce (wajib warna/latar/opacity/box-shadow); C10 durasi dan delay pada
+  token (biasa dan reduce); C11 label ILUSTRASI tabel #paket dan baris #bagian; C16 tanpa harga ketikan dan `wa.me/` di
+  HTML mentah index/404, satu noscript, href WA awal dari config.js saat lamp.js diblokir; C13; C23 baris label #bagian
+  (Mode Edit dan Ekspor); C14 terhadap snapshot `data/c14-gerak-sentuh.json`; toast 3 s / 5 s / jeda saat hover dan fokus.
+- `c04-snap-c14.js <url> --tulis`: menulis snapshot C14 (harga, coret, pesan WA lima edisi, semua `[data-wa]`) pada commit
+  dasar langkah; dipakai c04.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar.
 - `c18-scroll.js [--rate=4]` (lewat `serve-gz.js`): biaya gaya per frame pin #kenapa dan nav sembunyi/muncul

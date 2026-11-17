@@ -890,13 +890,13 @@ a, button, label, summary, select, [role="button"], [role="switch"], [role="tab"
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
   :is(.btn, .chip, .segmented > button, .segmented > label, .swatch):active { transform: none; }
-  .swatch:hover { transform: none !important; }
+  @media (hover: hover) and (pointer: fine) { .swatch:hover { transform: none !important; } }
   .toast, .toast.show, .toast.is-on { transform: translateX(-50%); transition: opacity 150ms linear; }
 }
 html.motion-off { --t-press: 0ms; --t-fast: 0ms; --t-med: 150ms; --t-slow: 150ms; --t-follow: 0ms; scroll-behavior: auto; }
 html.motion-off *, html.motion-off *::before, html.motion-off *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
 html.motion-off :is(.btn, .chip, .segmented > button, .segmented > label, .swatch):active { transform: none; }
-html.motion-off .swatch:hover { transform: none; }
+@media (hover: hover) and (pointer: fine) { html.motion-off .swatch:hover { transform: none; } }
 html.motion-off .toast,
 html.motion-off .toast.show,
 html.motion-off .toast.is-on { transform: translateX(-50%); transition: opacity 150ms linear; }
