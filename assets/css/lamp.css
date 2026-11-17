@@ -357,6 +357,9 @@ html.motion-off .lhero__media { display: none !important; }
 
 /* Plakat: tumpukan teks tanpa kotak */
 .edisi__plakat { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+/* "Pilihan studio" di plakat: baris selalu dicadangkan, label hanya terlihat saat edisi pilihan studio tampil */
+.edisi__tag { margin: 0 0 12px; min-height: 16px; line-height: 16px; }
+.edisi__tag.is-off { visibility: hidden; }
 .edisi__story { margin: 0; min-height: calc(3 * 1.6em); color: var(--fg-2); } /* 3 baris dicadangkan: harga dan tombol WA tidak melompat saat ganti edisi */
 .edisi__room { display: grid; gap: 8px; margin: 16px 0 0; font: 500 var(--fs-ui) / 1.5 var(--sans); color: var(--fg); }
 .edisi__room .label { margin: 0; }
@@ -399,11 +402,13 @@ html.motion-off .lhero__media { display: none !important; }
   .edisi__was-a, .edisi__was-b { display: block; }
   .edisi__sep { display: none; }
   .edisi__buy .price-block__amount { font-size: var(--fs-price-lg); }
+  /* catatan kit (komponen bertanda SNI/K3L) dibaca sebelum menekan WA: 16 px di HP, kalimatnya sama */
+  .edisi__buy .price-block__note { font-size: 16px; }
 }
 
-/* Ganti edisi lewat View Transitions (lamp.js withTransition): crossfade 300 ms tampilan lama → baru */
-html.vt-edisi::view-transition-old(root),
-html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-timing-function: var(--ease-out); }
+/* Ganti edisi (lamp.js edLamp): lampu lama menjadi hantu di atas tempatnya dan memudar (--t-fast) sementara lampu
+   baru masuk (--t-med); keduanya hanya opacity lewat Web Animations. Hantu tidak menerima ketukan. */
+.edisi__stage .lamp > svg.ed-ghost { position: absolute; inset: 0; pointer-events: none; }
 
 /* Marketplace: tautan teks, hanya link dari config.js */
 .mkt { display: grid; gap: 4px; margin-top: 4px; }
