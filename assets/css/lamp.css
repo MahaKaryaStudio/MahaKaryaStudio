@@ -119,15 +119,12 @@
   .lhero__bg video, .lhero__media { display: none !important; }
   .lhero__bg::after { display: none; }
 }
-/* Gerak dikurangi: video dan hint gulir tidak dirender (brief §8) */
-@media (prefers-reduced-motion: reduce) { .lhero__bg video, .lhero__media, .lhero__hint { display: none !important; } }
+/* Gerak dikurangi: video tidak dirender (brief §8) */
+@media (prefers-reduced-motion: reduce) { .lhero__bg video, .lhero__media { display: none !important; } }
 html.motion-off .lhero__bg video,
-html.motion-off .lhero__media,
-html.motion-off .lhero__hint { display: none !important; }
-/* Hint gulir: hanya desktop lebar, sejajar label AI, tanpa pantulan; hilang setelah gulir pertama */
-.lhero__hint { position: absolute; left: 50%; bottom: max(36px, calc(100% - 100svh + 28px)); transform: translateX(-50%); margin: 0; z-index: 2; font: 500 12px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dark-muted); display: flex; gap: 8px; align-items: center; transition: opacity var(--t-slow) var(--ease-out); }
-.lhero__hint.is-off { opacity: 0; }
-@media (max-width: 1200px) { .lhero__hint { display: none; } } /* di bawah 1200 hint tengah akan menyentuh pil label video */
+html.motion-off .lhero__media { display: none !important; }
+/* Nyala awal hero (lamp.js wakeHero): satu-satunya delay gerak, --t-follow, sebelum cahaya 600 ms */
+.stage--hero.is-waking :is([data-la-lit], [data-la-off]) { transition-delay: var(--t-follow, 200ms); }
 
 /* ---------- Panggung lampu (Stage, mode malam) ----------
    Rig 8 lapis digambar lamp-art.js di dalam satu <svg> (dinding, cahaya dinding + glow kap, meja + tepi
@@ -151,7 +148,8 @@ html.motion-off .lhero__hint { display: none !important; }
    (jarak 64 / HP 40), scene lampu Kebun menyala penuh (desktop menempel top 120; HP di atas kalimat).
    motion.js menambah .story--pin bila gerak aktif dan layar cukup tinggi: seksi 200vh (HP 160vh), isi
    terpaku 100svh, satu kalimat tampil, lampu di scene berevolusi per kalimat
-   (data-step 0 siluet · 1 bagian berganti [data-sub 0/1] · 2 edisi pilihan studio menyala), progres hairline.
+   (data-step 0 siluet · 1 bagian berganti [data-sub 0/1] · 2 edisi pilihan studio menyala; lampu yang tampil
+   = .story__lamp.is-on, nama edisi di pil = .story__pill.is-ed, keduanya ditulis motion.js), progres hairline.
    Scene tanpa kotak: rig (meja) dimask memudar ke --dark-bg; lampu ber-crossfade 600 ms di atasnya. */
 .story { position: relative; padding: 0; overflow-x: clip; /* glow lampu tidak menambah lebar halaman; clip tidak mematikan sticky */ }
 .story__pin { --story-pad: max(var(--page-margin), (100% - var(--container)) / 2); position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: start; padding: var(--pad-room) var(--story-pad) var(--pad-support); }
@@ -187,9 +185,10 @@ html.motion-off .lhero__hint { display: none !important; }
 .story--pin { height: 200vh; }
 .story--pin .story__pin { position: sticky; top: 0; height: 100vh; height: 100svh; min-height: 600px; padding-block: 0; align-items: center; overflow: hidden; }
 .story--pin .story__text { row-gap: 0; }
-.story--pin .story__line { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); }
-.story--pin .story__line.is-on { opacity: 1; transform: none; pointer-events: auto; }
-.story--pin .story__line.is-past { opacity: 0; transform: translateY(-24px); }
+/* kalimat masuk 600 ms (cahaya cerita), keluar 250 ms: yang lewat naik 12 px, yang belum tiba menunggu 24 px di bawah */
+.story--pin .story__line { grid-area: 1 / 1; align-self: center; opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out); }
+.story--pin .story__line.is-on { opacity: 1; transform: none; pointer-events: auto; transition-duration: var(--t-slow); }
+.story--pin .story__line.is-past { opacity: 0; transform: translateY(-12px); }
 /* penutup: tersembunyi lewat opasitas (bukan visibility) supaya tetap terbaca pembaca layar dan "Lihat edisi →"
    terjangkau Tab di kalimat 1–2; saat difokus ia tampil */
 .story--pin .story__close { grid-area: 2 / 1; margin-top: 40px; opacity: 0; pointer-events: none; transition: opacity var(--t-slow) var(--ease-out); }
@@ -197,15 +196,16 @@ html.motion-off .lhero__hint { display: none !important; }
 .story--pin .story__prog { display: flex; position: absolute; left: var(--story-pad); bottom: 48px; }
 .story--pin .story__scene { position: relative; top: auto; align-self: center; width: min(100%, 486px, (100vh - 160px) * 0.868); width: min(100%, 486px, (100svh - 160px) * 0.868); }
 .story--pin .story__lamp[data-k] { opacity: 0; }
-.story--pin[data-step="0"] .story__lamp[data-k="0"],
-.story--pin[data-step="1"][data-sub="0"] .story__lamp[data-k="1"],
-.story--pin[data-step="1"][data-sub="1"] .story__lamp[data-k="2"],
-.story--pin[data-step="2"] .story__lamp[data-k="3"] { opacity: 1; }
+/* lampu scene yang tampil diberi .is-on langsung oleh motion.js (bukan selektor [data-step] pada wadah, supaya
+   pergantian kalimat hanya menghitung ulang gaya lampu yang berganti, bukan seluruh isi cerita) */
+.story--pin .story__lamp.is-on { opacity: 1; }
 /* edisi pilihan studio masuk redup, lalu menyala (lapisan cahaya 600 ms, tertunda 200 ms) */
-.story--pin .story__lamp[data-k="3"] { --dim: 0.15; }
-.story--pin[data-step="2"] .story__lamp[data-k="3"] { --dim: 1; }
-.story--pin[data-step="2"] .story__lamp[data-k="3"] :is([data-la-lit], [data-la-off]) { transition-delay: 200ms; }
-.story--pin:not([data-step="2"]) .story__pill-ed { display: none; }
+/* --dim ditulis pada elemen yang membacanya (lapisan cahaya ber-style var(--dim)), bukan pada wadah lampu: pergantian
+   kalimat tidak menghitung ulang seluruh SVG lampu (aturan performa §4.2) */
+.story--pin .story__lamp[data-k="3"] [style*="--dim"] { --dim: 0.15; }
+.story--pin .story__lamp[data-k="3"].is-on [style*="--dim"] { --dim: 1; }
+.story--pin .story__lamp[data-k="3"].is-on :is([data-la-lit], [data-la-off]) { transition-delay: var(--t-follow, 200ms); }
+.story--pin .story__pill:not(.is-ed) .story__pill-ed { display: none; }
 
 @media (max-width: 699px) {
   /* HP bertumpuk: scene 350 × 260 di atas, kalimat 40 berjarak 40 */
@@ -325,7 +325,7 @@ html.motion-off .lhero__hint { display: none !important; }
 /* Vitrine: rig malam, radius 4, pil kiri bawah, anotasi ukur digambar di dalam SVG (lamp-art dimsMarks) */
 /* tinggi mengikuti lebar kolom (690:780) dan dibatasi tinggi layar: di 901–1100 panggung tidak menjadi kolom sempit
    jangkung dengan lampu kecil; lampu tetap ±62% tinggi bingkai */
-.edisi__stage { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 24px); width: 100%; height: auto; aspect-ratio: 690 / 780; max-height: min(780px, 100vh - 120px); max-height: min(780px, 100svh - 120px); min-height: 440px; transition: top var(--t-med) var(--ease-out); }
+.edisi__stage { position: sticky; top: calc(var(--nav-h) + 24px); width: 100%; height: auto; aspect-ratio: 690 / 780; max-height: min(780px, 100vh - 120px); max-height: min(780px, 100svh - 120px); min-height: 440px; }
 .edisi__stage .stage__pill { top: auto; bottom: 16px; left: 16px; }
 
 /* Rail */
@@ -459,7 +459,8 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
 .preset__price { align-self: end; font: 400 12px/1.4 var(--mono); font-variant-numeric: tabular-nums; }
 .preset__price s { display: block; color: var(--dark-muted); }
 .config { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
-.preview { position: sticky; top: calc(var(--nav-offset, var(--nav-h)) + 12px); transition: top var(--t-med) var(--ease-out); display: grid; gap: 16px; }
+/* top lengket tetap (K9): nav yang bersembunyi tidak menggeser panggung; HP: lihat @media 900 di bawah */
+.preview { position: sticky; top: calc(var(--nav-h) + 12px); display: grid; gap: 16px; }
 .preview .stage { aspect-ratio: 4 / 4.6; }
 .summary { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 20px; display: grid; gap: 12px; }
 .summary .badges { display: flex; flex-wrap: wrap; gap: 8px 16px; }
@@ -553,7 +554,10 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
 .ctrl-wrap > summary > span { display: block; }
 @media (max-width: 900px) {
   .config { grid-template-columns: 1fr; }
-  .preview { position: static; }
+  /* HP: panggung tidak lengket (studio HP lengket top 0 dibangun di langkah rakit); nav.js menyembunyikan nav
+     selama panggung [data-studio-sticky] sudah mencapai tepi atas dan #rakit masih di layar, jadi tidak ada celah
+     dan nav tidak pernah menutupi panggung */
+  .preview { position: static; top: 0; }
   .preview .stage { aspect-ratio: 4 / 3.6; max-height: 520px; }
   .ctrl-wrap > summary { display: flex; }
 }

@@ -64,8 +64,8 @@ run(async ({ open, check }) => {
   const ce = await p.evaluate(() => [...document.querySelectorAll('#tiga [data-tiga-n]')].map((e) => e.getAttribute('contenteditable')));
   check(ce.length === 4 && ce.every((v) => v === 'false'), '#tiga: angka meta [data-tiga-n] token atomik di Mode Edit (contenteditable=false)', ce.join(','));
   check(rows.every((r) => /^(Kap|Badan|Alas): /.test(r.t)), '#tiga: H3 "Kap: …", "Badan: …", "Alas: …" (titik dua)', rows.map((r) => r.t).join(' | '));
-  const st = await p.evaluate(() => { const f = document.querySelector('#tiga .tiga__fig'), cs = getComputedStyle(f), a = cs.top; document.documentElement.style.setProperty('--nav-offset', '0px'); const b = getComputedStyle(f).top; document.documentElement.style.removeProperty('--nav-offset'); return { pos: cs.position, a, b, tp: cs.transitionProperty, td: cs.transitionDuration, navH: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) }; });
-  check(st.pos === 'sticky' && st.a === st.b && near(parseFloat(st.a), st.navH + 24, 0.5), '#tiga 1440: panggung lengket, top tetap (tinggi nav + 24) walau --nav-offset berubah', `${st.pos} ${st.a} → ${st.b}`);
+  const st = await p.evaluate(() => { const f = document.querySelector('#tiga .tiga__fig'), cs = getComputedStyle(f), a = cs.top; const nav = document.querySelector('.nav'); nav.classList.add('nav--hide'); const b = getComputedStyle(f).top; nav.classList.remove('nav--hide'); return { pos: cs.position, a, b, tp: cs.transitionProperty, td: cs.transitionDuration, navH: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) }; });
+  check(st.pos === 'sticky' && st.a === st.b && near(parseFloat(st.a), st.navH + 24, 0.5), '#tiga 1440: panggung lengket, top tetap (tinggi nav + 24) walau nav bersembunyi', `${st.pos} ${st.a} → ${st.b}`);
   check(!/top/.test(st.tp) || /^0s/.test(st.td), '#tiga 1440: panggung lengket tanpa transition top', `${st.tp} ${st.td}`);
   for (const [i, key] of [[1, 'body'], [2, 'base'], [0, 'head']]) {
     await center(p, `#tiga [data-tiga-row="${key}"]`); await p.waitForTimeout(500);

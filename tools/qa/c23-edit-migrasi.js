@@ -19,6 +19,12 @@ const KASUS = [
     text: { [ROW + '0/p:2']: 'META KAP LAMA', [ROW + '1/p:2']: 'META BADAN SUNTINGAN', [ROW + '0/p:1']: 'ISI KAP SUNTINGAN' },
     harap: { '#tiga [data-tiga-row="head"] .tiga__meta': /^3 bentuk · lebar 20 cm · fitting E27$/, '#tiga [data-tiga-row="body"] .tiga__meta': /^META BADAN SUNTINGAN$/, '#tiga [data-tiga-row="head"] .tiga__text': /^ISI KAP SUNTINGAN$/ },
     arsip: [ROW + '0/p:2'], pindah: { [ROW + '1/p:2']: 'META BADAN SUNTINGAN', [ROW + '0/p:1']: 'ISI KAP SUNTINGAN' } },
+  // tahap 6 (gerak-hapus): hint hero "Gulir untuk menyalakan" (#hero-hint) dihapus; suntingannya diarsipkan dan
+  // tidak jatuh ke elemen lain; suntingan hero yang lain tetap berlaku
+  { nama: 'tahap 6 (#hero-hint dihapus), simpanan layout 5', layout: 5,
+    text: { '#hero-hint': 'HINT SUNTINGAN', '#hero/div:2/div:0/p:1': 'LEAD HERO SUNTINGAN' },
+    harap: { '#hero .lead': /^LEAD HERO SUNTINGAN$/, 'body': /^(?![\s\S]*HINT SUNTINGAN)/ },
+    arsip: ['#hero-hint'], pindah: { '#hero/div:2/div:0/p:1': 'LEAD HERO SUNTINGAN' } },
 ];
 run(async ({ open, check }) => {
   for (const k of KASUS) {
@@ -29,7 +35,7 @@ run(async ({ open, check }) => {
     check(bad.length === 0, `C23 ${k.nama}: teks baru tidak tertimpa, suntingan yang sah tetap diterapkan`, bad.join(' | '));
     const t = (r.st.text || {})['index.html'] || {}, v2 = (r.st.textV2 || {})['index.html'] || {};
     const badS = [...k.arsip.filter((a) => a in t || !(a in v2)).map((a) => 'tidak diarsipkan: ' + a), ...Object.entries(k.pindah).filter(([a, v]) => t[a] !== v).map(([a]) => 'tidak pindah: ' + a)];
-    check(badS.length === 0 && r.st.layout >= 5, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 5)`, badS.join(' | ') + ' layout ' + r.st.layout);
+    check(badS.length === 0 && r.st.layout >= 6, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 6)`, badS.join(' | ') + ' layout ' + r.st.layout);
     check(p.__errs.length === 0, `C23 ${k.nama}: tanpa error JS`, p.__errs.join(' | ').slice(0, 200));
   }
   // Mode Edit tetap terbuka dan baris #tiga bisa disunting; label di dalam gambar kerja dan pita tidak ikut
@@ -39,5 +45,11 @@ run(async ({ open, check }) => {
   const e = await p.evaluate(() => ({ panel: !!document.querySelector('.mks-editor'), rows: document.querySelectorAll('#tiga .tiga__row .mks-editable').length, inFig: document.querySelectorAll('#exploded .mks-editable, #pita .band__art .mks-editable').length, pita: document.querySelectorAll('#pita .mks-editable').length }));
   check(e.panel, 'C23 Mode Edit (#edit): panel muncul di index');
   check(e.rows === 12 && e.pita === 2 && e.inFig === 0, 'C23 Mode Edit: 12 teks baris #tiga dan 2 teks pita bisa disunting; label gambar kerja dan anotasi pita tidak', JSON.stringify(e));
+  // Mode Edit menyimpan: sunting lead hero, muat ulang, suntingan tetap; harga lima edisi (C14) tidak berubah
+  await p.evaluate(() => { const el = document.querySelector('#hero .lead'); el.textContent = 'LEAD DARI MODE EDIT'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(1000);
+  const sv = await p.evaluate(() => ({ lead: document.querySelector('#hero .lead').textContent.trim(), st: JSON.parse(localStorage.getItem('mks-edits-v2') || '{}'), prices: window.MKS_LAMP.presets.map((pr) => window.MKSLamp.price({ head: pr.head, body: pr.body, base: pr.base, wiring: true, led: false })).map((r) => [r.total, r.parts + r.wiring]) }));
+  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 6, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 6)', `${sv.lead} · layout ${sv.st.layout}`);
+  check(JSON.stringify(sv.prices) === JSON.stringify([[464000, 626000], [447000, 602000], [454000, 612000], [427000, 533000], [383000, 442000]]), 'C14: harga dan coret lima edisi tidak berubah', JSON.stringify(sv.prices));
   check(p.__errs.length === 0, 'C23 Mode Edit: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 });

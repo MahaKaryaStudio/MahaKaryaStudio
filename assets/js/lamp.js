@@ -503,8 +503,16 @@
   // Hero: rig malam lamp-art varian "hero" (desktop 588 × 735) / "hero-hp" (HP 390 × 440).
   // Lampu selalu dirender dengan lapisan nyala; nyala/mati/redup lewat --dim panggung (transisi 600 ms),
   // jadi SVG hanya dirender ulang bila edisi atau varian berubah.
+  // Nyala awal (adendum v3.1 §4, momen cahaya 1): lampu dirender redup (--dim 0.12 dari HTML), lalu wakeHero()
+  // menulis --dim SATU kali setelah render pertama dan dua requestAnimationFrame (sesudah long task muat),
+  // dengan delay --t-follow dan durasi --t-slow. Gerak dikurangi: dirender sudah menyala. Tidak ada kopling gulir.
   const heroNarrow = window.matchMedia ? window.matchMedia("(max-width: 860px)") : { matches: false };
   let heroKey = "";
+  let heroWoke = reduceMotion();
+  function heroDim(st) {
+    const v = String(hero.on ? hero.dim : 0);
+    if (st.style.getPropertyValue("--dim") !== v) st.style.setProperty("--dim", v);
+  }
   function renderHero() {
     const pre = D().presets[0];
     const variant = heroNarrow.matches ? "hero-hp" : "hero";
@@ -514,12 +522,9 @@
       heroKey = key;
       host.innerHTML = A.renderLamp(hero.cfg, { uid: "hero", variant, vignette: false, dim: hero.dim, label: `Ilustrasi lampu${pre ? " edisi " + pre.name : ""} di atas meja` });
     }
-    // Saat motion aktif, nyala lampu hero dikendalikan scroll (motion.js) sampai pengguna menyentuh saklar
+    // Sebelum nyala awal (wakeHero) panggung tetap redup; sesudahnya --dim mengikuti saklar (nilai sama dilewati)
     const st = $("#hero-stage");
-    if (st) {
-      const byScroll = document.documentElement.classList.contains("motion-on") && hero.on && !st.dataset.auto && !st.dataset.off;
-      if (!byScroll) st.style.setProperty("--dim", hero.on ? hero.dim : 0);
-    }
+    if (st && heroWoke) heroDim(st);
     const sw = $("#hero-switch");
     if (sw) {
       sw.setAttribute("aria-checked", hero.on);
@@ -706,7 +711,7 @@
 
   /* ---------- #kenapa: scene cerita (lampu berevolusi per kalimat) ----------
      Satu lapisan rig (meja, tanpa dinding) + empat lapisan lampu yang ber-crossfade lewat CSS
-     (.story[data-step][data-sub], motion.js): 0 siluet lampu "satu bentuk" (--ink-2, mati) · 1 dan 2 dua edisi
+     (motion.js memberi .is-on pada lampu yang tampil): 0 siluet lampu "satu bentuk" (--ink-2, mati) · 1 dan 2 dua edisi
      lain (redup, --dim .35: bagian berganti bentuk dan warna) · 3 edisi pilihan studio menyala.
      Tanpa pin (gerak dikurangi) hanya lapisan 3 yang tampil, menyala penuh. */
   const storyNarrow = window.matchMedia ? window.matchMedia("(max-width: 699px)") : { matches: false };
@@ -974,7 +979,7 @@
     if (!t) return;
     const d = t.dataset;
     const D_ = D();
-    if (t.id === "hero-switch") { hero.on = !hero.on; const st = $("#hero-stage"); if (st) st.dataset.auto = "1"; return renderHero(); }
+    if (t.id === "hero-switch") { hero.on = !hero.on; heroWoke = true; return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; renderPreview(); return emit("switch"); }
     if (d.pkgView != null) return viewPackage(+d.pkgView);
     if (t.closest("#rakit, #paket, #bagian")) touched = true;
@@ -1219,7 +1224,7 @@
     bindStatic();
     renderSchema();
     renderStatic();
-    heroKey = ""; // data bisa berubah (warna/nama dari Mode Edit): hero digambar ulang; jalur saklar/gulir tetap memakai cache
+    heroKey = ""; // data bisa berubah (warna/nama dari Mode Edit): hero digambar ulang; jalur saklar tetap memakai cache
     renderHero();
     renderPresets();
     renderPackages();
@@ -1262,6 +1267,19 @@
       try { localStorage.removeItem(SAVE_KEY); } catch {}
       try { refresh(); } catch {}
     }
+  })();
+  // Nyala hero sekali: setelah render pertama dan dua frame, satu penulisan --dim (transisi 600 ms, delay 200 ms
+  // lewat .is-waking di lamp.css). Saklar yang disentuh lebih dulu membatalkannya.
+  (function wakeHero() {
+    const st = $("#hero-stage");
+    if (!st || heroWoke) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (heroWoke) return;
+      heroWoke = true;
+      st.classList.add("is-waking");
+      heroDim(st);
+      setTimeout(() => st.classList.remove("is-waking"), 900);
+    }));
   })();
   // Siaran awal setelah semua skrip halaman sempat mendaftar pendengar
   const bootEmit = () => { emit("load"); booted = true; };

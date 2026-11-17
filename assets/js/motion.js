@@ -1,180 +1,191 @@
 /*
- * MOTION — gerak mengikuti scroll, tanpa library, tanpa scroll-jacking.
+ * MOTION — gerak mengikuti scroll, tanpa library, tanpa scroll-jacking (adendum v3.1 §4).
  *  1. (Nav: sembunyi/muncul, tema, slot, dan tautan aktif ada di nav.js, juga saat gerak dikurangi.)
- *  2. Hero menyala saat scroll: --dim 0.35 → 1 pada 0–30% tinggi hero, turun ke 0.6 saat keluar.
- *  3. Cerita terpaku #kenapa (.story--pin): kalimat bertukar, lampu scene berevolusi; --story-p, data-step, data-sub.
+ *  2. (Hero: nyala sekali setelah lampunya tergambar ada di lamp.js wakeHero(); tidak ada kopling gulir.)
+ *  3. Cerita terpaku #kenapa (.story--pin): kalimat bertukar, lampu scene berevolusi; data-step, data-sub.
  *  4. #tiga: baris aktif (.is-active pada [data-tiga-row]) + data-focus pada #exploded, kelas .tiga--live;
  *     dihitung dari posisi garis tengah layar, hanya ≥ 1024 px dan selama seksi terlihat.
- *  5. #cara: garis progres (--fill) dan langkah .is-done.
- *  6. Reveal SEKALI per seksi, hanya kepala seksi.
- * Scroll memakai perilaku asli browser (scroll-behavior: smooth dari CSS untuk tautan #).
- * prefers-reduced-motion atau html.motion-off: tidak ada yang disembunyikan atau digerakkan.
+ *  5. #cara: garis progres (transform scaleY pada <i class="steps-l__fill">) dan langkah .is-done.
+ * Satu requestAnimationFrame untuk semua: semua baca dulu (innerHeight, rect), baru tulis; nilai yang sama
+ * dilewati; #kenapa, #tiga, dan #cara dihitung hanya selama IntersectionObserver menyatakan dekat/terlihat.
+ * Tidak ada custom property yang ditulis per frame; tidak ada reveal saat gulir.
+ * prefers-reduced-motion atau html.motion-off: tidak ada yang disembunyikan atau digerakkan. Perubahan
+ * pengaturan selama kunjungan didengarkan: pin cerita dilepas (atau dipasang lagi) seketika.
  */
 (function () {
   const html = document.documentElement;
   const mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
-  const off = mq.matches || html.classList.contains("motion-off");
-  html.classList.add(off ? "motion-off" : "motion-on");
-  html.classList.remove(off ? "motion-on" : "motion-off");
-  window.MKSMotion = { on: !off };
-  if (off) return;
+  // html.motion-off yang sudah terpasang sebelum skrip ini (mis. dari pemilik halaman) = gerak mati permanen
+  const forced = html.classList.contains("motion-off");
+  const isOff = () => forced || mq.matches;
+  const apply = () => {
+    const off = isOff();
+    html.classList.toggle("motion-off", off);
+    html.classList.toggle("motion-on", !off);
+    window.MKSMotion = { on: !off };
+    return off;
+  };
+  let off = apply();
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const io = (cb, opts) => ("IntersectionObserver" in window ? new IntersectionObserver(cb, opts) : null);
+  const hasIO = "IntersectionObserver" in window;
 
   // Script dimuat sebelum DOM selesai di beberapa halaman: tunggu bila perlu
   const ready = (fn) => (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", fn, { once: true }) : fn());
   ready(init);
 
   function init() {
-    /* ---------- 2 + 5: dihitung per frame scroll ---------- */
-    const hero = $(".lhero");
-    const heroStage = $("#hero-stage");
-    const hint = $("#hero-hint");
-    const steps = $(".steps-l");
-    let ticking = false;
-    let tigaFrame = null; // diisi blok 4: baris aktif #tiga (hanya membaca, menulis saat barisnya berganti)
-
+    let raf = 0;
+    const parts = []; // { read(): state|null, write(state) } per blok, dijalankan berurutan di satu frame
     function frame() {
-      const y = window.scrollY;
-      if (tigaFrame) tigaFrame();
-      if (hero && heroStage) {
-        const h = hero.offsetHeight || 1;
-        if (y < h + 80 && !heroStage.dataset.off) {
-          const p = clamp(y / h, 0, 1);
-          let lit = heroStage.dataset.auto ? 1 : 0.35 + 0.65 * clamp(p / 0.3, 0, 1);
-          if (lit >= 1) heroStage.dataset.auto = "1";
-          if (p > 0.7) lit = Math.min(lit, 1 - 0.4 * clamp((p - 0.7) / 0.3, 0, 1));
-          heroStage.style.setProperty("--dim", lit.toFixed(3));
-          if (hint) hint.classList.toggle("is-off", lit > 0.5 || !!heroStage.dataset.auto);
-        }
-      }
-      if (steps) {
-        const r = steps.getBoundingClientRect();
-        const p = clamp((innerHeight * 0.75 - r.top) / (r.height || 1), 0, 1);
-        steps.style.setProperty("--fill", p.toFixed(3));
-        $$(".step", steps).forEach((st, i, arr) => st.classList.toggle("is-done", p >= (i + 0.5) / arr.length));
-      }
-      ticking = false;
+      raf = 0;
+      const states = parts.map((p) => p.read());
+      parts.forEach((p, i) => p.write(states[i]));
     }
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
-    addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
-    frame();
-    // Tanpa gulir, lampu hero tetap menyala sendiri setelah 2,2 detik
-    if (heroStage) {
-      setTimeout(() => {
-        if (heroStage.dataset.auto || heroStage.dataset.off || window.scrollY > (hero ? hero.offsetHeight * 0.7 : 600)) return;
-        heroStage.dataset.auto = "1";
-        heroStage.style.setProperty("--dim", "1");
-        if (hint) hint.classList.add("is-off");
-      }, 2200);
-      // Saklar hero mematikan kendali scroll (lamp.js memegang nyala/mati)
-      const sw = $("#hero-switch");
-      if (sw) sw.addEventListener("click", () => { heroStage.dataset.off = heroStage.dataset.off ? "" : "1"; });
-    }
+    const sync = () => { if (!raf) raf = requestAnimationFrame(frame); };
+    // "dekat": IntersectionObserver memasang bendera; tanpa IO selalu dekat
+    const near = (el, margin) => {
+      const flag = { on: !hasIO };
+      if (hasIO && el) new IntersectionObserver((es) => { flag.on = es[es.length - 1].isIntersecting; sync(); }, { rootMargin: margin, threshold: 0 }).observe(el);
+      return flag;
+    };
 
     /* ---------- 3. Cerita terpaku #kenapa ----------
        Bawaan CSS = kalimat bertumpuk. .story--pin (200vh desktop / 160vh HP, isi terpaku) hanya dipasang bila
-       layar cukup tinggi untuk isi pin dan Mode Edit tidak terbuka. Per frame: --story-p (0..1), data-step
-       (kalimat 0–2), data-sub (0/1: dua lampu selingan di kalimat kedua), kelas baris is-on/is-past/is-next,
-       segmen progres, dan penutup (.story__close.is-on di kalimat terakhir). */
+       gerak aktif, layar cukup tinggi untuk isi pin, dan Mode Edit tidak terbuka. Yang ditulis hanya saat
+       berganti: data-step (kalimat 0–2), data-sub (0/1: dua lampu selingan di kalimat kedua), kelas baris
+       is-on/is-past/is-next, segmen progres, dan penutup (.story__close.is-on di kalimat terakhir). */
     const story = $(".story");
     if (story) {
       const lines = $$(".story__line", story), segs = $$(".story__prog i", story), close = $(".story__close", story);
+      const art = $("#story-art", story), pill = $(".story__pill", story);
+      // lampu scene: kalimat 0 -> lampu 0, kalimat 1 -> lampu 1/2 (data-sub), kalimat 2 -> lampu 3 (pilihan studio)
+      const lampK = (idx, sub) => (idx === 0 ? 0 : idx === 1 ? 1 + sub : 3);
+      const setLamps = (k) => $$(".story__lamp", story).forEach((l) => l.classList.toggle("is-on", l.dataset.k === k));
       const MIN_H = 600;
+      const nearStory = near(story, "50% 0px 50% 0px");
       let last = "", pinned = null;
-      const storyFrame = () => {
-        const pin = innerHeight >= MIN_H && !document.body.classList.contains("mks-has-panel");
-        if (pin !== pinned) {
-          pinned = pin;
-          last = "";
-          story.classList.toggle("story--pin", pin);
-          if (!pin) {
-            story.removeAttribute("data-step");
-            story.removeAttribute("data-sub");
-            story.style.removeProperty("--story-p");
-            lines.forEach((l) => l.classList.remove("is-on", "is-past", "is-next"));
-            if (close) close.classList.remove("is-on");
+      parts.push({
+        read() {
+          const pin = !off && innerHeight >= MIN_H && !document.body.classList.contains("mks-has-panel");
+          // jauh dari layar tidak dihitung, kecuali keadaan awal (last kosong): kelas awal dipasang saat muat, bukan saat gulir masuk
+          if (!pin || pinned !== true || (!nearStory.on && last)) return { pin, key: null };
+          const r = story.getBoundingClientRect();
+          const p = clamp(-r.top / Math.max(1, r.height - innerHeight), 0, 1);
+          const n = Math.max(1, lines.length);
+          const f = p * n * 0.98;
+          const idx = Math.min(n - 1, Math.floor(f));
+          return { pin, idx, sub: f - idx >= 0.5 ? 1 : 0, key: idx + ":" + (f - idx >= 0.5 ? 1 : 0) };
+        },
+        write(s) {
+          if (s.pin !== pinned) {
+            pinned = s.pin;
+            last = "";
+            story.classList.toggle("story--pin", s.pin);
+            if (!s.pin) {
+              story.removeAttribute("data-step");
+              story.removeAttribute("data-sub");
+              lines.forEach((l) => l.classList.remove("is-on", "is-past", "is-next"));
+              segs.forEach((d) => d.classList.remove("is-on"));
+              if (close) close.classList.remove("is-on");
+              setLamps("");
+              if (pill) pill.classList.toggle("is-ed", false);
+            }
+            // tinggi seksi berubah: hitung lagi di frame berikutnya (baca setelah tulis = frame baru)
+            sync();
+            return;
           }
-        }
-        if (!pin) return;
-        const r = story.getBoundingClientRect();
-        const total = r.height - innerHeight;
-        const p = clamp(-r.top / Math.max(1, total), 0, 1);
-        story.style.setProperty("--story-p", p.toFixed(3));
-        const n = Math.max(1, lines.length);
-        const f = p * n * 0.98;
-        const idx = Math.min(n - 1, Math.floor(f));
-        const sub = f - idx >= 0.5 ? 1 : 0;
-        const key = idx + ":" + sub;
-        if (key !== last) {
-          last = key;
-          story.dataset.step = String(idx);
-          story.dataset.sub = String(sub);
-          lines.forEach((l, i) => { l.classList.toggle("is-on", i === idx); l.classList.toggle("is-past", i < idx); l.classList.toggle("is-next", i > idx); });
-          segs.forEach((d, i) => d.classList.toggle("is-on", i === idx));
-          if (close) close.classList.toggle("is-on", idx === n - 1);
-        }
-      };
-      let sTick = false;
-      const onStory = () => { if (!sTick) { sTick = true; requestAnimationFrame(() => { sTick = false; storyFrame(); }); } };
-      addEventListener("scroll", onStory, { passive: true });
-      addEventListener("resize", onStory);
-      storyFrame();
+          if (s.key == null || s.key === last) return;
+          last = s.key;
+          const n = lines.length;
+          story.dataset.step = String(s.idx);
+          story.dataset.sub = String(s.sub);
+          lines.forEach((l, i) => { l.classList.toggle("is-on", i === s.idx); l.classList.toggle("is-past", i < s.idx); l.classList.toggle("is-next", i > s.idx); });
+          segs.forEach((d, i) => d.classList.toggle("is-on", i === s.idx));
+          if (close) close.classList.toggle("is-on", s.idx === n - 1);
+          setLamps(String(lampK(s.idx, s.sub)));
+          if (pill) pill.classList.toggle("is-ed", s.idx === n - 1);
+        },
+      });
+      // lamp.js menggambar ulang scene (refresh, Mode Edit, ganti lebar): pasang lagi .is-on di frame berikutnya
+      if (art && "MutationObserver" in window) new MutationObserver(() => { last = ""; sync(); }).observe(art, { childList: true });
       // Mode Edit (#edit) menambah body.mks-has-panel: cerita kembali bertumpuk agar semua kalimat bisa disunting
-      if ("MutationObserver" in window) new MutationObserver(onStory).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+      if ("MutationObserver" in window) new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     }
 
     /* ---------- 4. #tiga: baris aktif ----------
        Keadaan dihitung dari posisi, bukan dari peristiwa "masuk": baris aktif = baris yang memuat garis tengah
        layar; garis tengah di atas daftar → baris pertama, di bawah daftar → baris terakhir. Jadi arah gulir
        yang berbalik, lompatan (muat ulang, seret scrollbar, tautan #) dan ubah ukuran jendela selalu berakhir
-       di baris yang benar. Dihitung di frame scroll bersama (satu rAF, baca dulu baru tulis), hanya selama
-       #tiga terlihat dan hanya di tata letak ≥ 1024 px (di bawahnya tanda baris aktif tidak digambar).
-       Yang ditulis hanya pergantian kelas .is-active dan data-focus pada #exploded (penanda; gambar tidak
-       diredupkan), dan hanya saat barisnya berganti; tampilan dan transisinya ada di CSS. */
+       di baris yang benar. Dihitung hanya selama #tiga terlihat dan hanya di tata letak ≥ 1024 px (di bawahnya
+       tanda baris aktif tidak digambar). Yang ditulis hanya pergantian kelas .is-active dan data-focus pada
+       #exploded (penanda; gambar tidak diredupkan), dan hanya saat barisnya berganti; tampilan dan transisinya
+       ada di CSS. Gerak dikurangi: baris pertama tetap bertanda, tanpa .tiga--live. */
     const tigaGrid = $("#tiga .tiga");
     const rows = $$("#tiga [data-tiga-row]");
-    if (rows.length && tigaGrid && "IntersectionObserver" in window) {
+    if (rows.length && tigaGrid && hasIO) {
       const ex = $("#exploded");
       const wide = window.matchMedia("(min-width: 1024px)");
+      const seen = near(tigaGrid, "0px");
       let cur = rows.find((r) => r.classList.contains("is-active")) || rows[0];
-      let seen = false;
-      const set = (row) => {
-        if (row !== cur) { cur = row; rows.forEach((r) => r.classList.toggle("is-active", r === row)); }
-        const key = row.dataset.tigaRow || "";
-        if (ex && ex.dataset.focus !== key) ex.dataset.focus = key;
-      };
-      tigaFrame = () => {
-        if (!seen || !wide.matches) return;
-        const mid = innerHeight / 2;
-        let pick = rows[0];
-        for (let i = 1; i < rows.length; i++) { if (rows[i].getBoundingClientRect().top <= mid) pick = rows[i]; else break; }
-        set(pick);
-      };
-      tigaGrid.classList.add("tiga--live");
-      set(cur);
-      io((es) => { seen = es[es.length - 1].isIntersecting; tigaFrame(); }, { threshold: 0 }).observe(tigaGrid);
-      if (wide.addEventListener) wide.addEventListener("change", () => tigaFrame());
+      let live = null;
+      parts.push({
+        read() {
+          if (off || !seen.on || !wide.matches) return { live: !off, row: off ? rows[0] : null };
+          const mid = innerHeight / 2;
+          let pick = rows[0];
+          for (let i = 1; i < rows.length; i++) { if (rows[i].getBoundingClientRect().top <= mid) pick = rows[i]; else break; }
+          return { live: true, row: pick };
+        },
+        write(s) {
+          if (s.live !== live) { live = s.live; tigaGrid.classList.toggle("tiga--live", live); }
+          if (!s.row) return;
+          if (s.row !== cur) { cur = s.row; rows.forEach((r) => r.classList.toggle("is-active", r === s.row)); }
+          // gerak dikurangi: tanpa data-focus (seperti sebelum langkah ini)
+          const key = s.live ? s.row.dataset.tigaRow || "" : "";
+          if (ex && (ex.dataset.focus || "") !== key) { if (key) ex.dataset.focus = key; else ex.removeAttribute("data-focus"); }
+        },
+      });
+      if (wide.addEventListener) wide.addEventListener("change", sync);
     }
 
-    /* ---------- 6. Reveal sekali: kepala seksi saja ---------- */
-    const heads = [];
-    $$("main section").forEach((sec) => {
-      if (sec.matches(".lhero, .story")) return;
-      $$(":scope > .wrap > :is(.eyebrow, .label, .section-title, .section-sub), :scope > .wrap > div > :is(.eyebrow, .label, .section-title)", sec)
-        .slice(0, 3)
-        .forEach((el, i) => { el.setAttribute("data-rv", ""); el.style.setProperty("--rv-i", String(i)); heads.push(el); });
-    });
-    const show = (el) => el.classList.add("in");
-    const rio = io((es) => es.forEach((e) => { if (e.isIntersecting) { show(e.target); rio.unobserve(e.target); } }), { rootMargin: "0px 0px -6% 0px", threshold: 0 });
-    heads.forEach((el) => {
-      // yang sudah terlewati (mis. masuk lewat tautan #) langsung tampil
-      if (!rio || el.getBoundingClientRect().top < innerHeight * 0.94) show(el);
-      else rio.observe(el);
-    });
+    /* ---------- 5. #cara: garis progres (scaleY) ----------
+       Digosok gulir tanpa transisi: transform ditulis pada isian garis itu sendiri, dibulatkan ke 0,001 dan
+       hanya bila berubah; titik langkah .is-done berganti warna (transisi warna 250 ms di motion.css). */
+    const steps = $(".steps-l");
+    const fill = steps && $(".steps-l__fill", steps);
+    if (steps && fill) {
+      const stepEls = $$(".step", steps);
+      const nearCara = near(steps, "25% 0px 25% 0px");
+      let lastP = null, lastDone = -1;
+      parts.push({
+        read() {
+          if (off) return { p: null };
+          if (!nearCara.on) return { p: -1 };
+          const r = steps.getBoundingClientRect();
+          return { p: Math.round(clamp((innerHeight * 0.75 - r.top) / (r.height || 1), 0, 1) * 1000) / 1000 };
+        },
+        write(s) {
+          if (s.p === -1) return; // jauh dari layar: biarkan keadaan terakhir
+          if (s.p == null) {
+            // gerak dikurangi: garis penuh dari CSS, semua titik tinta
+            if (lastP !== null) { fill.style.removeProperty("transform"); stepEls.forEach((st) => st.classList.remove("is-done")); lastP = null; lastDone = -1; }
+            return;
+          }
+          if (s.p !== lastP) { lastP = s.p; fill.style.transform = `scaleY(${s.p})`; }
+          const done = stepEls.filter((_, i) => s.p >= (i + 0.5) / stepEls.length).length;
+          if (done !== lastDone) { lastDone = done; stepEls.forEach((st, i) => st.classList.toggle("is-done", i < done)); }
+        },
+      });
+    }
+
+    addEventListener("scroll", sync, { passive: true });
+    addEventListener("resize", sync);
+    const onPref = () => { off = apply(); sync(); };
+    if (mq.addEventListener) mq.addEventListener("change", onPref);
+    else if (mq.addListener) mq.addListener(onPref);
+    frame();
   }
 })();

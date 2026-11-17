@@ -21,8 +21,7 @@ section { padding: var(--pad-support) 0; }
    Semua halaman: .nav sticky terang (koleksi) — sembunyi saat gulir turun (.nav--hide, nav.js).
    index.html: .nav--float = fixed 72 (HP 56), tema mengikuti seksi (data-nav-theme clear|dark|light),
    slot kanan kontekstual (data-slot cta|mini|none), menu HP = <dialog class="menu-sheet">.
-   html --nav-offset (nav.js) = tinggi nav saat terlihat, 0 saat tersembunyi: dipakai semua elemen sticky. */
-:root { --nav-offset: var(--nav-h); }
+   Elemen sticky memakai top tetap calc(var(--nav-h) + jarak); nav yang bersembunyi tidak menggesernya (K9). */
 .nav {
   position: sticky;
   top: env(safe-area-inset-top, 0px);
@@ -99,9 +98,15 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
 .nav__mini-name { font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .nav__mini-price { position: relative; display: block; }
 .nav__mini-amount { display: block; }
-.nav__pesan { max-width: 160px; overflow: hidden; transition: max-width var(--t-med) var(--ease-out), padding var(--t-med) var(--ease-out), margin var(--t-med) var(--ease-out), opacity var(--t-fast) var(--ease-out), visibility 0s; }
-/* Tombol berisi lain terlihat (CTA seksi, tombol Kuinto #paket, lembar bagian): WA "Pesan" disembunyikan, teks tetap */
-.nav--quiet .nav__pesan { max-width: 0; margin-left: -12px; padding-inline: 0; opacity: 0; visibility: hidden; transition: max-width var(--t-med) var(--ease-out), padding var(--t-med) var(--ease-out), margin var(--t-med) var(--ease-out), opacity var(--t-fast) var(--ease-out), visibility 0s linear var(--t-med); }
+/* Tombol berisi lain terlihat (CTA seksi, tombol Kuinto #paket, lembar bagian): WA "Pesan" disembunyikan, teks tetap.
+   Hanya opacity/visibility/transform (C6): tombol selebar tetap 104 memudar di tempat, teks ringkasan bergeser
+   ke kanan sejauh lebar tombol + gap lewat transform, jadi tidak ada lebar/margin yang dianimasikan. */
+.nav__mini { --pesan-w: 104px; }
+.nav__pesan { flex: none; width: var(--pesan-w); padding-inline: 0; justify-content: center; transition: opacity var(--t-fast) var(--ease-out), visibility 0s; }
+.nav__mini-text { transition: transform var(--t-med) var(--ease-out); }
+.nav--quiet .nav__pesan { opacity: 0; visibility: hidden; transition: opacity var(--t-fast) var(--ease-out), visibility 0s linear var(--t-fast); }
+.nav--quiet .nav__mini-text { transform: translateX(calc(var(--pesan-w) + 12px)); }
+html.motion-off .nav__mini-text { transition: none; }
 /* Chip delta harga: muncul 1,2 dtk tepat di bawah nav saat harga rakitan berubah */
 .nav__delta { position: absolute; left: 0; top: calc(100% + 14px); white-space: nowrap; background: color-mix(in srgb, var(--amber) 24%, var(--nav-bg)); box-shadow: var(--shadow-float); }
 .price-delta.nav__delta,

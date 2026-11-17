@@ -1,5 +1,6 @@
 /* Gerak mengikuti scroll. Hanya aktif bila html.motion-on (prefers-reduced-motion: no-preference).
-   Dengan html.motion-off semuanya langsung tampil, tanpa transform; durasi & easing dari token base.css. */
+   Dengan html.motion-off semuanya langsung tampil, tanpa transform; durasi & easing dari token base.css.
+   Tidak ada reveal saat gulir (K10): teks tidak pernah menunggu skrip untuk terlihat. */
 
 /* Nav: sembunyi/muncul ada di style.css (nav.js, juga saat gerak dikurangi). Garis bawah tautan aktif
    yang bergeser hanya untuk nav terang koleksi; nav melayang index memakai garis bawah statis (style.css). */
@@ -10,10 +11,6 @@
 .nav:not(.nav--float) .nav__links a:hover::after { transform: scaleX(1); }
 .menu__links a.is-active { background: var(--paper-2); }
 
-/* Reveal sekali per seksi, hanya kepala seksi: fade + 16 px, 600 ms, stagger maks 3 × 70 ms */
-.motion-on [data-rv] { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--rv-i, 0) * 70ms); }
-.motion-on [data-rv].in { opacity: 1; transform: none; }
-
 /* 02 #tiga: baris aktif. Hairline tinta masuk 250 ms dan keluar 150 ms (gambar tidak diredupkan).
    Hanya transform dan opacity; panggung lengketnya (lamp.css) tidak punya transisi. */
 @media (min-width: 1024px) {
@@ -21,12 +18,16 @@
   .motion-on .tiga__row.is-active::before { transition-duration: var(--t-med); }
 }
 
-/* 07 #cara: garis progres terisi mengikuti scroll, titik langkah menyala satu per satu */
-.motion-on .steps-l { position: relative; --fill: 0; }
-.motion-on .steps-l::before,
-.motion-on .steps-l::after { content: ""; position: absolute; left: 11px; top: 40px; width: 2px; }
-.motion-on .steps-l::before { bottom: 40px; background: var(--hairline); }
-.motion-on .steps-l::after { height: calc((100% - 80px) * var(--fill)); background: var(--fg); }
+/* 07 #cara: garis progres. Jalur hairline (::before .steps-l) dan isian <i class="steps-l__fill"> setinggi jalur
+   yang SELALU ada; motion.js menggosok isian lewat transform scaleY pada elemen itu sendiri (tanpa transisi,
+   tanpa custom property di wadah), dan menyalakan titik langkah (.is-done, warna 250 ms). Tanpa JS, gerak
+   dikurangi, atau html.motion-off: garis terisi penuh dan semua titik tinta (lamp.css). */
+.steps-l { position: relative; }
+.steps-l::before,
+.steps-l__fill { content: ""; position: absolute; left: 11px; top: 40px; bottom: 40px; width: 2px; }
+.steps-l::before { background: var(--hairline); }
+.steps-l__fill { display: block; background: var(--fg); transform-origin: 50% 0; }
+.motion-on .steps-l__fill { transform: scaleY(0); }
 .motion-on .steps-l .step > span { background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line-strong); transition: background-color var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out); }
 .motion-on .steps-l .step.is-done > span { background: var(--fg); box-shadow: none; }
 
@@ -35,6 +36,3 @@
   .motion-on .pcard, .motion-on .product { transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out); }
   .motion-on .pcard:hover, .motion-on .product:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 }
-
-/* Saat Mode Edit aktif, jangan sembunyikan apa pun yang sedang diedit */
-body.mks-has-panel [data-rv] { opacity: 1 !important; transform: none !important; }

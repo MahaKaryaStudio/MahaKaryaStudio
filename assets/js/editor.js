@@ -24,8 +24,9 @@
      label ruang ditambah. Tahap 4: 02 #tiga menjadi gambar kerja + tiga baris hairline (lead dan H3 ditulis
      ulang, isi baris tidak lagi dibungkus <div>, label baris dari <span> menjadi <p>). Tahap 5: baris meta
      Kap di #tiga ditulis ulang ("Ø 20 cm" menjadi "lebar 20 cm"; angka bentuk/warna kini diisi lamp.js lewat
-     <span data-tiga-n>). Meta Badan dan Alas tidak berubah kata, jadi suntingannya tetap berlaku. */
-  const LAYOUT = 5;
+     <span data-tiga-n>). Meta Badan dan Alas tidak berubah kata, jadi suntingannya tetap berlaku. Tahap 6
+     (adendum v3.1, gerak-hapus): hint hero "Gulir untuk menyalakan" (#hero-hint) dihapus; suntingannya diarsipkan. */
+  const LAYOUT = 6;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -48,7 +49,12 @@
       drop: ["#tiga/div:0/div:0/div:1/div:0/p:2"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5]];
+  const MOVED_6 = {
+    "index.html": {
+      drop: ["#hero-hint"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;

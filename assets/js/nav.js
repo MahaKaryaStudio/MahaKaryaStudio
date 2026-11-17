@@ -3,7 +3,7 @@
  *
  *  Nav (semua halaman):
  *   - sembunyi saat gulir turun (> 400 px), muncul saat gulir naik / fokus masuk nav  → .nav--hide
- *   - html --nav-offset = tinggi nav saat terlihat, 0 saat tersembunyi (dipakai semua elemen sticky)
+ *   - elemen sticky memakai top tetap calc(var(--nav-h) + jarak): nav yang bersembunyi tidak menggesernya (K9)
  *   - tautan aktif mengikuti seksi di garis 40% layar                                → .nav__links a.is-active
  *  Nav melayang (index.html, .nav--float):
  *   - tema mengikuti seksi di bawah nav: data-nav-theme = clear (puncak hero) | dark | light
@@ -11,7 +11,10 @@
  *     | mini (#alur–#faq: ringkasan rakitan + WA "Pesan")
  *   - WA "Pesan" di ringkasan disembunyikan selama tombol berisi lain terlihat        → .nav--quiet
  *     (maksimal satu tombol berisi per viewport)
- *   - html.in-studio: HP, saat blok [data-studio-sticky] di #rakit menempel di atas → nav disembunyikan penuh
+ *   - html.in-studio: HP, saat blok [data-studio-sticky] di #rakit sudah mencapai tepi atas dan #rakit masih
+ *     di layar → nav disembunyikan penuh (tidak ada celah di atas panggung, nav tidak menutupinya)
+ *  Tombol berisi: satu IntersectionObserver menyempitkan kandidat ke tombol berisi di dalam layar; per frame hanya
+ *   kandidat itu yang diperiksa (visibility, dialog, batas atas). Daftar disegarkan saat DOM berubah.
  *  Menu HP: <dialog id="menu"> layar penuh; Escape / tombol tutup menutup, fokus kembali ke tombol menu.
  *  Orderbar HP (#orderbar, elemen terakhir di DOM):
  *   - isi dari event "mks:change" (nama · jumlah bagian, harga, chip delta, tautan WA)
@@ -98,7 +101,7 @@
   const FILLED = "[data-primary-cta], .btn--primary, .btn--primary-dark, .btn--wa, .btn--wa-amber";
   const bar = $("#orderbar");
   let lastY = window.scrollY, hiddenByScroll = false, ticking = false, barOn = false, barReady = false;
-  const state = { off: null, offPx: null, theme: null, slot: null, quiet: null, studio: null };
+  const state = { off: null, theme: null, slot: null, quiet: null, studio: null };
 
   const navH = () => nav.offsetHeight || 72;
   function rectOf(el) {
@@ -106,11 +109,30 @@
     const r = el.getBoundingClientRect();
     return r.width && r.height ? r : null;
   }
+  // Kandidat tombol berisi: hanya yang dekat layar menurut IntersectionObserver. Tombol yang baru masuk DOM
+  // (render ulang ringkasan, paket, lembar bagian) dianggap kandidat sampai IO melaporkannya pertama kali, jadi
+  // tidak ada frame tempat tombol baru terlewat. Daftar tombol disegarkan malas: MutationObserver hanya menandai
+  // "kotor", querySelectorAll dijalankan di frame berikutnya. Tanpa IO: semua tombol berisi diperiksa (perilaku lama).
+  const cand = new Set();
+  let watched = new Set(), dirty = true;
+  const fio = "IntersectionObserver" in window ? new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) cand.add(e.target); else cand.delete(e.target); });
+    sync();
+  }, { rootMargin: "50% 0px 50% 0px" }) : null; // setengah layar di atas dan bawah: tombol sudah jadi kandidat sebelum masuk
+  function collect() {
+    dirty = false;
+    const now = new Set([...document.querySelectorAll(FILLED)].filter((el) => !el.closest(".nav, #orderbar, #menu")));
+    watched.forEach((el) => { if (!now.has(el)) { if (fio) fio.unobserve(el); cand.delete(el); } });
+    now.forEach((el) => { if (!watched.has(el)) { cand.add(el); if (fio) fio.observe(el); } });
+    watched = now;
+  }
+  if (fio && "MutationObserver" in window) new MutationObserver(() => { dirty = true; }).observe(document.body, { childList: true, subtree: true });
   // Tombol berisi lain (di luar nav, orderbar, menu) yang terlihat di antara top..bawah layar, atau null
   function filledInView(top) {
     const vh = window.innerHeight;
-    for (const el of document.querySelectorAll(FILLED)) {
-      if (el.closest(".nav, #orderbar, #menu")) continue;
+    if (dirty || !fio) collect();
+    for (const el of cand) {
+      if (!el.isConnected) continue;
       const dlg = el.closest("dialog");
       if (dlg && !dlg.open) continue;
       const r = rectOf(el);
@@ -173,8 +195,6 @@
       state.off = off;
       nav.classList.toggle("nav--hide", off);
     }
-    const offPx = off ? "0px" : h + "px";
-    if (offPx !== state.offPx) { state.offPx = offPx; html.style.setProperty("--nav-offset", offPx); }
 
     // Tautan aktif: seksi yang memuat garis 40% tinggi layar
     const line = vh * 0.4;
