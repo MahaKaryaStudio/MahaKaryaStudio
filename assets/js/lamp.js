@@ -1501,7 +1501,8 @@
     $$("[data-wa-text]").forEach((el) => (el.textContent = "+" + C.whatsapp));
     $$("[data-wa-copy]").forEach((el) => (el.dataset.copy = "+" + C.whatsapp));
     $$("[data-ig]").forEach((el) => (el.textContent = "@" + C.instagram));
-    $$("[data-email]").forEach((el) => (el.textContent = C.email || ""));
+    // <wbr> sesudah "@": di layar sempit alamat terputus di "@", bukan di tengah kata; baris disembunyikan bila email kosong
+    $$("[data-email]").forEach((el) => { const e = C.email || "", i = e.indexOf("@"); el.innerHTML = i > 0 ? esc(e.slice(0, i + 1)) + "<wbr>" + esc(e.slice(i + 1)) : esc(e); const l = el.closest(".contact-line"); if (l) l.hidden = !e; });
     $$("[data-city]").forEach((el) => (el.textContent = C.city || ""));
     $$("[data-reply]").forEach((el) => (el.innerHTML = replyHtml(C.replyPromise || "")));
     $$("[data-address]").forEach((el) => { el.textContent = C.address || ""; const l = el.closest(".contact-line"); if (l) l.hidden = !C.address; });

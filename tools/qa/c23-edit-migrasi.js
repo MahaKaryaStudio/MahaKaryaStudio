@@ -52,17 +52,18 @@ const KASUS = [
     pindah: { '#alur/div:0/h2:0': 'JUDUL ALUR SUNTINGAN', '#bagian/div:0/div:1/div:0/div:0/h3:0': 'PUNYA SUNTINGAN', '#bagian/div:0/div:1/div:0/a:0': 'TOMBOL SATUAN SUNTINGAN', '#bagian/div:0/div:1/div:1/div:0/h3:0': 'VOLUME SUNTINGAN', '#bagian/div:0/div:1/div:1/div:0/p:0': 'ISI VOLUME SUNTINGAN', '#bagian/div:0/div:1/div:1/a:0': 'TOMBOL VOLUME SUNTINGAN' } },
   // tahap 10 (penutup): H3 langkah ketiga #cara ditulis ulang (diarsipkan), kartu spesifikasi menjadi <details id="spec">
   // (eyebrow lama diarsipkan, dt/dd pindah), kepala #faq dibungkus .faq__head dan daftar ber-id faq-list (pindah), footer h4 →
-  // h3 (pindah), "Konfigurator" diarsipkan, label kontak WhatsApp diarsipkan dan label Instagram naik satu baris
+  // h3 (pindah), "Konfigurator" diarsipkan, label kontak WhatsApp diarsipkan dan label Instagram naik satu baris;
+  // jawaban FAQ 9 ("di foto" → "di ilustrasi") dan kartu SNI #aman ("pilihan Anda" → "pilihanmu") diarsipkan
   { nama: 'tahap 10 (#cara, #faq, footer), simpanan layout 9', layout: 9,
     text: { '#cara/div:0/div:0/div:0/div:2/div:0/h3:0': 'CETAK SUNTINGAN', '#cara/div:0/div:0/div:0/div:0/div:0/h3:0': 'RAKIT SUNTINGAN', '#cara/div:0/div:1/p:0': 'EYEBROW SPEK SUNTINGAN', '#cara/div:0/div:1/dl:0/dt:0': 'MATERIAL', '#cara/div:0/div:1/dl:0/dd:2': 'ULIR SUNTINGAN',
-      '#faq/div:0/h2:0': 'JUDUL FAQ SUNTINGAN', '#faq/div:0/p:0': 'EYEBROW FAQ SUNTINGAN', '#faq/div:0/div:0/details:1/p:0': 'JAWAB SNI SUNTINGAN', '#faq/div:0/div:0/details:7/summary:0': 'BATAL SUNTINGAN',
+      '#faq/div:0/h2:0': 'JUDUL FAQ SUNTINGAN', '#faq/div:0/p:0': 'EYEBROW FAQ SUNTINGAN', '#faq/div:0/div:0/details:1/p:0': 'JAWAB SNI SUNTINGAN', '#faq/div:0/div:0/details:7/summary:0': 'BATAL SUNTINGAN', '#faq/div:0/div:0/details:8/p:0': 'FOTO SUNTINGAN', '#aman/div:0/div:0/div:2/p:0': 'ANDA SUNTINGAN',
       'footer:0/div:0/div:1/h4:0': 'KONTAK SUNTINGAN', 'footer:0/div:0/div:3/h4:0': 'PASAR SUNTINGAN', 'footer:0/div:0/div:2/a:0': 'KONFIG SUNTINGAN', 'footer:0/div:0/div:2/a:1': 'PAKET SUNTINGAN', 'footer:0/div:0/div:1/div:0/span:0': 'WA LABEL SUNTINGAN', 'footer:0/div:0/div:1/div:1/span:0': 'IG SUNTINGAN' },
     harap: { '#cara .steps-l > .step:nth-of-type(3) h3': /^Kami cetak & rakit$/, '#cara .steps-l > .step:nth-of-type(1) h3': /^RAKIT SUNTINGAN$/, '#spec summary': /^Spesifikasi rakitanmu$/, '#spec dt': /^MATERIAL$/, '#spec dd:nth-of-type(3)': /^ULIR SUNTINGAN$/,
-      '#faq .section-title': /^JUDUL FAQ SUNTINGAN$/, '#faq .eyebrow': /^EYEBROW FAQ SUNTINGAN$/, '#faq-list details:nth-of-type(2) p': /^JAWAB SNI SUNTINGAN$/, '#faq-list details:nth-of-type(8) summary': /^BATAL SUNTINGAN$/,
+      '#faq .section-title': /^JUDUL FAQ SUNTINGAN$/, '#faq .eyebrow': /^EYEBROW FAQ SUNTINGAN$/, '#faq-list details:nth-of-type(2) p': /^JAWAB SNI SUNTINGAN$/, '#faq-list details:nth-of-type(8) summary': /^BATAL SUNTINGAN$/, '#faq-list details:nth-of-type(9) p': /seperti di ilustrasi\.$/, '#aman .safety__card:nth-of-type(3) p': /bukan produk bersertifikat SNI; .*pilihanmu\.$/,
       '.footer__col--kontak h3': /^KONTAK SUNTINGAN$/, '[data-marketplace-col] h3': /^PASAR SUNTINGAN$/, '.footer__grid > div:nth-of-type(3) a:nth-of-type(1)': /^Studio rakit$/, '.footer__grid > div:nth-of-type(3) a:nth-of-type(2)': /^PAKET SUNTINGAN$/,
-      '.footer__col--kontak .contact-line:nth-of-type(1) > span': /^IG SUNTINGAN$/, '.footer__col--kontak .contact-line:nth-of-type(2) > span': /^Email$/, 'body': /^(?![\s\S]*(CETAK|EYEBROW SPEK|KONFIG|WA LABEL) SUNTINGAN)/ },
+      '.footer__col--kontak .contact-line:nth-of-type(1) > span': /^IG SUNTINGAN$/, '.footer__col--kontak .contact-line:nth-of-type(2) > span': /^Email$/, 'body': /^(?![\s\S]*(CETAK|EYEBROW SPEK|KONFIG|WA LABEL|FOTO|ANDA) SUNTINGAN)/ },
     // label WhatsApp lama (div:0) diarsipkan, tetapi alamatnya kini dipakai label Instagram yang pindah: cukup diuji lewat 'body'
-    arsip: ['#cara/div:0/div:0/div:0/div:2/div:0/h3:0', '#cara/div:0/div:1/p:0', 'footer:0/div:0/div:2/a:0'],
+    arsip: ['#cara/div:0/div:0/div:0/div:2/div:0/h3:0', '#cara/div:0/div:1/p:0', 'footer:0/div:0/div:2/a:0', '#faq/div:0/div:0/details:8/p:0', '#aman/div:0/div:0/div:2/p:0'],
     pindah: { '#spec/dl:0/dt:0': 'MATERIAL', '#spec/dl:0/dd:2': 'ULIR SUNTINGAN', '#faq/div:0/div:0/h2:0': 'JUDUL FAQ SUNTINGAN', '#faq/div:0/div:0/p:0': 'EYEBROW FAQ SUNTINGAN', '#faq-list/details:1/p:0': 'JAWAB SNI SUNTINGAN', '#faq-list/details:7/summary:0': 'BATAL SUNTINGAN',
       'footer:0/div:0/div:1/h3:0': 'KONTAK SUNTINGAN', 'footer:0/div:0/div:3/h3:0': 'PASAR SUNTINGAN', 'footer:0/div:0/div:2/a:1': 'PAKET SUNTINGAN', 'footer:0/div:0/div:1/div:0/span:0': 'IG SUNTINGAN', '#cara/div:0/div:0/div:0/div:0/div:0/h3:0': 'RAKIT SUNTINGAN' } },
 ];

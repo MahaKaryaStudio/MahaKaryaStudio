@@ -322,9 +322,10 @@ body.mks-has-panel .faq__more { display: none; }
 .final h2 { grid-row: 3; max-width: 8.2em; margin-bottom: 24px; } /* .t-story; 8.2em = 14ch Fraunces opsz 144 */
 .final__inner > p:not(.eyebrow):not(.final__reply) { grid-row: 4; color: var(--fg-2); margin: 0 0 32px; font-size: var(--fs-lead); max-width: 40ch; }
 .final__inner > .btn { grid-row: 5; justify-self: start; }
+.final .btn--lg { height: 56px; } /* brief: WA 56 juga di HP (token HP .btn--lg 52) */
 .final__reply { grid-row: 6; margin: 16px 0 0; font: 400 var(--fs-mono-price) / 1.5 var(--mono); color: var(--dark-muted); }
 .final__fig { grid-column: 2; grid-row: 1 / -1; align-self: center; justify-self: end; width: min(100%, 360px); margin: 0; }
-.final__stage { aspect-ratio: 420 / 480; }
+.final .final__stage { aspect-ratio: 420 / 480; } /* .final di depan: menang atas .stage 4 / 5 di lamp.css (dimuat setelah style.css) */
 .final__cap { margin: 12px 0 0; font: 400 var(--fs-mono-price) / 1.4 var(--mono); color: var(--dark-fg-2); }
 /* Momen cahaya 5: --dim 0,12 dari HTML, lamp.js menulis 1 sekali saat panggung masuk layar (transisi cahaya 600 ms).
    Gerak dikurangi: dirender sudah menyala. */
@@ -350,6 +351,10 @@ html.motion-off .final__stage { --dim: 1 !important; }
 .footer .logo { margin-bottom: 12px; }
 .footer__bottom { border-top: 1px solid var(--dark-line); margin-top: 40px; padding-top: 20px; font-size: var(--fs-small); color: var(--dark-muted); }
 /* index */
+/* .final dan footer sama gelap: garis tipis di atas grid footer menandai tepinya; ruang bawah .final dipangkas */
+.footer__grid:has(> .footer__brand) { border-top: 1px solid var(--dark-line); padding-top: 56px; }
+.footer:has(.footer__brand) { padding-top: 0; }
+@media (min-width: 1024px) { .final.room-lg { padding-bottom: 112px; } }
 .footer__brand .logo { display: inline-flex; min-height: 44px; margin-bottom: 16px; font-size: 28px; gap: 12px; }
 .footer__brand .logo svg { width: 40px; height: 40px; }
 .footer__brand > p { max-width: 36ch; margin-bottom: 24px; }
@@ -360,8 +365,9 @@ html.motion-off .final__stage { --dim: 1 !important; }
 .footer__col .contact-line { display: grid; gap: 0; margin-bottom: 12px; }
 .footer__col .contact-line a { overflow-wrap: anywhere; justify-self: start; }
 .footer__col .contact-line > span:first-child { color: var(--dark-muted); }
-.footer__bottom:has(> span) { display: flex; flex-wrap: wrap; gap: 4px 0; }
-.footer__bottom > span:not(:last-child)::after { content: "·"; margin: 0 8px; }
+@media (min-width: 761px) { .footer__col .contact-line > span:last-child:not(:first-child) { display: block; padding-block: 5px; } } /* nilai teks ±32 px seperti nilai tautan: ritme label–nilai sama (block, bukan flex: spasi isi data-reply tetap) */
+.footer:has(.footer__brand) .footer__bottom { display: flex; flex-wrap: wrap; gap: 4px 0; }
+.footer:has(.footer__brand) .footer__bottom > span + span::before { content: "·"; margin: 0 8px; } /* titik ikut span sesudahnya: baris terbungkus tidak berakhir dengan "·" */
 
 /* Responsif footer (index): <= 1023 merek penuh, lalu kolom; <= 760 tautan blok 44 */
 @media (max-width: 1023px) {
@@ -376,9 +382,19 @@ html.motion-off .final__stage { --dim: 1 !important; }
   .footer__wa .btn { padding: 0 16px; }
   .footer__wa .copy { padding: 0 14px; }
   .footer__bottom { margin-top: 32px; flex-direction: column; }
-  .footer__bottom > span:not(:last-child)::after { content: none; }
+  .footer:has(.footer__brand) .footer__bottom > span + span::before { content: none; }
   .footer__col--kontak { grid-column: 1 / -1; }
-  .footer__grid:has(> .footer__brand) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .footer__grid:has(> .footer__brand) { grid-template-columns: minmax(0, 1fr); row-gap: 24px; }
+  /* Tombol WA satu baris sendiri; nomor + Salin selalu berdampingan di baris kedua */
+  .footer__wa { display: grid; grid-template-columns: auto auto; justify-content: start; row-gap: 8px; }
+  .footer__wa .btn { grid-column: 1 / -1; justify-self: start; }
+  .footer__num { white-space: nowrap; }
+  /* Jelajah: tautan blok 44 dalam dua kolom; Marketplace sebaris di bawahnya */
+  .footer__col--jelajah { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; align-items: start; }
+  .footer__col--jelajah > h3 { grid-column: 1 / -1; }
+  .footer__col--jelajah > a:not(.btn) { margin-inline: -8px 0; }
+  [data-marketplace-col].footer__col { display: flex; flex-wrap: wrap; column-gap: 16px; align-items: center; }
+  [data-marketplace-col].footer__col > h3 { margin: 0 8px 0 0; min-width: 88px; } /* label sekolom dengan label Hubungi (88) */
 }
 
 /* Modal produk (koleksi) */

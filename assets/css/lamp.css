@@ -938,11 +938,11 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
 .spec .fig { position: relative; background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
 .spec .fig svg { width: 100%; height: auto; display: block; }
 .spec .fig .stage__pill { top: auto; bottom: 12px; left: 12px; } /* kiri bawah: label "Ø 20 cm" rakitan tertinggi berada di kiri atas */
-.spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--fs-small); }
+.spec dl { margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--fs-small); }
 .spec dt { color: var(--dark-muted); }
 .spec dd { margin: 0; font: 400 14px/1.4 var(--mono); }
 @media (min-width: 1024px) {
-  .spec__sum { pointer-events: none; cursor: default; } /* desktop: label, bukan pembuka (lamp.js juga mengeluarkannya dari urutan Tab) */
+  body:not(.mks-has-panel) .spec__sum { pointer-events: none; cursor: default; } /* Mode Edit tetap bisa mengklik label untuk menyunting; desktop: label, bukan pembuka (lamp.js juga mengeluarkannya dari urutan Tab) */
 }
 @media (max-width: 1023px) {
   .how { grid-template-columns: minmax(0, 1fr); gap: 40px; }
@@ -954,6 +954,10 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
   .spec__sum::after { content: "+"; flex: none; width: 24px; text-align: center; font: 300 24px/1 var(--sans); color: var(--dark-fg); transition: transform var(--t-fast) var(--ease-out); }
   .spec[open] > .spec__sum::after { transform: rotate(45deg); }
   .spec .fig { max-width: 360px; }
+}
+@media (max-width: 760px) {
+  .spec dl { grid-template-columns: minmax(0, 1fr); row-gap: 2px; } /* dt di atas dd: nilai panjang memakai lebar penuh */
+  .spec dd + dt { margin-top: 10px; }
 }
 
 /* ---------- 08 #aman: empat sel hairline, ikon garis 32 px, H3 28, isi 17 ---------- */

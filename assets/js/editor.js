@@ -97,10 +97,11 @@
       rename: Object.assign(
         { "#faq/div:0/p:0": "#faq/div:0/div:0/p:0", "#faq/div:0/h2:0": "#faq/div:0/div:0/h2:0",
           [FT + "1/h4:0"]: FT + "1/h3:0", [FT + "2/h4:0"]: FT + "2/h3:0", [FT + "3/h4:0"]: FT + "3/h3:0", [FT + "1/div:1/span:0"]: FT + "1/div:0/span:0" },
-        ...Array.from({ length: 12 }, (_, i) => ({ [FQ + i + "/summary:0"]: "#faq-list/details:" + i + "/summary:0", [FQ + i + "/p:0"]: "#faq-list/details:" + i + "/p:0" })),
+        ...Array.from({ length: 12 }, (_, i) => Object.assign({ [FQ + i + "/summary:0"]: "#faq-list/details:" + i + "/summary:0" }, i === 8 ? {} : { [FQ + i + "/p:0"]: "#faq-list/details:" + i + "/p:0" })),
         ...Array.from({ length: 8 }, (_, i) => ({ [SP + "dt:" + i]: "#spec/dl:0/dt:" + i, [SP + "dd:" + i]: "#spec/dl:0/dd:" + i }))
       ),
-      drop: ["#cara/div:0/div:0/div:0/div:2/div:0/h3:0", "#cara/div:0/div:1/p:0", FT + "1/div:0/span:0", FT + "2/a:0"],
+      // FAQ 8 (jawaban "seperti di foto" → "di ilustrasi") dan kartu SNI #aman ("pilihan Anda" → "pilihanmu"): teks dasar berubah
+      drop: ["#cara/div:0/div:0/div:0/div:2/div:0/h3:0", "#cara/div:0/div:1/p:0", FT + "1/div:0/span:0", FT + "2/a:0", FQ + "8/p:0", "#aman/div:0/div:0/div:2/p:0"],
     },
   };
   const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9], [10, MOVED_10]];

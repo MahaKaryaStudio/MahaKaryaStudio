@@ -1,5 +1,5 @@
 // Cek langkah penutup (adendum v3.1): 07 #cara, 08 #aman, 09 #faq, 10 .final (#konsultasi), footer.
-// Pakai: node tools/qa/c27-penutup.js <url> [--only=c13,cara,c15,final,reduce,faq,c16,c9,heading,orderbar,footer,ukur]
+// Pakai: node tools/qa/c27-penutup.js <url> [--only=c13,cara,c15,final,reduce,faq,c16,c9,heading,orderbar,footer,rapi,ukur]
 // Hover/tekan (C7, C8) dan durasi (C10) seksi ini diuji c04-gerak-sentuh.js (SEKSI memuat #cara–footer); garis #cara
 // hanya transform di c06-layout-props.js; satu tombol berisi sepanjang gulir di c12; migrasi Mode Edit tahap 10 di c23.
 const { run } = require('./_lib');
@@ -225,6 +225,35 @@ run(async ({ open, check, opt, browser, base }) => {
       check(r.wa && r.num && r.copy && r.logo === 40 && r.cols === 3 && r.bg, `Footer ${vp}: logotype 40, ghost-dark "Chat WhatsApp" + nomor + Salin (44), tiga kolom tautan, latar sama dengan .final`, JSON.stringify({ wa: r.wa, num: r.num, copy: r.copy, logo: r.logo, cols: r.cols, bg: r.bg }));
       check(r.market.every((u) => /shp\.ee|shopee|tokopedia\.com\/[^/]+|tiktok\.com\/@/.test(u)) && r.market.length >= 1, `Footer ${vp}: marketplace hanya tautan toko dari config.js`, r.market.join(' '));
       if (vp === 'hp') check(r.blockH.every((h) => h >= 44), 'Footer hp: tautan kolom berupa blok 44', r.blockH.join(','));
+    }
+  }
+
+  /* ---------- perbaikan tata (wip fix 1) ---------- */
+  if (want('rapi')) {
+    const pd = await open('desktop', { wait: 900 });
+    const d = await pd.evaluate(() => {
+      const st = document.querySelector('#final-stage').getBoundingClientRect();
+      const legal = [...document.querySelectorAll('.footer__bottom > span')].map((s, i) => ({ i, before: getComputedStyle(s, '::before').content, after: getComputedStyle(s, '::after').content }));
+      const sum = document.querySelector('#spec summary'); const pe0 = getComputedStyle(sum).pointerEvents;
+      document.body.classList.add('mks-has-panel'); const pe1 = getComputedStyle(sum).pointerEvents; document.body.classList.remove('mks-has-panel');
+      const em = document.querySelector('[data-email]');
+      return { ratio: st.height / st.width, legal, pe0, pe1, wbr: !!em.querySelector('wbr'), emailHidden: em.closest('.contact-line').hidden };
+    });
+    check(Math.abs(d.ratio - 480 / 420) < 0.02, '.final desktop: panggung berasio 420:480 (menang atas .stage 4/5 di lamp.css)', d.ratio.toFixed(3));
+    check(d.legal.every((l) => l.after === 'none' || l.after === 'normal') && d.legal.slice(1).every((l) => /·/.test(l.before)) && !/·/.test(d.legal[0].before), 'Footer desktop: pemisah legal "·" menempel di depan span berikutnya, tidak di ujung baris', JSON.stringify(d.legal));
+    check(d.pe0 === 'none' && d.pe1 !== 'none', 'Spesifikasi desktop: summary hanya label, tetapi bisa diklik di Mode Edit (body.mks-has-panel)', `${d.pe0} → ${d.pe1}`);
+    check(d.wbr && !d.emailHidden, 'Footer: email ber-<wbr> sesudah "@" dan baris tampil bila config.email terisi');
+    for (const vp of ['hp', 'hp360']) {
+      const p = await open(vp, { wait: 900 });
+      const r = await p.evaluate(() => {
+        const b = (s) => document.querySelector(s).getBoundingClientRect();
+        const btn = b('.footer__wa .btn'), num = b('.footer__wa [data-wa-text]'), cp = b('.footer__wa [data-wa-copy]');
+        const jl = [...document.querySelectorAll('.footer__col--jelajah > a')].map((a) => Math.round(a.getBoundingClientRect().left));
+        return { numRow: Math.abs((num.top + num.bottom) / 2 - (cp.top + cp.bottom) / 2) < 6, below: num.top >= btn.bottom, cols: new Set(jl).size, wa: Math.round(b('.final .btn--wa').height) };
+      });
+      check(r.numRow && r.below, `Footer ${vp}: tombol WA sebaris sendiri, nomor + Salin berdampingan di bawahnya`, JSON.stringify(r));
+      check(r.cols === 2, `Footer ${vp}: tautan Jelajah dua kolom`, String(r.cols));
+      check(r.wa === 56, `.final ${vp}: tombol WA 56`, String(r.wa));
     }
   }
 
