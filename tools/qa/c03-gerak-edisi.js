@@ -1,9 +1,12 @@
 // Cek langkah gerak-edisi (adendum v3.1 §4, K2): 01 #edisi tanpa View Transition.
 // Pakai: node tools/qa/c03-gerak-edisi.js <url>      (C2 ketukan beruntun: node tools/qa/c02-taps.js .)
 //  Sumber  tidak ada startViewTransition / ::view-transition / vt-edisi di assets dan HTML.
-//  Ketuk   ganti edisi lewat ketukan: lampu lama memudar 150 ms (--t-fast), lampu baru masuk 250 ms (--t-med),
-//          harga (coret + total) muncul 150 ms; plakat (cerita, cocok untuk) tidak dianimasikan.
-//  C3      panah dan spasi di indeks edisi: tidak ada animasi atau transisi di #edisi; satu lampu di panggung.
+//  Ketuk   ganti edisi lewat ketukan: lampu baru masuk 250 ms (--t-med) di atas lampu lama, yang memudar 150 ms
+//          (--t-fast, delay 200); cakupan cahaya per frame (rAF) 1-(1-hantu)(1-baru) >= 0,9; harga (coret + total)
+//          crossfade 150 ms dan opasitasnya tidak pernah di bawah 0,4; plakat (cerita, cocok untuk) tidak dianimasikan.
+//  C3      panah dan spasi di indeks edisi: tidak ada animasi atau transisi di seluruh dokumen (termasuk chip delta
+//          dan harga di orderbar/nav); satu lampu di panggung. Juga di halaman baru tanpa ketukan sebelumnya (chip
+//          delta tersembunyi), setelah transisi gulir selesai; chip tetap muncul (seketika) lalu hilang seketika.
 //  C10     #edisi, mode biasa: durasi transisi/animasi {0,100,150,250,600}, delay {0,200} (+ visibility 150/250);
 //          mode reduce: durasi {0, 0,01, 150}; ganti edisi seketika.
 //  C17     400 ms setelah ganti edisi document.getAnimations() kosong (biasa dan reduce).
@@ -11,9 +14,8 @@
 //          id ganda di dokumen; tangkapan panggung sama dengan render tunggal edisi yang sama.
 //  C20     catatan kit >= 16 px di 390 dan 360; C13 kalimat kit sama dengan templat (data lamp-data) dan setiap 'SNI'
 //          di halaman lolos daftar izin; tanpa kata bukti sosial.
-//  C14     harga dan coret 5 edisi di indeks dan plakat = nilai tetap; 'Pilihan studio' tepat sekali (edisi pilihan
-//          studio tampil) dan tidak pernah lebih; baris Kebun memuat jumlah bagian dan tinggi; baris cadangan label
-//          tidak menggeser harga saat ganti edisi.
+//  C14     harga dan coret 5 edisi di indeks dan plakat = nilai tetap; 'Pilihan studio' tepat sekali dan terlihat
+//          di setiap edisi; baris Kebun memuat jumlah bagian dan tinggi; harga plakat tidak bergeser antar edisi.
 const { run } = require('./_lib');
 const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -73,11 +75,55 @@ run(async ({ open, check }) => {
   const hit = sumber();
   check(hit.length === 0, 'Sumber: tanpa startViewTransition, ::view-transition, vt-edisi', hit.join(', '));
 
+  /* ---------- C3 di halaman baru: panah sebelum ketukan apa pun (chip delta belum tampil) ---------- */
+  for (const vp of ['hp', 'hp360', 'desktop']) {
+    const p = await open(vp, { wait: 1500 });
+    await toList(p);
+    await p.waitForTimeout(1200); // transisi yang dipicu gulir (mis. lampu cerita #kenapa 200 + 600 ms) selesai dulu
+    const pre = await p.evaluate(() => document.getAnimations().length);
+    check(pre === 0, `${vp} C3 halaman baru: sebelum panah tidak ada animasi berjalan (prasyarat)`, String(pre));
+    await p.evaluate(() => document.querySelector('#edisi-app input[name="edisi"]:checked').focus());
+    const seen = [];
+    for (const key of ['ArrowDown', 'ArrowDown', 'ArrowUp']) {
+      await p.keyboard.press(key);
+      for (const w of [16, 120]) {
+        await p.waitForTimeout(w);
+        seen.push(...(await p.evaluate(() => document.getAnimations().map((a) => `${(a.effect.target && a.effect.target.getAttribute('class')) || '?'} ${a.transitionProperty || ''}`))));
+      }
+    }
+    const chip = await p.evaluate(() => { const e = document.querySelector(innerWidth < 1024 ? '[data-ob-delta]' : '[data-nav-delta]'); return e ? { on: e.classList.contains('is-on') && !e.hidden, op: getComputedStyle(e).opacity } : null; });
+    check(seen.length === 0, `${vp} C3 halaman baru: panah tanpa animasi di seluruh dokumen (chip delta, harga, cerita)`, [...new Set(seen)].join(', '));
+    check(!chip || (chip.on && chip.op === '1'), `${vp} C3 halaman baru: chip delta tetap muncul, seketika`, JSON.stringify(chip));
+    await p.waitForTimeout(1400);
+    const gone = await p.evaluate(() => ({ a: document.getAnimations().length, h: [...document.querySelectorAll('[data-ob-delta], [data-nav-delta]')].every((e) => e.hidden) }));
+    check(gone.a === 0 && gone.h, `${vp} C3 halaman baru: chip delta hilang seketika setelah 1,2 s`, JSON.stringify(gone));
+    // Tab ke indeks tidak menandai papan ketik (transisi baris tetap hidup)
+    await p.evaluate(() => { document.querySelector('#edisi-app .edisi__list').removeAttribute('data-input'); document.querySelector('#edisi-app input[name="edisi"]:checked').focus(); });
+    await p.keyboard.press('Shift+Tab'); await p.keyboard.press('Tab');
+    const tab = await p.evaluate(() => ({ name: document.activeElement && document.activeElement.name, di: document.querySelector('#edisi-app .edisi__list').getAttribute('data-input') }));
+    check(tab.name === 'edisi' && tab.di == null, `${vp}: Tab ke indeks tidak mematikan transisi baris (tanpa data-input)`, JSON.stringify(tab));
+    check(p.__errs.length === 0, `${vp} C3 halaman baru: tanpa galat JS`, p.__errs.join(' | ').slice(0, 300));
+  }
+
   for (const vp of ['hp', 'desktop']) {
     const p = await open(vp, { init: () => { window.__vt = 0; const o = Document.prototype.startViewTransition; if (o) Document.prototype.startViewTransition = function (...a) { window.__vt++; return o.apply(this, a); }; } });
     await toList(p);
     /* ---------- ketukan: crossfade panggung, harga 150, plakat seketika ---------- */
     let rows = await rowsXY(p); const start = rows.findIndex((r) => r.on);
+    // sampler per frame: cakupan cahaya dua lampu dan opasitas harga, sejak sebelum ketukan sampai 450 ms
+    await p.evaluate(() => {
+      window.__cov = [];
+      const t0 = performance.now();
+      const f = () => {
+        const s = [...document.querySelectorAll('[data-ed-lamp] > svg')];
+        const g = s.find((x) => x.classList.contains('ed-ghost')), n = s.filter((x) => !x.classList.contains('ed-ghost')).pop();
+        const o = (x) => (x ? +getComputedStyle(x).opacity : 0);
+        const pr = document.querySelector('#edisi-app [data-ed-amount]');
+        window.__cov.push({ c: 1 - (1 - o(g)) * (1 - o(n)), pr: +getComputedStyle(pr).opacity });
+        if (performance.now() - t0 < 900) requestAnimationFrame(f);
+      };
+      requestAnimationFrame(f);
+    });
     await tapRow(p, (start + 1) % 5, vp);
     await p.waitForTimeout(30);
     const run1 = await p.evaluate(RUNNING);
@@ -95,6 +141,11 @@ run(async ({ open, check }) => {
     await p.waitForTimeout(370);
     const left = await p.evaluate(RUNNING);
     check(left.length === 0, `${vp} C17: 400 ms setelah ganti edisi getAnimations() kosong`, left.map((a) => `${a.who} ${a.d}`).join('; '));
+    await p.waitForTimeout(500);
+    const cov = await p.evaluate(() => window.__cov);
+    const minC = Math.min(...cov.map((x) => x.c)), minP = Math.min(...cov.map((x) => x.pr));
+    check(cov.length > 10 && minC >= 0.9, `${vp} ketukan: cahaya panggung tidak meredup di tengah crossfade (cakupan min >= 0,9)`, `min ${minC.toFixed(3)} dari ${cov.length} frame`);
+    check(minP >= 0.4, `${vp} ketukan: harga tidak pernah tak terbaca (opasitas min >= 0,4)`, `min ${minP.toFixed(2)}`);
     check(await p.evaluate(() => document.querySelectorAll('[data-ed-lamp] > svg').length) === 1, `${vp} ketukan: satu lampu tersisa di panggung`);
     /* ---------- C10 transisi CSS yang dideklarasikan di #edisi ---------- */
     const tm = await p.evaluate(TIMING);
@@ -199,7 +250,7 @@ run(async ({ open, check }) => {
     const okP = pl.every((x, i) => x.a === rp(EXP.totals[i]) && x.w.includes(rp(EXP.anchors[i])) && x.w.includes('hemat ' + rp(EXP.anchors[i] - EXP.totals[i])) && /Kode: MK-/.test(x.wa) && x.wa.includes(rp(EXP.totals[i])));
     check(okP, `${vp} C14: harga, coret, hemat, dan pesan WA plakat lima edisi`, pl.map((x) => x.a + ' / ' + x.w).join(' ; '));
     const pop = await p.evaluate(() => window.MKS_LAMP.popularPreset);
-    check(picks.every((c, i) => c === (i === pop ? 1 : 0)), `${vp} C14: 'Pilihan studio' tepat sekali saat edisi pilihan studio tampil, tidak pernah dua`, picks.join(','));
+    check(picks.every((c) => c === 1), `${vp} C14: 'Pilihan studio' tepat sekali dan terlihat di setiap edisi`, picks.join(','));
     check(new Set(tops).size === 1, `${vp}: harga plakat tidak bergeser antar edisi (baris label dicadangkan)`, tops.join(','));
     const kebun = await p.evaluate((pop) => document.querySelectorAll('#edisi-app .edisi__opt')[pop].querySelector('.edisi__spec')?.textContent || '', pop);
     check(/^\d bagian · ≈ \d+ cm$/.test(kebun), `${vp}: baris edisi pilihan studio memuat jumlah bagian dan tinggi`, kebun);

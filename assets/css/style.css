@@ -117,6 +117,11 @@ html.motion-off .nav__mini-text { transition: none; }
 .price-delta.orderbar__delta.is-on { opacity: 1; transform: none; }
 html.motion-off .price-delta.nav__delta,
 html.motion-off .price-delta.orderbar__delta { transform: none; transition: opacity 150ms linear; }
+/* perubahan dari papan ketik (nav.js fromKey): chip muncul dan hilang seketika (adendum §4 aturan 6) */
+.price-delta.nav__delta.is-instant,
+.price-delta.orderbar__delta.is-instant,
+html.motion-off .price-delta.nav__delta.is-instant,
+html.motion-off .price-delta.orderbar__delta.is-instant { transition: none; }
 /* Tombol menu HP: 44×44, dua garis 18×1,5, tanpa border */
 .nav__menu-btn,
 .menu-sheet__close { position: relative; display: none; place-content: center; gap: 5px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: inherit; cursor: pointer; }

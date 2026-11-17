@@ -766,10 +766,10 @@
       `<div class="edisi__rail">` +
       `<div class="edisi__list" role="radiogroup" aria-label="Pilih edisi">${rows}</div>` +
       `<div class="edisi__plakat">` +
-      // "Pilihan studio" (sekali di halaman) di plakat, hanya saat edisi pilihan studio tampil; barisnya tetap
-      // dicadangkan (visibility) supaya cerita, harga, dan tombol WA tidak melompat saat ganti edisi
-      `<p class="edisi__tag" data-ed-pick><span class="badge edisi__pick">Pilihan studio</span></p>` +
       `<h3 class="sr-only" data-ed-title></h3>` +
+      // "Pilihan studio" (sekali di halaman) di plakat, selalu tampil dan menyebut edisinya: indeks tidak lagi memuat
+      // lencana, jadi informasinya tidak hilang saat edisi lain dilihat; teksnya tetap, jadi tidak ada yang bergeser
+      (d.presets[d.popularPreset] ? `<p class="edisi__tag" data-ed-pick><span class="badge edisi__pick">Pilihan studio: ${esc(d.presets[d.popularPreset].name)}</span></p>` : "") +
       `<p class="edisi__story" data-ed-story></p>` +
       `<p class="edisi__room"><span class="label">Cocok untuk</span> <span data-ed-room></span></p>` +
       `<div class="price-block price-block--lg edisi__buy">` +
@@ -806,8 +806,6 @@
       row.classList.toggle("is-on", on);
       if (inp && inp.checked !== on) inp.checked = on;
     });
-    const pick = $("[data-ed-pick]", el);
-    if (pick) pick.classList.toggle("is-off", i !== d.popularPreset);
     setText($("[data-ed-title]", el), `Edisi ${p.name}`);
     setText($("[data-ed-story]", el), p.story || "");
     setText($("[data-ed-room]", el), p.room || "Meja kerja");
@@ -834,47 +832,57 @@
     if (shop) { const items = marketLinks(p); shop.hidden = !items.length; shop.innerHTML = items.map((x) => marketLinkHtml(x, "edisi__shop-link")).join(""); }
     fitSvgText(el);
   }
-  /* Pergantian edisi tanpa View Transition (K2): crossfade hanya di panggung. Lampu lama menjadi "hantu" yang
-     memudar dalam --t-fast di atas tempatnya, lampu baru masuk dalam --t-med; uid render berselang (ed0/ed1) supaya
-     id gradien dua SVG yang sempat bertumpuk tidak bentrok. Hantu dibuang begitu selesai atau saat pilihan berikutnya,
-     jadi tidak pernah ada dua lampu tertinggal. Plakat berganti seketika; harga (coret + total) muncul dalam --t-fast.
+  /* Pergantian edisi tanpa View Transition (K2): crossfade hanya di panggung. Lampu baru masuk dalam --t-med DI ATAS
+     lampu lama (z-index di lamp.css); lampu lama menjadi "hantu" yang tetap utuh selama lampu baru naik, lalu memudar
+     dalam --t-fast (delay 200 ms) dan dibuang. Jadi panggung tidak pernah meredup di tengah pergantian (dua lapisan
+     setengah transparan menipiskan cahaya lampu). Ketukan beruntun: yang dipertahankan sebagai hantu adalah lapisan yang
+     paling utuh (hantu lama bila lampu yang sedang masuk belum penuh), sisanya dibuang; paling banyak dua lampu.
+     uid render berselang (ed0/ed1) dari uid hantu, supaya id gradien dua SVG yang bertumpuk tidak bentrok.
+     Plakat berganti seketika; harga (coret + total) crossfade dari .4 dalam --t-fast (tidak pernah tak terbaca).
      Perubahan dari papan ketik dan gerak dikurangi: seketika. Hanya opacity, lewat Web Animations (tidak menahan
      ketukan; durasi dan kurva dibaca dari token base.css). */
-  let edUid = 0;
   const motionMs = (tok, fb) => { const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(tok)); return isNaN(v) ? fb : v; };
   const motionEase = () => getComputedStyle(document.documentElement).getPropertyValue("--ease-out").trim() || "ease-out";
+  const ED_GHOST_DELAY = 200; // = --t-follow (token gerak-sentuh); hantu memudar setelah lampu baru hampir penuh
   function edLamp(host, cfg, label, anim) {
     if (!host) return;
-    host.querySelectorAll(".ed-ghost").forEach((g) => g.remove());
-    const old = host.firstElementChild;
-    edUid = 1 - edUid;
-    const html = A.renderLamp(cfg, { uid: "ed" + edUid, on: true, dim: 1, dims: true, variant: "vitrine", label });
-    if (!anim || !old || !old.animate) { host.innerHTML = html; return; }
-    // lampu yang masih masuk ikut memudar dari opasitasnya sekarang (ketukan beruntun tidak berkedip ke 1)
-    const from = +getComputedStyle(old).opacity || 0;
-    old.getAnimations().forEach((x) => x.cancel());
-    old.classList.add("ed-ghost");
-    old.setAttribute("aria-hidden", "true");
-    old.removeAttribute("role");
-    old.removeAttribute("aria-label");
+    const svgs = [...host.children];
+    const cur = svgs.filter((x) => !x.classList.contains("ed-ghost")).pop() || null;
+    const ghost = svgs.find((x) => x.classList.contains("ed-ghost")) || null;
+    const op = (x) => (x ? +getComputedStyle(x).opacity || 0 : -1);
+    // lapisan yang dipertahankan: lampu sekarang, kecuali ia masih masuk dan hantunya lebih utuh
+    const keep = anim && cur && cur.animate ? (ghost && op(cur) < 0.999 && op(ghost) > op(cur) ? ghost : cur) : null;
+    const uid = keep && keep.getAttribute("data-ed-uid") === "ed0" ? "ed1" : "ed0";
+    const html = A.renderLamp(cfg, { uid, on: true, dim: 1, dims: true, variant: "vitrine", label });
+    if (!keep) { host.innerHTML = html; if (host.firstElementChild) host.firstElementChild.setAttribute("data-ed-uid", uid); return; }
+    const from = op(keep);
+    svgs.forEach((x) => { if (x !== keep) x.remove(); });
+    keep.getAnimations().forEach((x) => x.cancel());
+    keep.classList.add("ed-ghost");
+    keep.setAttribute("aria-hidden", "true");
+    keep.removeAttribute("role");
+    keep.removeAttribute("aria-label");
     host.insertAdjacentHTML("beforeend", html);
     const neu = host.lastElementChild, ease = motionEase();
-    const out = old.animate([{ opacity: from }, { opacity: 0 }], { duration: motionMs("--t-fast", 150), easing: ease, fill: "forwards" });
-    const drop = () => old.remove();
-    out.finished.then(drop, drop);
+    if (neu) neu.setAttribute("data-ed-uid", uid);
+    // fill "both": selama delay hantu bertahan pada opasitasnya sekarang
+    const out = keep.animate([{ opacity: from }, { opacity: 0 }], { duration: motionMs("--t-fast", 150), delay: ED_GHOST_DELAY, easing: ease, fill: "both" });
+    const drop = () => keep.remove();
+    out.finished.then(drop, () => {});
     if (neu && neu.animate) neu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: motionMs("--t-med", 250), easing: ease });
   }
   function edFade(nodes, ms) {
     if (!ms) return;
     const ease = motionEase();
-    nodes.forEach((n) => { if (n && n.animate && !n.hidden) { n.getAnimations().forEach((x) => x.cancel()); n.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: ease }); } });
+    nodes.forEach((n) => { if (n && n.animate && !n.hidden) { n.getAnimations().forEach((x) => x.cancel()); n.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: ms, easing: ease }); } });
   }
   // Ketukan/klik vs papan ketik: change dari panah atau spasi pada radio edisi terjadi tepat setelah keydown/keyup-nya
   // (aturan 6: tanpa animasi). Selama indeks dipakai lewat papan ketik, transisi warna barisnya juga dimatikan
   // (data-input="key" di .edisi__list); ketukan atau klik berikutnya mengembalikannya.
   let edKeyAt = -1e9;
   const edKey = (e) => {
-    if (!e.target || e.target.name !== "edisi") return;
+    // hanya tombol yang memilih radio (panah, spasi); Tab yang masuk ke indeks tidak mematikan transisi baris
+    if (!e.target || e.target.name !== "edisi" || !(e.key === " " || /^Arrow/.test(e.key || ""))) return;
     edKeyAt = e.timeStamp;
     const list = e.target.closest(".edisi__list");
     if (list) list.setAttribute("data-input", "key");
