@@ -34,8 +34,8 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   C20 catatan kit ≥ 16 px di HP; C13 kalimat kit dan daftar izin SNI; C14 harga/coret/pesan WA lima edisi dan
   'Pilihan studio' tepat sekali dan terlihat di setiap edisi. C2 (ketukan beruntun) tetap di `c02-taps.js`.
 - `c04-gerak-sentuh.js [--only=token,c7,c8,c10,c11,c16,c13,c23,c14,toast]`: token gerak dan pendamping, tabel
-  breakpoint di kepala base.css; C7 hover digerbang `(hover: hover) and (pointer: fine)` dan hanya pada yang bisa diklik;
-  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP) di empat
+  breakpoint di kepala base.css; C7 hover digerbang `(hover: hover) and (pointer: fine)` dan hanya pada yang bisa diklik (aturan nav/menu ikut dipindai walau tak cocok elemen di index);
+  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP, transisi dimatikan: ini simulasi, bukan pengganti uji ketuk di HP sungguhan) di empat
   ukuran layar, biasa (transform atau warna) dan reduce (wajib warna/latar/opacity/box-shadow); C10 durasi dan delay pada
   token (biasa dan reduce); C11 label ILUSTRASI tabel #paket dan baris #bagian; C16 tanpa harga ketikan dan `wa.me/` di
   HTML mentah index/404, satu noscript, href WA awal dari config.js saat lamp.js diblokir; C13; C23 baris label #bagian

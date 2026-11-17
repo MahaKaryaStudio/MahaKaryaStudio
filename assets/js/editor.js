@@ -72,6 +72,13 @@
   const state = load();
   if (products && state.products) replaceArray(products, state.products);
   if (state.config) replaceObject(config, fillMissing(clone(state.config), ORIGINAL.config));
+  // Skrip inline index.html sudah mengisi href [data-wa] dengan nomor config.js asli; bila nomor diubah
+  // di Mode Edit, tukar nomornya di sini juga agar jalur "lamp.js gagal" tetap memakai nomor baru.
+  if (config && ORIGINAL.config && config.whatsapp && ORIGINAL.config.whatsapp && config.whatsapp !== ORIGINAL.config.whatsapp) {
+    document.querySelectorAll("[data-wa][href]").forEach((a) => {
+      a.href = a.getAttribute("href").replace("/" + ORIGINAL.config.whatsapp + "?", "/" + config.whatsapp + "?");
+    });
+  }
   if (!state.text[PAGE]) state.text[PAGE] = {};
   const plugins = [];
 

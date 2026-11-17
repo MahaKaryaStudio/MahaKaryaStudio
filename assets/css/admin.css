@@ -36,6 +36,7 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; colo
 .btn--wa { background: var(--wa); border-color: var(--wa); color: #0b3d1f; }
 .btn--wa.is-off { opacity: 0.45; pointer-events: none; }
 .btn--danger { border-color: #e8c3a8; color: var(--bad); margin-left: auto; }
+.btn--danger:active { color: var(--bad); } /* tekan umum base.css memakai --fg; Hapus tetap merah */
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font: 500 13px var(--sans); color: var(--ink-2); cursor: pointer; }
 .chip.is-on, .chip--on { background: var(--ink); color: #fff; border-color: var(--ink); }

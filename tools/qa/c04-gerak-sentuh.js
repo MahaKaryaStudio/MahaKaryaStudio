@@ -71,7 +71,8 @@ run(async ({ open, check, base, opt, browser }) => {
   if (want('c7')) {
     const p = await open('desktop');
     const r = await p.evaluate((SEKSI) => {
-      const BASE = /\.(btn|chip|tab|swatch|segmented|switch|text-link|toast__action)\b/;
+      // nav/menu dihitung juga bila tak ada elemen cocok di index (mis. nav terang koleksi di motion.css)
+      const BASE = /\.(btn|chip|tab|swatch|segmented|switch|text-link|toast__action|nav|nav__[\w-]+|menu|menu__[\w-]+|menu-sheet[\w-]*|logo)\b/;
       const CLICK = 'a[href], a[data-wa], button, label, summary, select, input, textarea, [role="button"], [role="tab"], [role="radio"], [role="switch"], [role="link"], [tabindex]:not([tabindex="-1"])';
       const split = (s) => { const out = []; let d = 0, cur = ''; for (const ch of s) { if (ch === '(') d++; if (ch === ')') d--; if (ch === ',' && d === 0) { out.push(cur.trim()); cur = ''; } else cur += ch; } if (cur.trim()) out.push(cur.trim()); return out; };
       const inScope = (el) => SEKSI.some((s) => el.closest(s));

@@ -870,13 +870,18 @@ html.has-orderbar .toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px))
 .segmented > :is([aria-checked="true"], [aria-pressed="true"], [aria-selected="true"], .is-active, label:has(input:checked)):active { background: color-mix(in srgb, var(--sel-fill) 82%, var(--bg)); }
 .chip:is(:disabled, [aria-disabled="true"]):active { background: var(--chip-bg); transform: none; }
 .swatch:active,
-.switch:active > i { opacity: 0.8; }
+.switch:not(:disabled):not([aria-disabled="true"]):active > i { opacity: 0.8; }
 .swatch:is(:disabled, [aria-disabled="true"], .swatch--out):active { opacity: 0.4; transform: none; }
 .btn:active,
 .chip:active,
 .segmented > :is(button, label):active,
 .swatch:active { transform: scale(var(--press-scale)); }
-.swatch:active { transition-duration: var(--t-press); } /* hover swatch 150; tekan 100 */
+/* Masuk tekan 100 ms (warna dan skala bersamaan); lepas kembali lewat transisi biasa 150 ms. */
+.btn:active,
+.chip:active,
+.segmented > :is(button, label):active,
+.tab:active,
+.swatch:active { transition-duration: var(--t-press); }
 /* sesudah status tekan (a) ada: sorot ketuk bawaan dimatikan pada selektor yang sama; ketuk ganda tidak memperbesar */
 .btn, .chip, .tab, .swatch, .switch, .text-link, .toast__action,
 .segmented > button, .segmented > label { -webkit-tap-highlight-color: transparent; }

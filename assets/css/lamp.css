@@ -359,7 +359,7 @@ html.motion-off .lhero__media { display: none !important; }
 .edisi__opt:has(input:focus-visible) { outline: 2px solid var(--ring-c); outline-offset: 2px; border-radius: var(--r-tile); z-index: 1; }
 @media (hover: hover) and (pointer: fine) { .edisi__opt:not(.is-on):hover { background: var(--paper-2); } }
 /* baris hairline: latar tekan tanpa gerak (juga baris terpilih; tanpa skala) */
-.edisi__opt:active { background: var(--press-bg); }
+.edisi__opt:active { background: var(--press-bg); transition-duration: var(--t-press); }
 
 /* Plakat: tumpukan teks tanpa kotak */
 .edisi__plakat { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
