@@ -260,12 +260,14 @@
   document.addEventListener("keyup", markKey, true);
   document.addEventListener("pointerdown", () => { kbd = false; }, true);
   const fromKey = () => kbd;
-  // Harga berganti di node yang sama: crossfade 200 ms (opasitas saja); papan ketik dan gerak dikurangi: seketika
+  // Harga berganti di node yang sama: crossfade --t-fast dengan kurva --ease-out (opasitas saja, mulai .4 supaya harga
+  // terbaca di setiap frame dan tidak pernah ditunda); papan ketik dan gerak dikurangi: seketika
+  const tok = (name, fb) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fb;
   function swap(el, h) {
     if (!el || el.innerHTML === h) return;
     const first = !el.innerHTML;
     el.innerHTML = h;
-    if (!first && !fromKey() && !reduce() && el.animate) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+    if (!first && !fromKey() && !reduce() && el.animate) el.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: parseFloat(tok("--t-fast", "150")) || 150, easing: tok("--ease-out", "ease-out") });
   }
   function setText(el, t) { if (el && el.textContent !== t) el.textContent = t; }
   // Chip delta 1,2 dtk. Dari papan ketik: muncul dan hilang seketika (.is-instant = transition none), tanpa animasi.
@@ -281,7 +283,7 @@
     el._t = setTimeout(() => {
       el.classList.remove("is-on");
       if (el.classList.contains("is-instant")) { el.hidden = true; return; }
-      el._t = setTimeout(() => { el.hidden = true; }, reduce() ? 150 : 250);
+      el._t = setTimeout(() => { el.hidden = true; }, 150); // keluar --t-fast (150); gerak dikurangi: opasitas 150 linear
     }, 1200);
   }
   const QUIET_REASONS = { load: 1, refresh: 1 };

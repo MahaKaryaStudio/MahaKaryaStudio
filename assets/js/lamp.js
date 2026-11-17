@@ -211,8 +211,8 @@
 
   // Toast (role=status, aria-live=polite) di atas orderbar. Aksi opsional:
   //   toast("Bola (Zaitun) dipasang di Badan 1", { action: { label: "Lihat di studio ↑", href: "#rakit" } })
-  //   action.onClick(event) boleh dipakai sebagai ganti/tambahan href. Tampil 2,4 dtk (4 dtk bila ada aksi);
-  //   jeda selama kursor/fokus berada di toast.
+  //   action.onClick(event) boleh dipakai sebagai ganti/tambahan href. Tampil 3 dtk; kegagalan ({ error: true })
+  //   5 dtk; dengan aksi 4 dtk; jeda selama kursor/fokus berada di toast (adendum v3.1).
   function toast(msg, opts) {
     const t = $("#toast");
     if (!t) return;
@@ -232,7 +232,7 @@
       });
       t.append(a);
     }
-    toast.ms = o.ms || (act ? 4000 : 2400);
+    toast.ms = o.ms || (o.error ? 5000 : act ? 4000 : 3000);
     if (!t.dataset.bound) {
       t.dataset.bound = "1";
       const pause = () => clearTimeout(toast.t);
@@ -245,7 +245,7 @@
     t.classList.add("show");
     armToast();
   }
-  function armToast() { clearTimeout(toast.t); toast.t = setTimeout(hideToast, toast.ms || 2400); }
+  function armToast() { clearTimeout(toast.t); toast.t = setTimeout(hideToast, toast.ms || 3000); }
   // Sembunyikan toast. Aksi yang tersisa di DOM dibuat inert (keluar dari urutan Tab saat toast tak terlihat);
   // bila aksi sedang difokus, fokus pindah ke tujuan tautannya (mis. #rakit) alih-alih jatuh ke <body>.
   function hideToast() {
@@ -618,7 +618,7 @@
     const hot = pkgHot();
     if (!list.includes(pkgView)) pkgView = list.includes(4) ? 4 : list[Math.floor(list.length / 2)];
     const table =
-      `<div class="paket__table">` +
+      `<div class="paket__table"><span class="label paket__il paket__il--table">Ilustrasi</span>` +
       list.map((n) => {
         const pk = D().packages[n], hi = n === hot, sil = silhouetteSvg(pkgSpec(n), "pkd" + n);
         return (
@@ -843,7 +843,6 @@
      ketukan; durasi dan kurva dibaca dari token base.css). */
   const motionMs = (tok, fb) => { const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(tok)); return isNaN(v) ? fb : v; };
   const motionEase = () => getComputedStyle(document.documentElement).getPropertyValue("--ease-out").trim() || "ease-out";
-  const ED_GHOST_DELAY = 200; // = --t-follow (token gerak-sentuh); hantu memudar setelah lampu baru hampir penuh
   function edLamp(host, cfg, label, anim) {
     if (!host) return;
     const svgs = [...host.children];
@@ -866,7 +865,7 @@
     const neu = host.lastElementChild, ease = motionEase();
     if (neu) neu.setAttribute("data-ed-uid", uid);
     // fill "both": selama delay hantu bertahan pada opasitasnya sekarang
-    const out = keep.animate([{ opacity: from }, { opacity: 0 }], { duration: motionMs("--t-fast", 150), delay: ED_GHOST_DELAY, easing: ease, fill: "both" });
+    const out = keep.animate([{ opacity: from }, { opacity: 0 }], { duration: motionMs("--t-fast", 150), delay: motionMs("--t-follow", 200), easing: ease, fill: "both" });
     const drop = () => keep.remove();
     out.finished.then(drop, () => {});
     if (neu && neu.animate) neu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: motionMs("--t-med", 250), easing: ease });
@@ -913,6 +912,7 @@
     setText("[data-alur-pkg]", pr.pkg.name);
     setText("[data-alur-price]", rp(pr.total));
     setText("[data-alur-total]", rp(pr.total + (z ? z.price : 0)));
+    setText("[data-alur-ship]", rp(z ? z.price : 0));
     setHtml("[data-alur-photo]", A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.9, variant: "thumb", label: "Ilustrasi foto rakitan" }) + '<span class="pill">Ilustrasi</span>');
     // huruf pertama kecil karena muncul di tengah kalimat; "WIB" tetap kapital
     setHtml("[data-reply-inline]", replyHtml(lowerFirst(C.replyPromise || "")));
@@ -1151,7 +1151,7 @@
         document.execCommand("copy");
         toast(msg);
       } catch (_) {
-        toast("Tidak bisa menyalin otomatis");
+        toast("Tidak bisa menyalin otomatis", { error: true });
       }
       ta.remove();
     };

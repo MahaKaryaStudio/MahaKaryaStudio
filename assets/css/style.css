@@ -10,7 +10,8 @@ section { padding: var(--pad-support) 0; }
 .section-sub,
 .lead { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: -0.005em; color: var(--fg-2); max-width: 44ch; }
 .icon-btn { display: grid; place-items: center; border: 0; background: transparent; width: 44px; height: 44px; border-radius: 50%; font-size: 16px; color: var(--fg-2); }
-.icon-btn:hover { background: var(--surface-1); color: var(--fg); }
+@media (hover: hover) and (pointer: fine) { .icon-btn:hover { background: var(--surface-1); color: var(--fg); } }
+.icon-btn:active { background: var(--press-bg); color: var(--fg); }
 .link { color: var(--link); font-weight: 500; font-size: var(--fs-small); text-underline-offset: 4px; }
 
 /* Bilah info (hanya koleksi) */
@@ -31,7 +32,7 @@ section { padding: var(--pad-support) 0; }
   border-bottom: 1px solid var(--line);
   transition: transform var(--t-med) var(--ease-out), background-color var(--t-med) var(--ease-out), border-color var(--t-med) var(--ease-out), color var(--t-med) var(--ease-out);
 }
-.nav--hide { transform: translateY(-100%); }
+.nav--hide { transform: translateY(-100%); transition-duration: var(--t-fast); } /* keluar 150, masuk 250 */
 html.motion-off .nav { transition: background-color var(--t-fast) linear, border-color var(--t-fast) linear, color var(--t-fast) linear; }
 .nav__inner { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); gap: 16px; }
 .nav .btn { white-space: nowrap; }
@@ -44,7 +45,11 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
 .logo__base { stroke: var(--logo-base, var(--ink-2)); }
 .nav__links { display: flex; gap: 28px; }
 .nav__links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: var(--fs-ui); color: var(--ink-2); font-weight: 500; white-space: nowrap; letter-spacing: 0.01em; }
-.nav__links a:hover { color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { .nav__links a:hover { color: var(--ink); } }
+/* tekan tanpa gerak: tautan nav, logo, tombol menu (adendum §4 aturan 8a) */
+.nav__links a, .logo, .nav__menu-btn, .menu-sheet__close, .menu-sheet__links a { -webkit-tap-highlight-color: transparent; }
+.nav__links a:active, .logo:active { opacity: 0.72; }
+.nav__menu-btn:active, .menu-sheet__close:active { background: var(--press-bg); }
 
 /* Nav melayang (index): tanpa blur dan bayangan, hairline mengikuti tema */
 .nav--float {
@@ -74,6 +79,7 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
   --muted: var(--dark-muted);
   --ring-c: var(--dark-fg);
   --wa-ring-cur: 0 0 #0000;
+  --press-bg: var(--dark-bg-4);
   color: var(--dark-fg);
 }
 .nav--float[data-nav-theme="clear"] { --nav-line: transparent; background: transparent; }
@@ -82,7 +88,7 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
 .nav--float .logo { grid-column: 1 / 4; justify-self: start; }
 .nav--float .nav__links { grid-column: 5 / 9; gap: 40px; }
 .nav--float .nav__links a { color: var(--nav-link); transition: color var(--t-fast) var(--ease-out); }
-.nav--float .nav__links a:hover,
+@media (hover: hover) and (pointer: fine) { .nav--float .nav__links a:hover { color: var(--nav-link-on); } }
 .nav--float .nav__links a.is-active { color: var(--nav-link-on); }
 .nav--float .nav__links a.is-active { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
 @media (max-width: 1100px) { .nav--float .nav__links { gap: 28px; } }
@@ -102,9 +108,10 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
    Hanya opacity/visibility/transform (C6): tombol selebar tetap 104 memudar di tempat, teks ringkasan bergeser
    ke kanan sejauh lebar tombol + gap lewat transform, jadi tidak ada lebar/margin yang dianimasikan. */
 .nav__mini { --pesan-w: 104px; }
-/* masuk (250 ms): ringkasan bergeser kembali dulu (150 ms), tombol memudar masuk setelah 100 ms, jadi tidak menutupi
-   harga; keluar (150 ms): tombol memudar, ringkasan menyusul ke slotnya (250 ms) */
-.nav__pesan { flex: none; width: var(--pesan-w); padding-inline: 0; justify-content: center; transition: opacity var(--t-fast) var(--ease-out) 100ms, visibility 0s; }
+/* masuk: ringkasan bergeser kembali dulu (150 ms), tombol memudar masuk setelah --t-follow (200 ms, satu-satunya
+   delay gerak: tombol menyusul ringkasan), jadi tidak menutupi harga; keluar (150 ms): tombol memudar, ringkasan
+   menyusul ke slotnya (250 ms) */
+.nav__pesan { flex: none; width: var(--pesan-w); padding-inline: 0; justify-content: center; transition: opacity var(--t-fast) var(--ease-out) var(--t-follow), visibility 0s, background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out), transform var(--t-press) var(--ease-out); }
 .nav__mini-text { transition: transform var(--t-fast) var(--ease-out); }
 .nav--quiet .nav__pesan { opacity: 0; visibility: hidden; transition: opacity var(--t-fast) var(--ease-out), visibility 0s linear var(--t-fast); }
 .nav--quiet .nav__mini-text { transform: translateX(calc(var(--pesan-w) + 12px)); transition-duration: var(--t-med); }
@@ -112,9 +119,9 @@ html.motion-off .nav__mini-text { transition: none; }
 /* Chip delta harga: muncul 1,2 dtk tepat di bawah nav saat harga rakitan berubah */
 .nav__delta { position: absolute; left: 0; top: calc(100% + 14px); white-space: nowrap; background: color-mix(in srgb, var(--amber) 24%, var(--nav-bg)); box-shadow: var(--shadow-float); }
 .price-delta.nav__delta,
-.price-delta.orderbar__delta { opacity: 0; transform: translateY(4px); transition: opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out); pointer-events: none; }
+.price-delta.orderbar__delta { opacity: 0; transform: translateY(4px); transition: opacity var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out); pointer-events: none; } /* keluar 150 */
 .price-delta.nav__delta.is-on,
-.price-delta.orderbar__delta.is-on { opacity: 1; transform: none; }
+.price-delta.orderbar__delta.is-on { opacity: 1; transform: none; transition-duration: var(--t-med); } /* masuk 250 */
 html.motion-off .price-delta.nav__delta,
 html.motion-off .price-delta.orderbar__delta { transform: none; transition: opacity 150ms linear; }
 /* perubahan dari papan ketik (nav.js fromKey): chip muncul dan hilang seketika (adendum §4 aturan 6) */
@@ -178,6 +185,7 @@ html.menu-open { overflow: hidden; }
   text-decoration: none;
 }
 .menu-sheet__links a.is-active { font-style: italic; }
+.menu-sheet__links a:active { background: var(--press-bg); } /* baris hairline: latar tekan (dialog .dark) */
 .menu-sheet__foot { display: grid; gap: 12px; margin-top: auto; padding-top: 32px; }
 .menu-sheet__reply { margin: 0; max-width: none; text-align: center; font: 400 var(--fs-mono-code) / 1.4 var(--mono); color: var(--dark-muted); }
 .cart-btn { position: relative; border: 0; box-shadow: inset 0 0 0 1.5px var(--ink); background: transparent; border-radius: 999px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); }
@@ -304,7 +312,7 @@ html.menu-open { overflow: hidden; }
 
 /* Modal produk (koleksi) */
 .modal { border: 0; border-radius: 22px; padding: 0; width: min(880px, 100% - 32px); max-height: calc(100% - 32px); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-float); }
-.modal::backdrop { background: rgba(21, 16, 12, 0.55); } /* ::backdrop tidak mewarisi variabel di browser lama */
+.modal::backdrop { background: var(--scrim-soft, rgba(21, 16, 12, 0.5)); } /* ::backdrop tidak mewarisi variabel di browser lama: nilai cadangan di dalam var() */
 .modal__body { display: grid; grid-template-columns: 1fr 1.1fr; position: relative; }
 .modal__close { position: absolute; top: 12px; right: 12px; z-index: 2; }
 .modal__art { background: linear-gradient(180deg, var(--paper-3), var(--paper-2)); padding: 32px; display: grid; place-items: center; }
@@ -342,8 +350,8 @@ html.menu-open { overflow: hidden; }
 .ship-bar p { font-size: var(--fs-small); margin: 0 0 6px; color: var(--ink-2); }
 .ship-bar .bar { height: 6px; background: var(--paper-3); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
 .ship-bar .bar i { display: block; height: 100%; background: var(--green); transition: width var(--t-med); }
-.scrim { position: fixed; inset: 0; background: color-mix(in srgb, var(--dark-bg) 45%, transparent); z-index: 55; opacity: 0; pointer-events: none; transition: opacity var(--t-med); }
-.scrim.is-open { opacity: 1; pointer-events: auto; }
+.scrim { position: fixed; inset: 0; background: var(--scrim-soft); z-index: 55; opacity: 0; pointer-events: none; transition: opacity var(--t-fast) var(--ease-out); } /* keluar 150 */
+.scrim.is-open { opacity: 1; pointer-events: auto; transition-duration: var(--t-med); } /* masuk 250 */
 
 /* Tombol WhatsApp melayang (koleksi) */
 .wa-float { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: var(--z-orderbar); width: 56px; height: 56px; border-radius: 50%; background: var(--wa); color: var(--wa-ink); display: grid; place-items: center; box-shadow: var(--shadow-float); transition: background-color var(--t-fast); }
@@ -378,13 +386,14 @@ html.menu-open { overflow: hidden; }
 .menu { display: none; position: relative; }
 .menu summary { list-style: none; width: 44px; height: 44px; box-shadow: inset 0 0 0 1.5px var(--ink); border-radius: 999px; display: grid; place-content: center; gap: 4px; cursor: pointer; }
 .menu summary::-webkit-details-marker { display: none; }
-.menu summary i { display: block; width: 18px; height: 2px; background: var(--ink); border-radius: 2px; transition: transform var(--t-fast), opacity var(--t-fast); }
+.menu summary i { display: block; width: 18px; height: 2px; background: var(--ink); border-radius: 2px; transition: transform var(--t-fast) var(--ease-out), opacity var(--t-fast) var(--ease-out); }
 .menu[open] summary i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .menu[open] summary i:nth-child(2) { opacity: 0; }
 .menu[open] summary i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 .menu__links { position: absolute; right: 0; top: calc(100% + 10px); min-width: 220px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-float); padding: 8px; display: grid; z-index: 45; }
 .menu__links a { text-decoration: none; color: var(--ink); font-weight: 500; font-size: var(--fs-ui); padding: 12px 14px; border-radius: 8px; white-space: nowrap; }
-.menu__links a:hover { background: var(--paper-2); }
+@media (hover: hover) and (pointer: fine) { .menu__links a:hover { background: var(--paper-2); } }
+.menu__links a:active { background: var(--press-bg); }
 @media (max-width: 1040px) {
   .nav:not(.nav--float) .nav__links { display: none; }
   .menu { display: block; }

@@ -25,8 +25,13 @@
      ulang, isi baris tidak lagi dibungkus <div>, label baris dari <span> menjadi <p>). Tahap 5: baris meta
      Kap di #tiga ditulis ulang ("Ø 20 cm" menjadi "lebar 20 cm"; angka bentuk/warna kini diisi lamp.js lewat
      <span data-tiga-n>). Meta Badan dan Alas tidak berubah kata, jadi suntingannya tetap berlaku. Tahap 6
-     (adendum v3.1, gerak-hapus): hint hero "Gulir untuk menyalakan" (#hero-hint) dihapus; suntingannya diarsipkan. */
-  const LAYOUT = 6;
+     (adendum v3.1, gerak-hapus): hint hero "Gulir untuk menyalakan" (#hero-hint) dihapus; suntingannya diarsipkan.
+     Tahap 7 (gerak-sentuh): harga tidak lagi diketik di HTML. Baris kit #paket ditulis ulang (em dash → titik dua,
+     harga "Rp —" diisi lamp.js) dan gelembung rincian #alur memakai placeholder + <span data-alur-ship>; suntingan lama
+     keduanya membawa angka ketikan, jadi diarsipkan. Baris label baru "Gambar: ilustrasi, bukan foto" di #bagian
+     (#bagian/div:0/p:2, data-dynamic-text) tidak bisa disunting; simpanan lama di alamat itu diarsipkan supaya tidak
+     menimpanya. Lead #bagian (p:1) tidak berubah dan tetap mendarat di .section-sub. */
+  const LAYOUT = 7;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -54,7 +59,12 @@
       drop: ["#hero-hint"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6]];
+  const MOVED_7 = {
+    "index.html": {
+      drop: ["#paket/div:0/ul:0/li:1", "#alur/div:0/div:0/article:0/div:0/p:1", "#bagian/div:0/p:2"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;

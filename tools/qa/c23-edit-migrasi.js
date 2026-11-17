@@ -25,6 +25,13 @@ const KASUS = [
     text: { '#hero-hint': 'HINT SUNTINGAN', '#hero/div:2/div:0/p:1': 'LEAD HERO SUNTINGAN' },
     harap: { '#hero .lead': /^LEAD HERO SUNTINGAN$/, 'body': /^(?![\s\S]*HINT SUNTINGAN)/ },
     arsip: ['#hero-hint'], pindah: { '#hero/div:2/div:0/p:1': 'LEAD HERO SUNTINGAN' } },
+  // tahap 7 (gerak-sentuh): harga tidak diketik. Baris kit #paket dan gelembung rincian #alur (membawa angka ketikan)
+  // diarsipkan; lead #bagian (p:1) tetap mendarat di .section-sub; simpanan di alamat baris label baru (p:2) tidak
+  // menimpanya; baris LED #paket (hanya isi span harga yang berubah) tetap berlaku
+  { nama: 'tahap 7 (harga tidak diketik, baris label #bagian), simpanan layout 6', layout: 6,
+    text: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN', '#bagian/div:0/p:2': 'TIMPA LABEL', '#paket/div:0/ul:0/li:1': 'KIT — Rp49.000 LAMA', '#paket/div:0/ul:0/li:2': '<span class="label">Opsional</span> <span class="paket__incl-text">LED SUNTINGAN +<span id="led-price-note" data-dynamic>Rp25.000</span></span>', '#alur/div:0/div:0/article:0/div:0/p:1': 'Halo Rani, total Rp467.000' },
+    harap: { '#bagian .section-sub': /^LEAD BAGIAN SUNTINGAN$/, '#bagian .bagian__il': /^Gambar: ilustrasi, bukan foto$/, '#paket .paket__incl li:nth-child(2) .paket__incl-text': /^Kit kelistrikan, komponen bertanda SNI\/K3L: Rp49\.000, bisa dilepas$/, '#paket .paket__incl li:nth-child(3) .paket__incl-text': /^LED SUNTINGAN \+Rp25\.000$/, '#alur [data-alur-total]': /^Rp\d{3}\.000$/ },
+    arsip: ['#paket/div:0/ul:0/li:1', '#alur/div:0/div:0/article:0/div:0/p:1', '#bagian/div:0/p:2'], pindah: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN' } },
 ];
 run(async ({ open, check }) => {
   for (const k of KASUS) {
@@ -35,7 +42,7 @@ run(async ({ open, check }) => {
     check(bad.length === 0, `C23 ${k.nama}: teks baru tidak tertimpa, suntingan yang sah tetap diterapkan`, bad.join(' | '));
     const t = (r.st.text || {})['index.html'] || {}, v2 = (r.st.textV2 || {})['index.html'] || {};
     const badS = [...k.arsip.filter((a) => a in t || !(a in v2)).map((a) => 'tidak diarsipkan: ' + a), ...Object.entries(k.pindah).filter(([a, v]) => t[a] !== v).map(([a]) => 'tidak pindah: ' + a)];
-    check(badS.length === 0 && r.st.layout >= 6, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 6)`, badS.join(' | ') + ' layout ' + r.st.layout);
+    check(badS.length === 0 && r.st.layout >= 7, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 7)`, badS.join(' | ') + ' layout ' + r.st.layout);
     check(p.__errs.length === 0, `C23 ${k.nama}: tanpa error JS`, p.__errs.join(' | ').slice(0, 200));
   }
   // Mode Edit tetap terbuka dan baris #tiga bisa disunting; label di dalam gambar kerja dan pita tidak ikut
@@ -49,7 +56,7 @@ run(async ({ open, check }) => {
   await p.evaluate(() => { const el = document.querySelector('#hero .lead'); el.textContent = 'LEAD DARI MODE EDIT'; el.dispatchEvent(new Event('input', { bubbles: true })); });
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(1000);
   const sv = await p.evaluate(() => ({ lead: document.querySelector('#hero .lead').textContent.trim(), st: JSON.parse(localStorage.getItem('mks-edits-v2') || '{}'), prices: window.MKS_LAMP.presets.map((pr) => window.MKSLamp.price({ head: pr.head, body: pr.body, base: pr.base, wiring: true, led: false })).map((r) => [r.total, r.parts + r.wiring]) }));
-  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 6, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 6)', `${sv.lead} · layout ${sv.st.layout}`);
+  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 7, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 7)', `${sv.lead} · layout ${sv.st.layout}`);
   check(JSON.stringify(sv.prices) === JSON.stringify([[464000, 626000], [447000, 602000], [454000, 612000], [427000, 533000], [383000, 442000]]), 'C14: harga dan coret lima edisi tidak berubah', JSON.stringify(sv.prices));
   check(p.__errs.length === 0, 'C23 Mode Edit: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 });

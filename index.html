@@ -22,7 +22,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" /><style>.story__scene{display:none}</style></noscript>
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/motion.css" />
@@ -104,6 +103,8 @@
           <h1><span class="lhero__l">Lampu yang</span> <span class="lhero__l">kamu susun</span> <em class="lhero__l">sendiri.</em></h1>
           <p class="lead">Pilih kap, badan, dan alas satu per satu. Kami cetak di Jakarta, cek rakitannya, lalu kirim per bagian; tinggal putar.</p>
           <p class="lhero__from" data-dynamic-text><span class="lhero__from-label">Mulai dari</span> <b id="hero-from" class="num">Rp —</b> <span class="lhero__from-note"><span class="lhero__from-sep" aria-hidden="true">· </span>termasuk kit kelistrikan</span></p>
+          <!-- Satu-satunya <noscript> halaman: kalimat tanpa nomor, font web tanpa trik media=print, scene cerita disembunyikan -->
+          <noscript><p class="noscript-note">Harga dan tombol pesan WhatsApp membutuhkan JavaScript.</p><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" /><style>.story__scene{display:none}</style></noscript>
           <div class="lhero__cta">
             <a class="btn btn--primary-dark btn--lg" href="#edisi" data-primary-cta>Lihat lima edisi</a>
             <a class="text-link" href="#rakit">Rakit sendiri <span class="arrow" aria-hidden="true">→</span></a>
@@ -244,7 +245,7 @@
             <header><span class="phone__step">A</span><b>Konfirmasi &amp; total</b><small>&lt; 1 jam setelah kode diterima</small></header>
             <div class="phone__chat">
               <p class="bub bub--you">Halo MahaKarya Studio, saya mau pesan lampu rakitan:<br />Kode: <span class="mono" data-alur-code>MK-PLIGAD-BOLZAI-CINKRE-KUBSAL-BULHIT</span> …</p>
-              <p class="bub">Halo Rani, ini rinciannya:<br /><span data-alur-lines>• Kap · Silinder plisir — Gading<br />• Badan 1 · Bola — Zaitun<br />• Badan 2 · Cincin — Krem<br />• Badan 3 · Kubus — Salmon<br />• Alas · Bulat — Hitam arang</span><br />Paket <span data-alur-pkg>Kuinto</span>: <b data-alur-price>Rp447.000</b><br />Ongkir ke Jabodetabek: ±Rp20.000<br /><b>Total <span data-alur-total>Rp467.000</span></b><br />Produksi 3–5 hari kerja setelah pembayaran.</p>
+              <p class="bub">Halo Rani, ini rinciannya:<br /><span data-alur-lines>• Kap · Silinder plisir — Gading<br />• Badan 1 · Bola — Zaitun<br />• Badan 2 · Cincin — Krem<br />• Badan 3 · Kubus — Salmon<br />• Alas · Bulat — Hitam arang</span><br />Paket <span data-alur-pkg>Kuinto</span>: <b data-alur-price>Rp —</b><br />Ongkir ke Jabodetabek: ±<span data-alur-ship>Rp —</span><br /><b>Total <span data-alur-total>Rp —</span></b><br />Produksi 3–5 hari kerja setelah pembayaran.</p>
             </div>
           </article>
           <article class="phone">
@@ -277,8 +278,8 @@
         <p class="paket__note-hp">Harga coret adalah jumlah harga satuan bagian ditambah kit kelistrikan, sesuai katalog di bawah.</p>
         <ul class="paket__incl" aria-label="Isi paket">
           <li><span class="label">Termasuk</span> <span class="paket__incl-text">Kap + badan + alas, ulir M20</span></li>
-          <li><span class="label">Termasuk</span> <span class="paket__incl-text">Kit kelistrikan, komponen bertanda SNI/K3L — <span id="wiring-price-note" data-dynamic>Rp49.000</span>, bisa dilepas</span></li>
-          <li><span class="label">Opsional</span> <span class="paket__incl-text">Bohlam LED 5 W hangat +<span id="led-price-note" data-dynamic>Rp25.000</span></span></li>
+          <li><span class="label">Termasuk</span> <span class="paket__incl-text">Kit kelistrikan, komponen bertanda SNI/K3L: <span id="wiring-price-note" data-dynamic>Rp —</span>, bisa dilepas</span></li>
+          <li><span class="label">Opsional</span> <span class="paket__incl-text">Bohlam LED 5 W hangat +<span id="led-price-note" data-dynamic>Rp —</span></span></li>
         </ul>
       </div>
     </section>
@@ -289,6 +290,7 @@
         <p class="eyebrow">06 · Bagian satuan</p>
         <h2 class="section-title">Ganti satu bagian, lampu terasa baru.</h2>
         <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Pilih warna di kartu, lalu pakai langsung di konfigurator.</p>
+        <p class="label bagian__il" data-dynamic-text>Gambar: ilustrasi, bukan foto</p>
         <div class="pcat room-body" id="catalog" data-dynamic></div>
         <div class="havebase">
           <div>
@@ -430,6 +432,11 @@
   <script src="assets/js/nav.js"></script>
   <script src="assets/js/motion.js"></script>
   <script src="assets/js/config.js"></script>
+  <script>/* href WA awal dari config.js (tanpa nomor di HTML): tautan hidup walau lamp.js lambat/gagal; lamp.js menimpanya */
+    (function (n, d) { if (!n) return; document.querySelectorAll("[data-wa]").forEach(function (a) { var v = a.getAttribute("data-wa") || "";
+      var t = v === "" || v === "order" || /^preset:/.test(v) ? d + (v === "order" ? " Kode rakitan saya belum termuat di halaman." : "") : v;
+      a.href = ["https://wa.me", n].join("/") + "?text=" + encodeURIComponent(t); if (a.tagName === "A") { a.target = "_blank"; a.rel = "noopener"; } });
+    })((window.MKS_CONFIG || {}).whatsapp, "Halo MahaKarya Studio, saya mau tanya tentang lampu rakitan.");</script>
   <script src="assets/js/lamp-data.js"></script>
   <script src="assets/js/lamp-art.js"></script>
   <script src="assets/js/editor.js"></script>
