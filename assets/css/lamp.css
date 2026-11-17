@@ -604,7 +604,12 @@ html.motion-off .tile:active { transform: none; }
   .studio__tabs { position: sticky; top: 260px; z-index: 3; margin-inline: calc(-1 * var(--page-margin)); padding-inline: calc(var(--page-margin) - 12px); background: var(--bg); justify-content: space-between; }
   .studio__tabs .tab { flex: 1; padding: 0 4px; white-space: nowrap; }
   .studio__tabs .tab::after { left: 4px; right: 4px; }
-  .studio__panel { height: 280px; overflow-y: auto; overscroll-behavior: contain; padding: 16px 6px; margin-inline: -6px; gap: 16px; }
+  /* tinggi tetap 280 dengan gulir sendiri; baris grid setinggi isinya (tanpa max-content baris menyusut dan teks
+     saklar Listrik meluber ke kartu berikutnya) */
+  .studio__panel { height: 280px; overflow-y: auto; overscroll-behavior: contain; padding: 16px 6px; margin-inline: -6px; gap: 16px; grid-auto-rows: max-content; }
+  .rincian__row--code { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .rincian__row--code .num { white-space: normal; }
+  .rincian__row--code .mono-code { word-break: normal; overflow-wrap: break-word; text-align: left; }
   .slot-chip { min-width: 44px; justify-content: center; padding: 0 14px; }
   .slot-chip__k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .studio__panel .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 392px; } /* HP ±62 per ubin; tablet tetap 72 */
@@ -617,6 +622,28 @@ html.motion-off .tile:active { transform: none; }
   .studio__stage .stage-ui { position: static; }
   .studio__stage .stage-ui .switch { position: absolute; top: 2px; right: var(--page-margin); z-index: 2; }
   .studio__stage .stage-ui__meta { position: absolute; left: var(--page-margin); bottom: 10px; z-index: 2; }
+}
+/* Panel HP masih bisa digulir: tepi bawah memudar 32 px sampai ujung isi tercapai (timeline gulir panel sendiri;
+   panel yang muat tanpa gulir punya timeline tidak aktif, jadi tidak memudar). Bukan gerak: hanya mengikuti gulir. */
+@property --panel-fade { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes panel-ujung { 0%, 92% { --panel-fade: 32px; } 100% { --panel-fade: 0px; } }
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 1023px) {
+    .studio__panel {
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--panel-fade)), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - var(--panel-fade)), transparent);
+      animation: panel-ujung linear both; animation-timeline: scroll(self);
+    }
+  }
+}
+/* HP sempit: harga saklar Listrik di bawah judulnya, saklar di kanan; pil panggung pindah ke kanan bawah */
+@media (max-width: 480px) {
+  .toggle { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; }
+  .toggle__price { grid-column: 1; grid-row: 2; }
+  .toggle > i { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (max-width: 340px) {
+  .studio__stage .stage__pill { top: auto; bottom: 10px; left: auto; right: var(--page-margin); max-width: calc(100% - 2 * var(--page-margin) - 84px); }
 }
 @media (min-width: 761px) and (max-width: 1023px) {
   .studio { max-width: 720px; margin-inline: auto; }
@@ -786,6 +813,17 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .pcard .meta small { font: 500 12px/1 var(--mono); color: var(--fg-2); letter-spacing: 0.14em; text-transform: uppercase; }
 .pcard .price { font: 400 14px/1.4 var(--mono); color: var(--fg-2); }
 .pcard .price b { color: var(--fg); font-weight: 500; }
+/* Swatch kecil dan tombol "Pakai di rakitan" katalog: aturan v2 dipulihkan apa adanya sampai langkah alur-bagian
+   membangun ulang #bagian (studio #rakit memakai .swatch dan .btn). */
+.pcard .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+.pcard .sw { border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--swatch-ring); }
+.pcard .sw::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid transparent; transition: border-color var(--t-fast); }
+.pcard .sw[aria-pressed="true"]::after { border-color: var(--sel); }
+.pcard .sw:focus-visible { outline: 2px solid var(--sel); outline-offset: 5px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--swatch-ring); }
+.pcard .sw span { position: absolute; left: -9999px; }
+.pcard .sw--out { opacity: 0.4; cursor: not-allowed; }
+.pcard .sw--out::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1.5px; background: currentColor; transform: rotate(45deg); }
+.pcard .ghost { background: transparent; border: 0; border-radius: 999px; padding: 0 16px; font-size: var(--fs-small); display: inline-flex; gap: 8px; align-items: center; justify-content: center; }
 .pcard .sw { width: 24px; height: 24px; }
 .pcard .sw::after { inset: -4px; }
 .pcard .ghost { box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); width: 100%; min-height: 44px; }

@@ -354,6 +354,11 @@
     `<div class="swatches-row studio__sw" role="group" aria-label="${esc(label)}">${list
       .map((c) => `<button class="swatch${inStock(c) ? "" : " swatch--out"}" type="button" aria-pressed="${c.id === current}" aria-label="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="--sw:${c.hex}" ${attr} data-color="${c.id}" data-name="${esc(c.name)}" ${inStock(c) ? "" : "disabled"}></button>`)
       .join("")}</div>`;
+  // Katalog #bagian: swatch kecil v2 (.sw 24) sampai langkah alur-bagian membangun ulang seksi itu
+  const catSwatchesHtml = (list, current, attr) =>
+    `<div class="swatches">${list
+      .map((c) => `<button class="sw${inStock(c) ? "" : " sw--out"}" type="button" aria-pressed="${c.id === current}" title="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="background:${c.hex}" ${attr} data-color="${c.id}" ${inStock(c) ? "" : "disabled"}><span>${esc(c.name)}${inStock(c) ? "" : " (habis)"}</span></button>`)
+      .join("")}</div>`;
   // Ubin bentuk 64/72: ikon saja, nama bentuk tampil di judul grup ("BENTUK: BOLA")
   const tilesHtml = (kind, list, current, attr, label) =>
     `<div class="tiles" role="group" aria-label="${esc(label)}">${list
@@ -394,7 +399,7 @@
       h += `<div class="slots chips-row" role="group" aria-label="Pilih badan">` +
         state.body.map((_, k) => `<button class="chip slot-chip" type="button" data-slot="${k}" aria-pressed="${k === i}"><span class="slot-chip__k">Badan </span>${k + 1}</button>`).join("") +
         `<button class="chip chip--line" type="button" id="add-body"${full ? ' aria-disabled="true"' : ""}>+ Tambah</button>` +
-        `<button class="chip chip--line" type="button" data-remove="${i}"${state.body.length > 1 ? "" : ' aria-disabled="true"'} aria-label="Hapus badan ${i + 1}">Hapus</button></div>`;
+        `<button class="chip chip--line" type="button" id="remove-body" data-remove="${i}"${state.body.length > 1 ? "" : ' aria-disabled="true"'} aria-label="Hapus badan ${i + 1}">Hapus</button></div>`;
       const attr = `data-part="body" data-i="${i}"`;
       h += `<div class="grp">${grpHead(`Bentuk badan ${i + 1}`, sh.name, rp(sh.price))}${tilesHtml("body", d.bodies, b.shape, attr, `Bentuk badan ${i + 1}`)}</div>`;
       h += `<div class="grp">${grpHead(`Warna badan ${i + 1}`, co.name)}${swatchesHtml(d.colors, b.color, attr, `Warna badan ${i + 1}`)}</div>`;
@@ -548,7 +553,7 @@
       const r = st && STUDIO_HP.matches ? st.getBoundingClientRect() : null;
       // selalu dirender menyala; nyala/mati lewat --dim panggung (transisi cahaya 600 ms, tanpa render ulang)
       const o = { uid: "cfg", on: true, variant: "studio", label: "Ilustrasi rakitanmu" };
-      if (r && r.width > 0 && r.height > 0) Object.assign(o, { frame: [Math.round(r.width), Math.round(r.height)], floor: 0.8, lampFrac: r.height < 230 ? 0.46 : 0.5 });
+      if (r && r.width > 0 && r.height > 0) Object.assign(o, { frame: [Math.round(r.width), Math.round(r.height)], floor: 0.8, lampFrac: r.height < 230 ? 0.54 : 0.6 });
       host.innerHTML = A.renderLamp(state, o);
       const svg = host.firstElementChild;
       // Desktop: bagian SVG bisa diketuk/difokus. HP: tab tepat di bawah panggung; bagian SVG terlalu kecil untuk
@@ -625,7 +630,7 @@
     return emit(reason);
   }
   // Jalur cepat ketukan #rakit (gerbang frekuensi): tanda + harga + siaran sekarang; lampu sesudah cat berikutnya,
-  // lalu rincian, spesifikasi #cara, #edisi, dan simpan di tugas berikutnya lagi. Ketukan baru membatalkan yang tertunda.
+  // lalu rincian, spesifikasi #cara dan #edisi di tugas berikutnya lagi; simpan langsung. Ketukan baru membatalkan yang tertunda.
   let lateRaf = 0, lateT = 0, late2 = 0;
   function cancelLate() { cancelAnimationFrame(lateRaf); clearTimeout(lateT); clearTimeout(late2); lateRaf = lateT = late2 = 0; }
   function quick(reason) {
@@ -634,6 +639,9 @@
     syncPresets();
     quickSummary();
     const det = emit(reason);
+    // simpan sekarang (murah): rAF berhenti di tab tersembunyi, jadi rakitan tetap tersimpan bila WhatsApp dibuka
+    // atau halaman dimuat ulang tepat sesudah ketukan
+    persist();
     cancelLate();
     lateRaf = requestAnimationFrame(() => {
       lateT = setTimeout(() => {
@@ -646,7 +654,6 @@
           renderSpec();
           const pi = presetIndex(state);
           if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); }
-          persist();
         }, 0); });
       }, 0);
     });
@@ -823,7 +830,7 @@
       h +=
         `<div class="pcard" data-card="${kind}:${item.id}"><div class="fig${photo ? " fig--photo" : ""}">${partFig(kind, item.id, cur, "cat" + kind + item.id)}${photo ? '<span class="fig__tag">Foto asli</span>' : ""}</div>` +
         `<div class="meta"><h3>${esc(item.name)}</h3><small>${KIND_LABEL[kind]}</small></div><div class="price num"><b>${rp(item.price)}</b> / pcs</div>` +
-        swatchesHtml(list, cur, `data-cat="${kind}:${item.id}"`) +
+        catSwatchesHtml(list, cur, `data-cat="${kind}:${item.id}"`) +
         `<button class="ghost" type="button" data-use="${kind}:${item.id}">Pakai di rakitan</button></div>`;
     };
     D().heads.forEach((x) => card("head", x));

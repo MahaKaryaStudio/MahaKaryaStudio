@@ -49,6 +49,8 @@
   const HP = mq("(max-width: 900px)");
   // Studio rakit memakai tata letak HP sampai 1023 (breakpoint adendum 760/1024)
   const STUDIO = mq("(max-width: 1023px)");
+  // Panggung lengket hanya bila tinggi layar > 520 (lamp.css); dibaca dari media query, bukan gaya terhitung per frame
+  const STUDIO_STICKY = mq("(max-width: 1023px) and (min-height: 521px)");
   const onChange = (m, fn) => (m.addEventListener ? m.addEventListener("change", fn) : m.addListener && m.addListener(fn));
 
   /* ---------- Menu HP: <dialog> layar penuh ---------- */
@@ -95,6 +97,7 @@
   if (menuBtn) menuBtn.addEventListener("click", openMenu);
   onChange(HP, () => { if (!HP.matches) closeMenu(); sync(); });
   onChange(STUDIO, () => sync());
+  onChange(STUDIO_STICKY, () => sync());
 
   /* ---------- Gulir: sembunyi/muncul, tema, slot, tautan aktif, orderbar ---------- */
   const sections = $$("main > section, body > footer");
@@ -188,8 +191,8 @@
     // Studio rakit HP (<= 1023): panggung lengket mencapai area nav → nav disembunyikan penuh, sampai panggung lepas
     // (ujung studio mendorongnya ke atas). Panggung tidak lengket (tinggi layar <= 520): nav berperilaku biasa.
     let studio = false, studioBottom = 0;
-    const st = STUDIO.matches ? $("[data-studio-sticky]") : null;
-    if (st && !menuOpen && getComputedStyle(st).position === "sticky") {
+    const st = STUDIO_STICKY.matches ? $("[data-studio-sticky]") : null;
+    if (st && !menuOpen) {
       const r = st.getBoundingClientRect();
       const box = (st.parentElement || st).getBoundingClientRect();
       studio = r.top <= h + 1 && r.top > -1 && box.bottom > r.bottom + 1;

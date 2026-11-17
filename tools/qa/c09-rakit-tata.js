@@ -1,11 +1,14 @@
 // Cek langkah rakit: tata letak, sentuhan, dan kejujuran 03 #rakit (studio rakit). Angka lab dari Chromium headless.
-// Pakai: node tools/qa/c09-rakit-tata.js <url> [--only=c8,c9,c19,c24,teks,tab,lengket,ukur]
+// Pakai: node tools/qa/c09-rakit-tata.js <url> [--only=c8,c9,c19,c24,teks,tab,fungsi,lengket,ukur]
 //  c8      setiap kontrol #rakit di keempat tab (Kap, Badan, Alas, Listrik), rincian terbuka dan kado aktif punya status
 //          tekan (:active dipaksa lewat CDP, transisi mati): biasa transform/warna, reduce wajib warna/latar/opacity/bayangan.
 //  c9      390 × 844 dan 360 × 740: area tekan setiap kontrol >= 44 × 44 (elementFromPoint di pusat dan empat sudut kotak
 //          44 × 44 yang berpusat di kontrol; panggung/tab lengket dan orderbar disingkirkan saat ukur) dan jarak visual
 //          antarkontrol bertetangga dalam satu grup >= 8.
-//  c19     tanpa gulir samping di 320, 360, 390 (keempat tab, rincian terbuka).
+//  c19     tanpa gulir samping di 320, 360, 390 (keempat tab, rincian terbuka); isi panel tidak meluber dari kotaknya;
+//          label kode rakitan satu baris dan kode hanya patah di tanda hubung.
+//  fungsi  fokus tetap di "Hapus" sesudah badan dihapus; ketuk lalu muat ulang seketika tetap tersimpan; katalog
+//          #bagian tetap swatch .sw 24 dan tombol pil (tidak ikut gaya studio).
 //  c24     tinggi 640 → panggung 200 dan lampu tidak tertutup pil, saklar, atau label tinggi (pil dan saklar juga tidak
 //          bertumpuk, sampai lebar 320); 844/740/664 → panggung 260
 //          dan lampu bebas; tinggi 520 → panggung dan tab tidak lengket.
@@ -133,8 +136,33 @@ run(async ({ open, check, opt }) => {
           return { sw, wide };
         });
         if (o.sw > 0 || o.wide.length) bad.push(`${t}: lebih ${o.sw}px ${o.wide.join(', ')}`);
+        // isi panel tidak meluber dari kotaknya sendiri (anak #controls dan kartu saklar Listrik)
+        const spill = await p.evaluate(() => {
+          const out = [];
+          document.querySelectorAll('#controls > *, #controls .toggle').forEach((box) => {
+            const b = box.getBoundingClientRect();
+            box.querySelectorAll('*').forEach((e) => {
+              if (e.closest('svg') && e.tagName.toLowerCase() !== 'svg') return;
+              const r = e.getBoundingClientRect();
+              if (!r.width || !r.height) return;
+              if (r.bottom > b.bottom + 1 || r.right > b.right + 1) out.push(`${box.id || box.className.split(' ')[0]} > ${e.tagName.toLowerCase()} +${Math.round(Math.max(r.bottom - b.bottom, r.right - b.right))}`);
+            });
+          });
+          return out;
+        });
+        if (spill.length) bad.push(`${t}: meluber ${spill.slice(0, 3).join(', ')}`);
       }
-      check(bad.length === 0, `C19 ${w}: tanpa gulir samping (4 tab, rincian dan kado terbuka)`, bad.join(' | '));
+      // kode rakitan: label satu baris, kode hanya patah di tanda hubung
+      const code = await p.evaluate(() => {
+        const row = document.querySelector('.rincian__row--code'), lab = row.firstElementChild, el = row.querySelector('.mono-code');
+        const lh = parseFloat(getComputedStyle(lab).lineHeight) || 20;
+        const split = [];
+        const tn = el.firstChild; let i = 0;
+        for (const seg of el.textContent.split('-')) { const r = document.createRange(); r.setStart(tn, i); r.setEnd(tn, i + seg.length); if (r.getClientRects().length > 1) split.push(seg); i += seg.length + 1; }
+        return { labelLines: Math.round(lab.getBoundingClientRect().height / lh), split };
+      });
+      if (code.labelLines > 1 || code.split.length) bad.push(`kode rakitan: label ${code.labelLines} baris, segmen terpotong ${code.split.join(',')}`);
+      check(bad.length === 0, `C19 ${w}: tanpa gulir samping, isi panel tidak meluber, kode rakitan utuh (4 tab, rincian dan kado terbuka)`, bad.join(' | '));
     }
   }
 
@@ -239,6 +267,33 @@ run(async ({ open, check, opt }) => {
     await q.waitForTimeout(500);
     const b = await ob();
     check(vis && !a.ob && b.ob && b.nav && b.studio, 'tab HP: orderbar disembunyikan selama WA ringkasan terlihat, tampil saat WA tertutup/keluar; nav tersembunyi selama panggung lengket', JSON.stringify({ waTerlihat: vis, a, b }));
+  }
+
+  /* ---------- fungsi: fokus sesudah Hapus, simpan sebelum rAF, katalog #bagian ---------- */
+  if (want('fungsi')) {
+    const p = await open('desktop', { wait: 1000 });
+    await p.evaluate(() => document.querySelector('#studio-tabs').scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await p.click('#tab-body'); await p.waitForTimeout(100);
+    await p.evaluate(() => { const a = document.querySelector('#add-body'); while (document.querySelectorAll('.slot-chip').length < 3 && a.getAttribute('aria-disabled') !== 'true') a.click(); });
+    await p.focus('[data-slot="1"]'); await p.keyboard.press('Enter'); await p.waitForTimeout(50);
+    const n0 = await p.evaluate(() => document.querySelectorAll('.slot-chip').length);
+    await p.focus('#remove-body'); await p.keyboard.press('Enter'); await p.waitForTimeout(100);
+    const f = await p.evaluate(() => ({ id: document.activeElement.id, n: document.querySelectorAll('.slot-chip').length }));
+    check(f.id === 'remove-body' && f.n === n0 - 1, 'fungsi: fokus tetap di "Hapus" sesudah badan dihapus dari papan ketik', JSON.stringify({ n0, ...f }));
+    // ketuk swatch lalu muat ulang seketika: rakitan tetap tersimpan (sisa kerja dikerjakan saat pagehide)
+    const color = await p.evaluate(() => { document.querySelector('#tab-head').click(); const s = document.querySelector('#controls .swatch[data-part="head"]:not([aria-pressed="true"]):not(:disabled)'); s.click(); return s.dataset.color; });
+    await p.waitForTimeout(5);
+    await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(800);
+    const after = await p.evaluate(() => (document.querySelector('#controls .swatch[data-part="head"][aria-pressed="true"]') || document.querySelector('#tab-head') && (document.querySelector('#tab-head').click(), document.querySelector('#controls .swatch[data-part="head"][aria-pressed="true"]')) || {}).dataset?.color);
+    check(after === color, 'fungsi: ketuk warna lalu muat ulang seketika, warna tetap tersimpan', JSON.stringify({ color, after }));
+    // katalog #bagian memakai swatch kecil .sw dan tombol pil "Pakai di rakitan" (belum dibangun ulang)
+    const cat = await p.evaluate(() => {
+      const c = document.querySelector('#catalog .pcard'); if (!c) return null;
+      const sw = c.querySelector('.sw'), g = c.querySelector('[data-use]');
+      const r = sw && sw.getBoundingClientRect(), cs = g && getComputedStyle(g);
+      return { sw: sw ? [Math.round(r.width), Math.round(r.height)] : null, radius: cs && cs.borderTopLeftRadius, bg: cs && cs.backgroundColor, h: g && Math.round(g.getBoundingClientRect().height), emptyGroup: !!c.querySelector('[role="group"][aria-label=""]') };
+    });
+    check(cat && cat.sw && cat.sw[0] === 24 && parseFloat(cat.radius) >= 22 && cat.bg === 'rgba(0, 0, 0, 0)' && cat.h >= 44 && !cat.emptyGroup, 'fungsi: katalog #bagian tetap swatch 24 dan tombol pil (tidak ikut gaya studio)', JSON.stringify(cat));
   }
 
   /* ---------- lengket desktop ---------- */
