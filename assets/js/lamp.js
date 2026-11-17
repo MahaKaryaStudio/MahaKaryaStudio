@@ -542,7 +542,9 @@
       if (r && r.width > 0 && r.height > 0) Object.assign(o, { frame: [Math.round(r.width), Math.round(r.height)], floor: 0.8, lampFrac: r.height < 230 ? 0.46 : 0.5 });
       host.innerHTML = A.renderLamp(state, o);
       const svg = host.firstElementChild;
-      if (svg) {
+      // Desktop: bagian SVG bisa diketuk/difokus. HP: tab tepat di bawah panggung; bagian SVG terlalu kecil untuk
+      // area tekan 44 × 44, jadi tidak dijadikan tombol.
+      if (svg && !STUDIO_HP.matches) {
         svg.setAttribute("role", "group");
         svg.setAttribute("aria-label", "Ilustrasi rakitanmu. Pilih kap, badan, atau alas untuk mengubahnya.");
         svg.querySelectorAll("[data-la-part]").forEach((g) => {
@@ -1135,7 +1137,7 @@
   }
   document.addEventListener("click", (e) => {
     // Bagian SVG di panggung studio (kap, badan, alas): membuka tab bagiannya
-    const g = e.target.closest && e.target.closest("#cfg-lamp [data-la-part]");
+    const g = e.target.closest && e.target.closest('#cfg-lamp [data-la-part][role="button"]');
     if (g) return selectTab(g.getAttribute("data-la-part"));
     const t = e.target.closest && e.target.closest("button, a");
     if (!t) return;
@@ -1401,7 +1403,7 @@
   document.addEventListener("keydown", (e) => {
     const studio = $("#studio");
     if (studio && studio.contains(e.target) && e.key !== "Tab") studio.dataset.input = "key";
-    const g = e.target.closest && e.target.closest("#cfg-lamp [data-la-part]");
+    const g = e.target.closest && e.target.closest('#cfg-lamp [data-la-part][role="button"]');
     if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); return selectTab(g.getAttribute("data-la-part"), { focus: true }); }
     const tb = e.target.closest && e.target.closest("#studio-tabs [role=tab]");
     if (!tb) return;

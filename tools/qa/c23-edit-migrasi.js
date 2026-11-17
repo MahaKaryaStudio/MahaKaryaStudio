@@ -32,6 +32,12 @@ const KASUS = [
     text: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN', '#bagian/div:0/p:2': 'TIMPA LABEL', '#paket/div:0/ul:0/li:1': 'KIT — Rp49.000 LAMA', '#paket/div:0/ul:0/li:2': '<span class="label">Opsional</span> <span class="paket__incl-text">LED SUNTINGAN +<span id="led-price-note" data-dynamic>Rp25.000</span></span>', '#alur/div:0/div:0/article:0/div:0/p:1': 'Halo Rani, total Rp467.000' },
     harap: { '#bagian .section-sub': /^LEAD BAGIAN SUNTINGAN$/, '#bagian .bagian__il': /^Gambar: ilustrasi, bukan foto$/, '#paket .paket__incl li:nth-child(2) .paket__incl-text': /^Kit kelistrikan, komponen bertanda SNI\/K3L: Rp49\.000, bisa dilepas$/, '#paket .paket__incl li:nth-child(3) .paket__incl-text': /^LED SUNTINGAN \+Rp25\.000$/, '#alur [data-alur-total]': /^Rp\d{3}\.000$/ },
     arsip: ['#paket/div:0/ul:0/li:1', '#alur/div:0/div:0/article:0/div:0/p:1', '#bagian/div:0/p:2'], pindah: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN' } },
+  // tahap 8 (rakit): daftar jaminan ringkasan menjadi "Janji kami" (#janji). Garansi dan foto rakitan berteks sama →
+  // pindah; baris transfer/QRIS dan ringkasan details#ctrl-wrap diarsipkan; judul dan lead #rakit tetap berlaku
+  { nama: 'tahap 8 (studio rakit, Janji kami), simpanan layout 7', layout: 7,
+    text: { '#rakit/div:0/div:1/div:0/ul:0/li:0': 'TRANSFER SUNTINGAN', '#rakit/div:0/div:1/div:0/ul:0/li:1': 'GARANSI SUNTINGAN', '#rakit/div:0/div:1/div:0/ul:0/li:2': 'FOTO SUNTINGAN', '#ctrl-wrap/summary:0': 'UBAH SUNTINGAN', '#rakit/div:0/h2:0': 'JUDUL RAKIT SUNTINGAN', '#rakit/div:0/p:1': 'LEAD RAKIT SUNTINGAN' },
+    harap: { '#janji li:nth-child(1)': /^FOTO SUNTINGAN$/, '#janji li:nth-child(2)': /^GARANSI SUNTINGAN$/, '#janji li:nth-child(3)': /^Semua bagian dijual satuan/, '#rakit .section-title': /^JUDUL RAKIT SUNTINGAN$/, '#rakit .section-sub': /^LEAD RAKIT SUNTINGAN$/, 'body': /^(?![\s\S]*(TRANSFER|UBAH) SUNTINGAN)/ },
+    arsip: ['#rakit/div:0/div:1/div:0/ul:0/li:0', '#ctrl-wrap/summary:0'], pindah: { '#janji/ul:0/li:0': 'FOTO SUNTINGAN', '#janji/ul:0/li:1': 'GARANSI SUNTINGAN', '#rakit/div:0/h2:0': 'JUDUL RAKIT SUNTINGAN' } },
 ];
 run(async ({ open, check }) => {
   for (const k of KASUS) {
@@ -42,7 +48,7 @@ run(async ({ open, check }) => {
     check(bad.length === 0, `C23 ${k.nama}: teks baru tidak tertimpa, suntingan yang sah tetap diterapkan`, bad.join(' | '));
     const t = (r.st.text || {})['index.html'] || {}, v2 = (r.st.textV2 || {})['index.html'] || {};
     const badS = [...k.arsip.filter((a) => a in t || !(a in v2)).map((a) => 'tidak diarsipkan: ' + a), ...Object.entries(k.pindah).filter(([a, v]) => t[a] !== v).map(([a]) => 'tidak pindah: ' + a)];
-    check(badS.length === 0 && r.st.layout >= 7, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 7)`, badS.join(' | ') + ' layout ' + r.st.layout);
+    check(badS.length === 0 && r.st.layout >= 8, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 8)`, badS.join(' | ') + ' layout ' + r.st.layout);
     check(p.__errs.length === 0, `C23 ${k.nama}: tanpa error JS`, p.__errs.join(' | ').slice(0, 200));
   }
   // Mode Edit tetap terbuka dan baris #tiga bisa disunting; label di dalam gambar kerja dan pita tidak ikut
@@ -56,7 +62,7 @@ run(async ({ open, check }) => {
   await p.evaluate(() => { const el = document.querySelector('#hero .lead'); el.textContent = 'LEAD DARI MODE EDIT'; el.dispatchEvent(new Event('input', { bubbles: true })); });
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(1000);
   const sv = await p.evaluate(() => ({ lead: document.querySelector('#hero .lead').textContent.trim(), st: JSON.parse(localStorage.getItem('mks-edits-v2') || '{}'), prices: window.MKS_LAMP.presets.map((pr) => window.MKSLamp.price({ head: pr.head, body: pr.body, base: pr.base, wiring: true, led: false })).map((r) => [r.total, r.parts + r.wiring]) }));
-  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 7, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 7)', `${sv.lead} · layout ${sv.st.layout}`);
+  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 8, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 8)', `${sv.lead} · layout ${sv.st.layout}`);
   check(JSON.stringify(sv.prices) === JSON.stringify([[464000, 626000], [447000, 602000], [454000, 612000], [427000, 533000], [383000, 442000]]), 'C14: harga dan coret lima edisi tidak berubah', JSON.stringify(sv.prices));
   check(p.__errs.length === 0, 'C23 Mode Edit: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 });

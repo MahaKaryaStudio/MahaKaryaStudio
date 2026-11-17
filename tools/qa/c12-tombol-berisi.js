@@ -2,7 +2,7 @@
 // Pakai: node tools/qa/c12-tombol-berisi.js <url>
 // Tombol berisi = [data-primary-cta], .btn--primary, .btn--primary-dark, .btn--wa, .btn--wa-amber, termasuk WA
 // "Pesan" di nav dan di orderbar. Terlihat = kotaknya memotong layar (di bawah nav yang terlihat bila tombol itu
-// bukan bagian nav), visibility visible, opasitas efektif > 0,1, tidak di dalam <dialog> tertutup.
+// bukan bagian nav; juga di bawah panggung dan tab studio rakit yang lengket di tepi atas), visibility visible, opasitas efektif > 0,1, tidak di dalam <dialog> tertutup.
 // Diperiksa: sepanjang gulir penuh (turun lalu naik) di 390 dan 1440, setelah mks:change (ganti edisi dan
 // paket), saat menu HP dibuka/ditutup, dan setelah ganti lebar 390 <-> 1440.
 // Setiap posisi dibaca setelah transisi selesai (sembunyi 150–250 ms): angka di sini keadaan diam, bukan per frame.
@@ -12,7 +12,9 @@ const COUNT = () => {
   const vh = innerHeight, vw = innerWidth;
   const nav = document.querySelector('.nav');
   const nr = nav ? nav.getBoundingClientRect() : { bottom: 0 };
-  const navBottom = Math.max(0, nr.bottom);
+  // panggung + tab studio rakit yang lengket di tepi atas (HP) menutupi apa pun di bawahnya, seperti nav
+  const cover = [...document.querySelectorAll('[data-studio-sticky]')].filter((e) => getComputedStyle(e).position === 'sticky').map((e) => e.getBoundingClientRect()).filter((r) => r.top <= 1 && r.bottom > 0);
+  const navBottom = Math.max(0, nr.bottom, ...cover.map((r) => r.bottom));
   const vis = [];
   for (const el of document.querySelectorAll(SEL)) {
     const dlg = el.closest('dialog'); if (dlg && !dlg.open) continue;
