@@ -26,11 +26,13 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   `--nav-offset`, reveal dan hint hero tidak ada di sumber), C4 (hero menyala sekali: --dim dan opasitas lapisan cahaya penuh ≤ 1,2 s tanpa gulir, transisi 600 ms + delay 200 ms), C5 (tanpa
   teks ber-opasitas 0 di luar daftar pengecualian), C17 (reduce: tanpa animasi, cerita bertumpuk), garis #cara
   scaleY, kalimat cerita keluar −12 px 250 ms, perubahan prefers-reduced-motion selama kunjungan.
-- `c03-gerak-edisi.js`: 01 #edisi tanpa View Transition (K2): crossfade panggung (lama 150 ms, baru 250 ms), harga
-  150 ms, plakat seketika; C3 panah/spasi di indeks tanpa animasi (juga harga nav/orderbar); C10 #edisi biasa dan
+- `c03-gerak-edisi.js`: 01 #edisi tanpa View Transition (K2): crossfade panggung (baru 250 ms di atas hantu utuh,
+  hantu pudar 150 ms setelah delay 200; cakupan cahaya per frame >= 0,9), harga crossfade 150 ms dari 0,4, plakat
+  seketika; C3 panah/spasi di indeks tanpa animasi di seluruh dokumen (harga dan chip delta nav/orderbar), juga di
+  halaman baru sebelum ketukan apa pun; Tab tidak menandai papan ketik; C10 #edisi biasa dan
   reduce; C17; 20 ganti cepat (paling banyak dua lampu, tanpa id ganda, tangkapan sama dengan render tunggal);
   C20 catatan kit ≥ 16 px di HP; C13 kalimat kit dan daftar izin SNI; C14 harga/coret/pesan WA lima edisi dan
-  'Pilihan studio' tepat sekali. C2 (ketukan beruntun) tetap di `c02-taps.js`.
+  'Pilihan studio' tepat sekali dan terlihat di setiap edisi. C2 (ketukan beruntun) tetap di `c02-taps.js`.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar.
 - `c18-scroll.js [--rate=4]` (lewat `serve-gz.js`): biaya gaya per frame pin #kenapa dan nav sembunyi/muncul
