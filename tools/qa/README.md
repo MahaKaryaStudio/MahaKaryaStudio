@@ -66,6 +66,14 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   `rapi`: kartu karusel setinggi isi, nama di rincian utuh, pil thumb di atas tanpa role=img bersarang, chip saring muat
   (360) atau memudar di tepi (320), tombol sel penutup sejajar, warna lembar ikut ke ubin, toast sisa disembunyikan saat
   lembar dibuka, tombol lembar terlihat di 320 × 640.
+- `c27-penutup.js [--only=c13,cara,c15,final,reduce,faq,c16,c9,heading,orderbar,footer,ukur]`: 07 #cara (empat langkah,
+  isi >= 16 px dan <= 62ch, tanpa "15 menit" dan langkah WhatsApp tanpa durasi, spesifikasi <details> terbuka di desktop dan
+  terlipat di HP, angka dari state), 10 .final (0 penulisan --dim sebelum panggung masuk layar walau ada mks:change, tepat 1
+  sesudahnya, cahaya penuh, pil ILUSTRASI, keterangan harga ikut mks:change, reduce sudah menyala), 09 #faq (12 entri, 6 + tombol
+  "Lihat 6 pertanyaan lain", fokus ke pertanyaan ketujuh, terbuka seketika, ikon 150 ms, semua tampil di Mode Edit), C16 tanpa
+  JS (FAQ dan kalimat SNI terbaca), C9 footer/#faq/#cara >= 44 di 390 dan 360, heading tanpa loncatan, orderbar tersembunyi
+  di .final dan footer, footer (legal, catatan video AI, "Studio rakit", logotype 40, WA + nomor + Salin), `UKUR` tinggi.
+  C7, C8, C10 seksi ini lewat c04 (SEKSI memuat #cara–footer), garis #cara lewat c06.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
   (HP) dihitung tertutup, sama seperti di bawah nav (rantai dari tepi atas: panggung lalu tab tepat di bawahnya).

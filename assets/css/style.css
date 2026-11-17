@@ -378,6 +378,7 @@ html.motion-off .final__stage { --dim: 1 !important; }
   .footer__bottom { margin-top: 32px; flex-direction: column; }
   .footer__bottom > span:not(:last-child)::after { content: none; }
   .footer__col--kontak { grid-column: 1 / -1; }
+  .footer__grid:has(> .footer__brand) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
 }
 
 /* Modal produk (koleksi) */
