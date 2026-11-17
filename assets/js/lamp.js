@@ -482,7 +482,8 @@
     return `${pi >= 0 ? `Edisi ${D().presets[pi].name}` : "Rakitan custom"} · ${p.n} bagian · tinggi ≈ ${A.totalCm(state).toFixed(0)} cm`;
   }
   function sumNote(p) {
-    return (p.wiring ? "Termasuk kit kelistrikan (komponen bertanda SNI/K3L)" : "Bagian cetak saja, tanpa kit kelistrikan") + (p.led ? " dan bohlam LED." : ".");
+    if (p.wiring) return `Termasuk kit kelistrikan (komponen bertanda SNI/K3L)${p.led ? " dan bohlam LED" : ""}.`;
+    return p.led ? "Bagian cetak dan bohlam LED, tanpa kit kelistrikan." : "Bagian cetak saja, tanpa kit kelistrikan.";
   }
   function renderSummary() {
     const summary = $("#summary");

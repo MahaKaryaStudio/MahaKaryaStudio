@@ -603,16 +603,16 @@ html.motion-off .tile:active { transform: none; }
   .studio__stage { position: sticky; top: 0; z-index: 3; margin-inline: calc(-1 * var(--page-margin)); background: var(--bg); }
   .studio__stage #cfg-stage { height: 260px; min-height: 0; border-radius: 0; }
   .studio__tabs { position: sticky; top: 260px; z-index: 3; margin-inline: calc(-1 * var(--page-margin)); padding-inline: calc(var(--page-margin) - 12px); background: var(--bg); justify-content: space-between; }
-  .studio__tabs .tab { flex: 1; padding: 0 8px; }
-  .studio__tabs .tab::after { left: 8px; right: 8px; }
+  .studio__tabs .tab { flex: 1; padding: 0 4px; white-space: nowrap; }
+  .studio__tabs .tab::after { left: 4px; right: 4px; }
   .studio__panel { height: 280px; overflow-y: auto; overscroll-behavior: contain; padding: 16px 6px; margin-inline: -6px; gap: 16px; }
   .slot-chip { min-width: 44px; justify-content: center; padding: 0 14px; }
   .slot-chip__k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-  .studio__panel .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .studio__panel .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 392px; } /* HP ±62 per ubin; tablet tetap 72 */
   .studio__panel .tile { width: 100%; height: 64px; }
   .studio__sum { padding-top: 28px; }
   /* HP: pil di kiri atas, saklar di kanan atas, tinggi di kiri bawah; tanpa bilah scrim di atas lampu */
-  .studio__stage .stage__pill { top: 12px; left: var(--page-margin); }
+  .studio__stage .stage__pill { top: 12px; left: var(--page-margin); max-width: calc(100% - 2 * var(--page-margin) - 124px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .studio__stage .stage-ui { position: static; }
   .studio__stage .stage-ui .switch { position: absolute; top: 2px; right: var(--page-margin); z-index: 2; }
   .studio__stage .stage-ui__meta { position: absolute; left: var(--page-margin); bottom: 10px; z-index: 2; }
