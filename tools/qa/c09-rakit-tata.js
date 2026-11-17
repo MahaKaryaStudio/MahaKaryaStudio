@@ -8,7 +8,7 @@
 //  c19     tanpa gulir samping di 320, 360, 390 (keempat tab, rincian terbuka); isi panel tidak meluber dari kotaknya;
 //          label kode rakitan satu baris dan kode hanya patah di tanda hubung.
 //  fungsi  fokus tetap di "Hapus" sesudah badan dihapus; ketuk lalu muat ulang seketika tetap tersimpan; katalog
-//          #bagian tetap swatch .sw 24 dan tombol pil (tidak ikut gaya studio).
+//          #bagian: ubin <button> membuka lembar bagian dengan swatch .swatch (sejak langkah alur-bagian).
 //  c24     tinggi 640 → panggung 200 dan lampu tidak tertutup pil, saklar, atau label tinggi (pil dan saklar juga tidak
 //          bertumpuk, sampai lebar 320); 844/740/664 → panggung 260
 //          dan lampu bebas; tinggi 520 → panggung dan tab tidak lengket.
@@ -286,14 +286,19 @@ run(async ({ open, check, opt }) => {
     await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(800);
     const after = await p.evaluate(() => (document.querySelector('#controls .swatch[data-part="head"][aria-pressed="true"]') || document.querySelector('#tab-head') && (document.querySelector('#tab-head').click(), document.querySelector('#controls .swatch[data-part="head"][aria-pressed="true"]')) || {}).dataset?.color);
     check(after === color, 'fungsi: ketuk warna lalu muat ulang seketika, warna tetap tersimpan', JSON.stringify({ color, after }));
-    // katalog #bagian memakai swatch kecil .sw dan tombol pil "Pakai di rakitan" (belum dibangun ulang)
-    const cat = await p.evaluate(() => {
-      const c = document.querySelector('#catalog .pcard'); if (!c) return null;
-      const sw = c.querySelector('.sw'), g = c.querySelector('[data-use]');
-      const r = sw && sw.getBoundingClientRect(), cs = g && getComputedStyle(g);
-      return { sw: sw ? [Math.round(r.width), Math.round(r.height)] : null, radius: cs && cs.borderTopLeftRadius, bg: cs && cs.backgroundColor, h: g && Math.round(g.getBoundingClientRect().height), emptyGroup: !!c.querySelector('[role="group"][aria-label=""]') };
+    // katalog #bagian (sejak langkah alur-bagian): ubin <button> membuka lembar bagian; swatch lembar = komponen .swatch
+    // dasar (40, HP 44), bukan .sw v2; tombol "Pakai di rakitan" per kartu tidak ada lagi
+    const cat = await p.evaluate(async () => {
+      const t = document.querySelector('#catalog button.ptile'); if (!t) return null;
+      t.click(); await new Promise((r) => setTimeout(r, 300));
+      const d = document.querySelector('#psheet'), sw = d && d.querySelector('.swatch');
+      const r = sw && sw.getBoundingClientRect();
+      const out = { open: !!(d && d.open), sw: sw ? [Math.round(r.width), Math.round(r.height)] : null, old: document.querySelectorAll('#catalog .sw, #catalog [data-use]').length, emptyGroup: !!document.querySelector('#bagian [role="group"][aria-label=""]') };
+      d.querySelector('[data-ps-close]').click(); await new Promise((r) => setTimeout(r, 300));
+      out.closed = !d.open;
+      return out;
     });
-    check(cat && cat.sw && cat.sw[0] === 24 && parseFloat(cat.radius) >= 22 && cat.bg === 'rgba(0, 0, 0, 0)' && cat.h >= 44 && !cat.emptyGroup, 'fungsi: katalog #bagian tetap swatch 24 dan tombol pil (tidak ikut gaya studio)', JSON.stringify(cat));
+    check(cat && cat.open && cat.closed && cat.sw && cat.sw[0] >= 40 && cat.old === 0 && !cat.emptyGroup, 'fungsi: katalog #bagian = ubin <button> + lembar bagian (swatch .swatch >= 40), tanpa .sw v2', JSON.stringify(cat));
   }
 
   /* ---------- lengket desktop ---------- */

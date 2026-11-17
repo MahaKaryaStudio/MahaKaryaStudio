@@ -5,6 +5,7 @@
 // KASUS bertambah di langkah yang mengubah teks dasar (tahap baru di STAGES editor.js).
 const { run } = require('./_lib');
 const ROW = '#tiga/div:0/div:0/div:1/div:';
+const AC = '#alur/div:0/div:0/article:';
 const KASUS = [
   { nama: 'tahap 4 (#tiga), simpanan layout 3', layout: 3,
     text: { '#tiga/div:0/p:1': 'LEAD LAMA', [ROW + '0/span:0']: 'TUDUNG', [ROW + '0/div:0/h3:0']: 'H3 LAMA', [ROW + '1/div:0/p:0']: 'ISI LAMA', '#tiga/div:0/h2:0': 'JUDUL SUNTINGAN', '#pita/div:0/p:1': 'SUB PITA SUNTINGAN', '#edisi/div:0/h2:0': 'JUDUL EDISI V3' },
@@ -30,14 +31,25 @@ const KASUS = [
   // menimpanya; baris LED #paket (hanya isi span harga yang berubah) tetap berlaku
   { nama: 'tahap 7 (harga tidak diketik, baris label #bagian), simpanan layout 6', layout: 6,
     text: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN', '#bagian/div:0/p:2': 'TIMPA LABEL', '#paket/div:0/ul:0/li:1': 'KIT — Rp49.000 LAMA', '#paket/div:0/ul:0/li:2': '<span class="label">Opsional</span> <span class="paket__incl-text">LED SUNTINGAN +<span id="led-price-note" data-dynamic>Rp25.000</span></span>', '#alur/div:0/div:0/article:0/div:0/p:1': 'Halo Rani, total Rp467.000' },
-    harap: { '#bagian .section-sub': /^LEAD BAGIAN SUNTINGAN$/, '#bagian .bagian__il': /^Gambar: ilustrasi, bukan foto$/, '#paket .paket__incl li:nth-child(2) .paket__incl-text': /^Kit kelistrikan, komponen bertanda SNI\/K3L: Rp49\.000, bisa dilepas$/, '#paket .paket__incl li:nth-child(3) .paket__incl-text': /^LED SUNTINGAN \+Rp25\.000$/, '#alur [data-alur-total]': /^Rp\d{3}\.000$/ },
-    arsip: ['#paket/div:0/ul:0/li:1', '#alur/div:0/div:0/article:0/div:0/p:1', '#bagian/div:0/p:2'], pindah: { '#bagian/div:0/p:1': 'LEAD BAGIAN SUNTINGAN' } },
+    harap: { '#bagian .section-sub': /^Semua bagian dijual satuan dan cocok dengan rakitan mana pun\. Ketuk satu bagian/, '#bagian .bagian__il': /^Gambar: ilustrasi, bukan foto$/, '#paket .paket__incl li:nth-child(2) .paket__incl-text': /^Kit kelistrikan, komponen bertanda SNI\/K3L: Rp49\.000, bisa dilepas$/, '#paket .paket__incl li:nth-child(3) .paket__incl-text': /^LED SUNTINGAN \+Rp25\.000$/, '#alur [data-alur-total]': /^Rp\d{3}\.000$/ },
+    // sejak tahap 9 (alur-bagian) lead #bagian ditulis ulang, jadi suntingan lead lama ikut diarsipkan
+    arsip: ['#paket/div:0/ul:0/li:1', '#alur/div:0/div:0/article:0/div:0/p:1', '#bagian/div:0/p:2', '#bagian/div:0/p:1'], pindah: {} },
   // tahap 8 (rakit): daftar jaminan ringkasan menjadi "Janji kami" (#janji). Garansi dan foto rakitan berteks sama →
   // pindah; baris transfer/QRIS dan ringkasan details#ctrl-wrap diarsipkan; judul dan lead #rakit tetap berlaku
   { nama: 'tahap 8 (studio rakit, Janji kami), simpanan layout 7', layout: 7,
     text: { '#rakit/div:0/div:1/div:0/ul:0/li:0': 'TRANSFER SUNTINGAN', '#rakit/div:0/div:1/div:0/ul:0/li:1': 'GARANSI SUNTINGAN', '#rakit/div:0/div:1/div:0/ul:0/li:2': 'FOTO SUNTINGAN', '#ctrl-wrap/summary:0': 'UBAH SUNTINGAN', '#rakit/div:0/h2:0': 'JUDUL RAKIT SUNTINGAN', '#rakit/div:0/p:1': 'LEAD RAKIT SUNTINGAN' },
     harap: { '#janji li:nth-child(1)': /^FOTO SUNTINGAN$/, '#janji li:nth-child(2)': /^GARANSI SUNTINGAN$/, '#janji li:nth-child(3)': /^Semua bagian dijual satuan/, '#rakit .section-title': /^JUDUL RAKIT SUNTINGAN$/, '#rakit .section-sub': /^LEAD RAKIT SUNTINGAN$/, 'body': /^(?![\s\S]*(TRANSFER|UBAH) SUNTINGAN)/ },
     arsip: ['#rakit/div:0/div:1/div:0/ul:0/li:0', '#ctrl-wrap/summary:0'], pindah: { '#janji/ul:0/li:0': 'FOTO SUNTINGAN', '#janji/ul:0/li:1': 'GARANSI SUNTINGAN', '#rakit/div:0/h2:0': 'JUDUL RAKIT SUNTINGAN' } },
+  // tahap 9 (alur-bagian): chat #alur ditulis ulang sebagai simulasi; gelembung lama, lead, dan .alur__note (dulu p:2, kini
+  // alamat baris label "Simulasi alur pesan") diarsipkan. #bagian: lead dan kalimat "Sudah punya lampunya?" diarsipkan;
+  // judul, kalimat volume, dan tombol sel penutup (dibungkus .bagian__more) ikut pindah
+  { nama: 'tahap 9 (#alur simulasi, sel penutup #bagian), simpanan layout 8', layout: 8,
+    text: { '#alur/div:0/p:1': 'Tiga pesan, persis seperti ini.', '#alur/div:0/p:2': 'Nama dan nomor resi di atas contoh.', [AC + '0/div:0/p:1']: 'Halo Rani, ini rinciannya', [AC + '1/div:0/p:1']: 'OK, cantik! 😍', [AC + '2/div:0/p:0']: 'Resi: JP1234567890', [AC + '2/div:0/p:1']: 'Kirim fotonya 🙂', '#alur/div:0/h2:0': 'JUDUL ALUR SUNTINGAN',
+      '#bagian/div:0/p:1': 'Pakai langsung di konfigurator.', '#bagian/div:0/div:1/div:0/h3:0': 'PUNYA SUNTINGAN', '#bagian/div:0/div:1/div:0/p:0': 'Pilih warna di kartu.', '#bagian/div:0/div:1/a:0': 'TOMBOL SATUAN SUNTINGAN', '#bagian/div:0/div:2/div:0/h3:0': 'VOLUME SUNTINGAN', '#bagian/div:0/div:2/div:0/p:0': 'ISI VOLUME SUNTINGAN', '#bagian/div:0/div:2/a:0': 'TOMBOL VOLUME SUNTINGAN' },
+    harap: { '#alur .section-sub': /^Tidak ada akun, tidak ada keranjang\. Tiga pesan dari kami yang akan kamu terima\.$/, '#alur .alur__sim': /^Simulasi alur pesan$/, '#alur .alur__note': /^Balasan dikirim manusia, bukan bot: /, '#alur [data-alur-col="1"] .bub--you': /^OK$/, '#alur [data-alur-col="2"] .bub': /^Kurir dan nomor resi kami kirim di sini\.$/, '#alur .section-title': /^JUDUL ALUR SUNTINGAN$/,
+      '#bagian .section-sub': /studio rakit\.$/, '.havebase h3': /^PUNYA SUNTINGAN$/, '.havebase p': /^Beli satu badan atau kap baru saja/, '.havebase a': /^TOMBOL SATUAN SUNTINGAN$/, '.bulk h3': /^VOLUME SUNTINGAN$/, '.bulk p': /^ISI VOLUME SUNTINGAN$/, '.bulk a': /^TOMBOL VOLUME SUNTINGAN$/, 'body': /^(?![\s\S]*(Rani|cantik|JP1234567890|konfigurator|persis seperti ini|contoh\.))/ },
+    arsip: ['#alur/div:0/p:1', '#alur/div:0/p:2', AC + '0/div:0/p:1', AC + '1/div:0/p:1', AC + '2/div:0/p:0', AC + '2/div:0/p:1', '#bagian/div:0/p:1', '#bagian/div:0/div:1/div:0/p:0'],
+    pindah: { '#alur/div:0/h2:0': 'JUDUL ALUR SUNTINGAN', '#bagian/div:0/div:1/div:0/div:0/h3:0': 'PUNYA SUNTINGAN', '#bagian/div:0/div:1/div:0/a:0': 'TOMBOL SATUAN SUNTINGAN', '#bagian/div:0/div:1/div:1/div:0/h3:0': 'VOLUME SUNTINGAN', '#bagian/div:0/div:1/div:1/div:0/p:0': 'ISI VOLUME SUNTINGAN', '#bagian/div:0/div:1/div:1/a:0': 'TOMBOL VOLUME SUNTINGAN' } },
 ];
 run(async ({ open, check }) => {
   for (const k of KASUS) {
@@ -48,7 +60,7 @@ run(async ({ open, check }) => {
     check(bad.length === 0, `C23 ${k.nama}: teks baru tidak tertimpa, suntingan yang sah tetap diterapkan`, bad.join(' | '));
     const t = (r.st.text || {})['index.html'] || {}, v2 = (r.st.textV2 || {})['index.html'] || {};
     const badS = [...k.arsip.filter((a) => a in t || !(a in v2)).map((a) => 'tidak diarsipkan: ' + a), ...Object.entries(k.pindah).filter(([a, v]) => t[a] !== v).map(([a]) => 'tidak pindah: ' + a)];
-    check(badS.length === 0 && r.st.layout >= 8, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 8)`, badS.join(' | ') + ' layout ' + r.st.layout);
+    check(badS.length === 0 && r.st.layout >= 9, `C23 ${k.nama}: simpanan dimigrasikan (alamat lama diarsipkan di textV2, yang bergeser dipindah, layout ≥ 9)`, badS.join(' | ') + ' layout ' + r.st.layout);
     check(p.__errs.length === 0, `C23 ${k.nama}: tanpa error JS`, p.__errs.join(' | ').slice(0, 200));
   }
   // Mode Edit tetap terbuka dan baris #tiga bisa disunting; label di dalam gambar kerja dan pita tidak ikut
@@ -62,7 +74,7 @@ run(async ({ open, check }) => {
   await p.evaluate(() => { const el = document.querySelector('#hero .lead'); el.textContent = 'LEAD DARI MODE EDIT'; el.dispatchEvent(new Event('input', { bubbles: true })); });
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(1000);
   const sv = await p.evaluate(() => ({ lead: document.querySelector('#hero .lead').textContent.trim(), st: JSON.parse(localStorage.getItem('mks-edits-v2') || '{}'), prices: window.MKS_LAMP.presets.map((pr) => window.MKSLamp.price({ head: pr.head, body: pr.body, base: pr.base, wiring: true, led: false })).map((r) => [r.total, r.parts + r.wiring]) }));
-  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 8, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 8)', `${sv.lead} · layout ${sv.st.layout}`);
+  check(sv.lead === 'LEAD DARI MODE EDIT' && sv.st.layout === 9, 'C23 Mode Edit: suntingan tersimpan dan tetap ada setelah muat ulang (layout 9)', `${sv.lead} · layout ${sv.st.layout}`);
   check(JSON.stringify(sv.prices) === JSON.stringify([[464000, 626000], [447000, 602000], [454000, 612000], [427000, 533000], [383000, 442000]]), 'C14: harga dan coret lima edisi tidak berubah', JSON.stringify(sv.prices));
   check(p.__errs.length === 0, 'C23 Mode Edit: tanpa error JS', p.__errs.join(' | ').slice(0, 200));
 });

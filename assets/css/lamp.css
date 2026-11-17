@@ -846,6 +846,14 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 @media (max-width: 1023px) {
   .pcat { max-width: 720px; }
   .pcat__filter { margin-bottom: 20px; }
+}
+/* HP: empat chip saring satu baris; di layar sempit baris bergeser ke samping (tanpa gulir samping halaman) */
+@media (max-width: 760px) {
+  .pcat__filter { flex-wrap: nowrap; gap: 8px; margin-inline: calc(-1 * var(--page-margin)); padding: 2px var(--page-margin); overflow-x: auto; scrollbar-width: none; }
+  .pcat__filter::-webkit-scrollbar { display: none; }
+  .pcat__filter .chip { flex: none; gap: 6px; padding: 0 12px; }
+}
+@media (max-width: 1023px) {
   .pcat__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
   .ptile { gap: 2px; }
   .ptile__fig { margin-bottom: 8px; }
@@ -867,6 +875,7 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 .psheet__kind { margin: 0 0 8px; }
 .psheet__title { margin: 0; }
 .psheet__close { position: relative; display: grid; place-content: center; flex: none; width: 44px; height: 44px; margin: -10px -10px 0 0; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color var(--t-fast) var(--ease-out); }
+.psheet__close::before { content: ""; position: absolute; inset: 0; } /* area tekan persegi 44 (sudut tidak terpotong radius) */
 .psheet__close i { grid-area: 1 / 1; display: block; width: 18px; height: 1.5px; border-radius: 1px; background: currentColor; transform: rotate(45deg); }
 .psheet__close i + i { transform: rotate(-45deg); }
 @media (hover: hover) and (pointer: fine) { .psheet__close:hover { background: var(--chip-hover); } }
@@ -890,6 +899,9 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 }
 @media (prefers-reduced-motion: reduce) { .ptile:active { transform: none; } @media (hover: hover) and (pointer: fine) { .ptile:hover { transform: none; } } }
 html.motion-off .ptile:active { transform: none; }
+/* ::backdrop tidak ikut aturan animasi 0,01 ms milik *, ::before, ::after */
+@media (prefers-reduced-motion: reduce) { .psheet[open]::backdrop { animation: none; } }
+html.motion-off .psheet[open]::backdrop { animation: none; }
 @media (hover: hover) and (pointer: fine) { html.motion-off .ptile:hover { transform: none; } }
 
 /* ---------- 07 #cara (garis waktu) + spesifikasi ---------- */

@@ -35,7 +35,7 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   'Pilihan studio' tepat sekali dan terlihat di setiap edisi. C2 (ketukan beruntun) tetap di `c02-taps.js`.
 - `c04-gerak-sentuh.js [--only=token,c7,c8,c10,c11,c16,c13,c23,c14,toast]`: token gerak dan pendamping, tabel
   breakpoint di kepala base.css; C7 hover digerbang `(hover: hover) and (pointer: fine)` dan hanya pada yang bisa diklik (aturan nav/menu ikut dipindai walau tak cocok elemen di index);
-  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#rakit/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP, transisi dimatikan: ini simulasi, bukan pengganti uji ketuk di HP sungguhan) di empat
+  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#rakit/#alur/#paket/#bagian/nav/orderbar/toast (`:active` dipaksa lewat CDP, transisi dimatikan: ini simulasi, bukan pengganti uji ketuk di HP sungguhan) di empat
   ukuran layar, biasa (transform atau warna) dan reduce (wajib warna/latar/opacity/box-shadow); C10 durasi dan delay pada
   token (biasa dan reduce); C11 label ILUSTRASI tabel #paket dan baris #bagian; C16 tanpa harga ketikan dan `wa.me/` di
   HTML mentah index/404, satu noscript, href WA awal dari config.js saat lamp.js diblokir; C13; C23 baris label #bagian
@@ -50,10 +50,19 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
 - `c09-rakit-tata.js [--only=c8,c9,c19,c24,teks,tab,fungsi,lengket,ukur]`: 03 #rakit: C8 semua kontrol di empat tab dan rincian;
   C9 area tekan 44 × 44 (elementFromPoint) dan jarak visual 8 di 390/360; C19 tanpa gulir samping 320/360/390, isi
   panel tidak meluber dari kotaknya, kode rakitan hanya patah di tanda hubung; `fungsi` fokus tetap di Hapus, ketuk lalu
-  muat ulang tetap tersimpan, katalog #bagian tetap swatch 24 dan tombol pil; C24
+  muat ulang tetap tersimpan, katalog #bagian = ubin <button> + lembar bagian (swatch .swatch); C24
   panggung HP 260/200 (lampu tidak tertutup pil/saklar/label, pil dan saklar tidak bertumpuk) dan tidak lengket di
   tinggi 520; C15, C20 kalimat ringkasan >= 16 px, C11 pil studio; ARIA tabs + papan ketik; bagian SVG desktop; orderbar
   dan nav HP; panggung desktop/laptop lengket di nav + 24; `UKUR` tinggi #rakit terhadap brief.
+- `c13-alur-bagian.js [--only=c12,jujur,c15,c16,c11,c9,c20,ukur,lembar,gerak,c8,saring,karusel,ekspor]`: 04 #alur dan
+  06 #bagian: label "Simulasi alur pesan" terlihat di kepala seksi (390, 1440); teks #alur tanpa nama orang, pujian, emoji,
+  pola resi; kolom desktop tanpa bingkai ponsel; C15 tanpa "konfigurator"/"—" (juga di lembar bagian) dan kepala kolom tanpa
+  durasi; C16 HTML mentah tanpa "Rp" + angka; C11 pil thumb #alur, baris label #bagian, pil lembar; C9 chip saring, ubin,
+  swatch, chip slot, tombol tutup (elementFromPoint di sudut kotak 44, jarak 8) di 390/360; C20 gelembung >= 16 px;
+  `UKUR` tinggi #bagian 390 <= 2.600 dan #alur terhadap brief; lembar bagian (dialog modal berlabel, Escape + fokus kembali,
+  orderbar tersembunyi, satu tombol berisi, Pasang + toast beraksi tanpa gulir otomatis, WA pesan satuan); gerak masuk
+  250 / keluar 150 (reduce seketika); C8 kontrol lembar; chip saring dari lamp-data; karusel HP (snap, fokus + panah,
+  intip, titik, tanpa gulir samping 320/360/390); C23 suntingan lama gelembung/.alur__note tidak muncul di halaman dan Ekspor.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
   (HP) dihitung tertutup, sama seperti di bawah nav (rantai dari tepi atas: panggung lalu tab tepat di bawahnya).

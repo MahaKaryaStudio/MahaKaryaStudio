@@ -21,7 +21,7 @@ const { run } = require('./_lib');
 const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const SNAP = require('./c04-snap-c14');
-const SEKSI = ['#hero', '#kenapa', '#edisi', '#tiga', '#rakit', '#paket', '#top', '#menu', '#orderbar', '#toast']; // #rakit sejak langkah rakit
+const SEKSI = ['#hero', '#kenapa', '#edisi', '#tiga', '#rakit', '#alur', '#paket', '#bagian', '#top', '#menu', '#orderbar', '#toast']; // #rakit sejak langkah rakit; #alur dan #bagian sejak alur-bagian
 const DUR_OK = [0, 100, 150, 250, 600], DEL_OK = [0, 200], VIS_DEL_OK = [150, 250], DUR_RED = [0, 0.01, 150];
 const SNI_OK = [/bertanda SNI\/K3L/g, /tanda SNI\/K3L/g, /bukan produk bersertifikat SNI/g, /Apakah lampunya bersertifikat SNI\?/g];
 const SOSIAL = /ulasan|testimoni|terjual|terlaris|laris|populer|bintang 5|★|pelanggan kami|\d+\+? pembeli/i;
