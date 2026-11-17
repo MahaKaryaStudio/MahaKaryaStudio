@@ -39,8 +39,13 @@
      karangan; lead #alur tanpa "persis seperti ini"; baris label "Simulasi alur pesan" (data-dynamic-text) masuk di
      #alur/div:0/p:2 dan catatan .alur__note (teks baru) pindah ke p:3. Semua suntingan gelembung lama, lead, dan catatan
      lama diarsipkan. 06 #bagian: lead dan kalimat "Sudah punya lampunya?" ditulis ulang (diarsipkan); dua sel penutup
-     dibungkus .bagian__more, jadi judul, kalimat volume, dan tombolnya yang tidak berubah kata dipindah (rename). */
-  const LAYOUT = 9;
+     dibungkus .bagian__more, jadi judul, kalimat volume, dan tombolnya yang tidak berubah kata dipindah (rename).
+     Tahap 10 (penutup): 07 #cara: H3 langkah ketiga menjadi "Kami cetak & rakit" (diarsipkan); kartu spesifikasi menjadi
+     <details id="spec"> dengan summary "Spesifikasi rakitanmu" (eyebrow lama diarsipkan, dt/dd ikut pindah). 09 #faq: kepala
+     (eyebrow, H2) dibungkus .faq__head dan daftar mendapat id faq-list; semua tanya-jawab pindah tanpa ganti kata. Footer: h4
+     kolom menjadi h3 (pindah), tautan "Konfigurator" menjadi "Studio rakit" (diarsipkan), baris kontak WhatsApp pindah ke
+     kolom merek sebagai tombol (label lama diarsipkan) sehingga baris Instagram naik satu; baris Email baru di urutan kedua. */
+  const LAYOUT = 10;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -86,7 +91,19 @@
       drop: ["#alur/div:0/p:1", "#alur/div:0/p:2", AC + "0/div:0/p:0", AC + "0/div:0/p:1", AC + "1/div:0/p:0", AC + "1/div:0/p:1", AC + "2/div:0/p:0", AC + "2/div:0/p:1", "#bagian/div:0/p:1", "#bagian/div:0/div:1/div:0/p:0"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9]];
+  const FQ = "#faq/div:0/div:0/details:", FT = "footer:0/div:0/div:", SP = "#cara/div:0/div:1/dl:0/";
+  const MOVED_10 = {
+    "index.html": {
+      rename: Object.assign(
+        { "#faq/div:0/p:0": "#faq/div:0/div:0/p:0", "#faq/div:0/h2:0": "#faq/div:0/div:0/h2:0",
+          [FT + "1/h4:0"]: FT + "1/h3:0", [FT + "2/h4:0"]: FT + "2/h3:0", [FT + "3/h4:0"]: FT + "3/h3:0", [FT + "1/div:1/span:0"]: FT + "1/div:0/span:0" },
+        ...Array.from({ length: 12 }, (_, i) => ({ [FQ + i + "/summary:0"]: "#faq-list/details:" + i + "/summary:0", [FQ + i + "/p:0"]: "#faq-list/details:" + i + "/p:0" })),
+        ...Array.from({ length: 8 }, (_, i) => ({ [SP + "dt:" + i]: "#spec/dl:0/dt:" + i, [SP + "dd:" + i]: "#spec/dl:0/dd:" + i }))
+      ),
+      drop: ["#cara/div:0/div:0/div:0/div:2/div:0/h3:0", "#cara/div:0/div:1/p:0", FT + "1/div:0/span:0", FT + "2/a:0"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9], [10, MOVED_10]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;

@@ -921,36 +921,65 @@ html.motion-off .ptile:active { transform: none; }
 html.motion-off .psheet[open]::backdrop { animation: none; }
 @media (hover: hover) and (pointer: fine) { html.motion-off .ptile:hover { transform: none; } }
 
-/* ---------- 07 #cara (garis waktu) + spesifikasi ---------- */
+/* ---------- 07 #cara (garis waktu) + spesifikasi rakitanmu ----------
+   Desktop (>= 1024): langkah kolom kiri, kartu spesifikasi gelap lengket di kanan (selalu terbuka; summary hanya label).
+   <= 1023: satu kolom, spesifikasi dilipat dalam <details> (lamp.js menutupnya sekali saat muat; tanpa JS terbuka). */
 .how { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(24px, 5vw, 64px); align-items: start; }
 .steps-l .step { position: relative; display: grid; grid-template-columns: 24px 1fr; gap: 16px; padding: 24px 0; border-top: 1px solid var(--hairline); }
 .steps-l .step:last-child { border-bottom: 1px solid var(--hairline); }
 .steps-l .step > span { position: relative; z-index: 1; display: block; width: 12px; height: 12px; margin: 10px 0 0 6px; border-radius: 50%; background: var(--ink); }
-.steps-l .step h3 { margin-bottom: 8px; }
-.steps-l .step p { margin: 0; color: var(--fg-2); }
-.spec { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 24px; display: grid; gap: 16px; }
-.spec .eyebrow { margin: 0; }
+.steps-l .step h3 { font-size: var(--fs-h3); margin-bottom: 8px; }
+.steps-l .step p { margin: 0; max-width: 62ch; font-size: var(--fs-body); color: var(--fg-2); }
+.spec { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 24px; }
+.spec[open] { display: grid; gap: 16px; }
+.spec__sum { display: flex; align-items: center; justify-content: space-between; gap: 16px; list-style: none; font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--dark-muted); }
+.spec__sum::-webkit-details-marker { display: none; }
 .spec .fig { position: relative; background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
 .spec .fig svg { width: 100%; height: auto; display: block; }
 .spec .fig .stage__pill { top: auto; bottom: 12px; left: 12px; } /* kiri bawah: label "Ø 20 cm" rakitan tertinggi berada di kiri atas */
 .spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--fs-small); }
 .spec dt { color: var(--dark-muted); }
 .spec dd { margin: 0; font: 400 14px/1.4 var(--mono); }
+@media (min-width: 1024px) {
+  .spec__sum { pointer-events: none; cursor: default; } /* desktop: label, bukan pembuka (lamp.js juga mengeluarkannya dari urutan Tab) */
+}
+@media (max-width: 1023px) {
+  .how { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .how > *, .faq__grid > * { max-width: 720px; }
+  .spec { padding: 0; }
+  .spec[open] { padding-bottom: 24px; }
+  .spec[open] > :not(summary) { margin-inline: 20px; }
+  .spec__sum { min-height: 56px; padding: 0 20px; cursor: pointer; border-radius: var(--r-tile); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: background-color var(--t-fast) var(--ease-out); }
+  .spec__sum::after { content: "+"; flex: none; width: 24px; text-align: center; font: 300 24px/1 var(--sans); color: var(--dark-fg); transition: transform var(--t-fast) var(--ease-out); }
+  .spec[open] > .spec__sum::after { transform: rotate(45deg); }
+  .spec__sum:active { background: var(--press-bg); transition-duration: var(--t-press); }
+  .spec .fig { max-width: 360px; }
+}
 
-/* ---------- 08 #aman ---------- */
-.safety { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: var(--gap-head); }
+/* ---------- 08 #aman: empat sel hairline, ikon garis 32 px, H3 28, isi 17 ---------- */
+.safety { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
 .safety__card { border-top: 1px solid var(--hairline); padding-top: 32px; }
-.safety__card b { display: block; font: 450 var(--fs-h3) / 1.15 var(--serif); letter-spacing: -0.01em; font-variation-settings: "opsz" 36; margin-bottom: 12px; }
-.safety__card p { color: var(--fg-2); margin: 0; max-width: 36ch; }
-@media (max-width: 1000px) { .safety { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .safety { grid-template-columns: 1fr; } }
+.safety__ic { width: 32px; height: 32px; margin-bottom: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; color: var(--fg); }
+.safety__card h3 { margin-bottom: 12px; }
+.safety__card p { color: var(--fg-2); margin: 0; max-width: 36ch; font-size: var(--fs-body); }
+@media (max-width: 1023px) {
+  .safety { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 720px; column-gap: 24px; row-gap: 32px; }
+}
+@media (max-width: 760px) {
+  .safety { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+  .safety__card { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 16px; align-items: start; padding: 24px 0; }
+  .safety__card:last-child { border-bottom: 1px solid var(--hairline); }
+  .safety__ic { margin: 0; grid-row: 1; }
+  .safety__card h3 { grid-column: 2; margin: 4px 0 8px; }
+  .safety__card p { grid-column: 1 / -1; max-width: 62ch; }
+}
 
 /* ---------- Footer: kontak ---------- */
 .contact-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-.copy { background: none; border: 0; box-shadow: inset 0 0 0 1px var(--dark-line-strong); border-radius: 999px; min-height: 44px; padding: 0 16px; font-size: var(--fs-small); color: var(--dark-fg-2); }
-.copy:hover { color: var(--dark-fg); box-shadow: inset 0 0 0 1px var(--dark-fg); }
+.copy { background: none; border: 0; box-shadow: inset 0 0 0 1px var(--dark-line-strong); border-radius: 999px; min-height: 44px; padding: 0 16px; font-size: var(--fs-small); color: var(--dark-fg-2); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .copy:hover { color: var(--dark-fg); box-shadow: inset 0 0 0 1px var(--dark-fg); } }
+.copy:active { background: var(--press-bg, var(--dark-bg-4)); color: var(--dark-fg); transition-duration: var(--t-press); }
 
 @media (max-width: 860px) {
-  .how { grid-template-columns: 1fr; }
   .stage:not(.stage--hero):not(.stage--vitrine) { aspect-ratio: 4 / 4.4; }
 }

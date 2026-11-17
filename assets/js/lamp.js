@@ -583,9 +583,26 @@
     setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 464", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
     setText("#spec-height", cm);
     setText("#spec-weight", `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`);
+    const nb = state.body.length;
+    setText("#spec-parts", `${nb + 2} bagian: kap, ${nb} badan, alas`);
     fitSvgText($("#spec-fig"));
   }
-  function renderPreview() { renderStudio(); renderSpec(); }
+  // 10 .final: rakitan pengunjung di rig malam + keterangan harga. Hanya --dim di #final-stage yang mengatur cahaya
+  // (ditulis sekali oleh finalLight); render ulang innerHTML tidak menyentuh style panggung. Dilewati bila kode sama.
+  let finalKey = "";
+  function renderFinal() {
+    const host = $("#final-lamp");
+    if (!host) return;
+    const hp = STUDIO_HP.matches;
+    const key = (hp ? "hp|" : "d|") + code(state);
+    if (key !== finalKey) {
+      finalKey = key;
+      host.innerHTML = A.renderLamp(state, Object.assign({ uid: "final", variant: "final", on: true, label: "Ilustrasi rakitanmu" }, hp ? { frame: [390, 340], floor: 0.82, lampFrac: 0.66 } : {}));
+    }
+    const p = price(state), pi = presetIndex(state);
+    setText("[data-final-cap]", `${pi >= 0 ? "Edisi " + D().presets[pi].name : "Rakitanmu"} · ${p.n} bagian · ${rp(p.total)}`);
+  }
+  function renderPreview() { renderStudio(); renderSpec(); renderFinal(); }
   function renderStudioLight() {
     const st = $("#cfg-stage");
     if (st) st.style.setProperty("--dim", state.on ? 1 : 0);
@@ -657,6 +674,7 @@
           late2 = 0;
           keepFocus(renderRincian);
           renderSpec();
+          renderFinal();
           const pi = presetIndex(state);
           if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); }
         }, 0); });
@@ -1483,6 +1501,7 @@
     $$("[data-wa-text]").forEach((el) => (el.textContent = "+" + C.whatsapp));
     $$("[data-wa-copy]").forEach((el) => (el.dataset.copy = "+" + C.whatsapp));
     $$("[data-ig]").forEach((el) => (el.textContent = "@" + C.instagram));
+    $$("[data-email]").forEach((el) => (el.textContent = C.email || ""));
     $$("[data-city]").forEach((el) => (el.textContent = C.city || ""));
     $$("[data-reply]").forEach((el) => (el.innerHTML = replyHtml(C.replyPromise || "")));
     $$("[data-address]").forEach((el) => { el.textContent = C.address || ""; const l = el.closest(".contact-line"); if (l) l.hidden = !C.address; });
@@ -1654,6 +1673,47 @@
       heroDim(st);
       setTimeout(() => st.classList.remove("is-waking"), 900);
     }));
+  })();
+  // Momen cahaya 5 (.final): panggung dirender redup (--dim 0,12 dari HTML); saat >= 35% panggung masuk layar, SATU
+  // penulisan --dim 1 (transisi cahaya 600 ms). Gerak dikurangi: CSS sudah menyalakannya, penulisan ini tidak terlihat.
+  (function finalLight() {
+    const st = $("#final-stage");
+    if (!st) return;
+    const lit = () => st.style.setProperty("--dim", "1");
+    if (!("IntersectionObserver" in window)) return lit();
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); lit(); } }, { threshold: 0.35 });
+    io.observe(st);
+  })();
+  if (STUDIO_HP.addEventListener) STUDIO_HP.addEventListener("change", renderFinal);
+  // 07 #cara: spesifikasi di <details>. Desktop: selalu terbuka, summary hanya label (tidak bisa difokus/diklik).
+  // <= 1023: dilipat sekali saat muat (tanpa JS tetap terbuka); pindah ke desktop membukanya lagi.
+  (function specFold() {
+    const d = $("#spec"), sum = d && $("summary", d);
+    if (!sum) return;
+    const apply = (init) => {
+      if (STUDIO_HP.matches) { sum.removeAttribute("tabindex"); if (init) d.open = false; }
+      else { d.open = true; sum.setAttribute("tabindex", "-1"); }
+    };
+    apply(true);
+    if (STUDIO_HP.addEventListener) STUDIO_HP.addEventListener("change", () => apply(false));
+    sum.addEventListener("click", (e) => { if (!STUDIO_HP.matches) e.preventDefault(); });
+  })();
+  // 09 #faq: enam pertanyaan pertama tampil, sisanya di balik "Lihat N pertanyaan lain" (tanpa JS semuanya terbaca).
+  // Membuka seketika (tanpa animasi); fokus pindah ke pertanyaan pertama yang baru muncul.
+  (function faqMore() {
+    const list = $("#faq-list"), btn = list && $("[data-faq-more]", list);
+    if (!btn) return;
+    const rest = $$(":scope > details", list).slice(6);
+    if (!rest.length) return;
+    btn.textContent = `Lihat ${rest.length} pertanyaan lain`;
+    list.classList.add("is-short");
+    btn.hidden = false;
+    btn.addEventListener("click", () => {
+      list.classList.remove("is-short");
+      btn.hidden = true;
+      const s0 = $("summary", rest[0]);
+      if (s0) s0.focus({ preventScroll: true });
+    });
   })();
   // Siaran awal setelah semua skrip halaman sempat mendaftar pendengar
   const bootEmit = () => { emit("load"); booted = true; };
