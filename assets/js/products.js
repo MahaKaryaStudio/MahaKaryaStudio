@@ -15,7 +15,7 @@ window.MKS_PRODUCTS = [
     shape: "vase",
     motif: "kawung",
     color: "#c8794a",
-    desc: "Vas dengan pola kawung — motif batik klasik Jawa yang melambangkan keadilan dan kesempurnaan — dalam bentuk relief tiga dimensi.",
+    desc: "Vas dengan pola kawung, motif batik klasik Jawa yang melambangkan keadilan dan kesempurnaan, dalam bentuk relief tiga dimensi.",
     specs: ["Tinggi 18 cm", "PLA Matte", "Wadah kaca anti-bocor (opsional)"],
     tags: ["bestseller"],
   },

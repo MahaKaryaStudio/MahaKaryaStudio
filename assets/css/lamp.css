@@ -39,6 +39,9 @@
 /* panggung sempit (laptop pendek, tablet, HP kecil): pil memendek bertahap (tinggi → kata "Edisi" → nama edisi) */
 .stage--hero { container-type: inline-size; }
 
+/* Pengecualian breakpoint koleksi-qa: hero tetap 860/861 (bukan 760/1024). Di 861–1023 hero desktop (teks kiri,
+   lampu kanan) tampak lebih baik daripada versi HP (tangkapan 1000 dan 1024).
+   Angka yang sama di lamp.js heroNarrow dan reel. */
 @media (min-width: 861px) {
   .lhero {
     --hero-h1: min(var(--fs-h1), calc((100svh - var(--nav-h)) * 0.135));
@@ -63,7 +66,7 @@
   .lhero__from-note { flex-basis: 100%; }
   .lhero__from-sep { display: none; }
 }
-@media (max-width: 860px) {
+@media (max-width: 860px) { /* pengecualian breakpoint koleksi-qa, lihat di atas */
   .lhero { padding: 356px 0 72px; }
   .lhero__grid { display: block; }
   .lhero__text { display: flex; flex-direction: column; align-items: flex-start; position: relative; z-index: 1; }
@@ -319,7 +322,8 @@ html.motion-off .lhero__media { display: none !important; }
 /* ---------- 01 #edisi (ruang 01, paper) — brief §7 "01 #edisi" ----------
    Desktop (±1.510): kontainer 1200 = vitrine kolom 1–7 (690 × min(780, 100svh − 120), lengket) | kolom 8 kosong |
    rail kolom 9–12 (384): indeks 5 baris × 88 → 32 → plakat (cerita, COCOK UNTUK, harga 72, WA 56, tautan).
-   HP ≤ 900 (±1.480): vitrine full-bleed 390 × 360 → 24 → indeks baris 64 (thumb 48, nama 22, harga 14)
+   HP ≤ 900 (pengecualian breakpoint koleksi-qa: di 901–1023 dua kolom tetap; versi HP di 1000 px membuat vitrine
+   selebar layar dan rail terbentang) (±1.480): vitrine full-bleed 390 × 360 → 24 → indeks baris 64 (thumb 48, nama 22, harga 14)
    → 24 → plakat (harga 44, WA 52). Isi dirender lamp.js (renderEditions / fillEdition). */
 /* seksi punya padding atas sendiri (160/96): tautan #edisi mendarat di tepi atas layar, bukan 80/64 px di bawahnya
    (nav tersembunyi saat menggulir turun; saat nav tampil, padding seksi sudah melewatinya) */
@@ -384,7 +388,7 @@ html.motion-off .lhero__media { display: none !important; }
   .edisi__shop { margin-top: 2px; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px) { /* pengecualian breakpoint koleksi-qa (900/901), lihat kepala #edisi */
   .edisi { grid-template-columns: minmax(0, 1fr); }
   /* 390 × 360 pada 390 (332 pada 360); tablet maks 440; HP mendatar tidak melebihi tinggi layar */
   .edisi__stage { position: relative; top: auto; width: auto; aspect-ratio: auto; max-height: none; height: clamp(320px, 92.3vw, 440px); height: min(clamp(320px, 92.3vw, 440px), max(280px, 100svh - 96px)); min-height: 0; margin-inline: calc(-1 * var(--page-margin)); border-radius: 0; }
@@ -801,7 +805,7 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
   .paket__panel .paket__sep { display: none; }
   .paket__panel > .btn { margin-top: 24px; }
   /* Isi paket: 3 baris hairline 64 */
-  .paket__incl { grid-template-columns: none; margin-top: 40px; border-top: 0; }
+  .paket__incl { grid-template-columns: none; margin-top: min(40px, var(--gap-head)); border-top: 0; }
   .paket__incl li { gap: 4px; align-content: center; min-height: 64px; padding: 12px 0; border-top: 1px solid var(--line); }
   .paket__incl li:last-child { border-bottom: 1px solid var(--line); }
   .paket__incl li + li::before { display: none; }
@@ -867,8 +871,13 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
   .pcat__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
   .ptile { gap: 2px; }
   .ptile__fig { margin-bottom: 8px; }
-  .bagian__more { grid-template-columns: none; row-gap: 24px; max-width: 720px; margin-top: 40px; }
+  .bagian__more { grid-template-columns: none; row-gap: 24px; max-width: 720px; margin-top: min(40px, var(--gap-head)); }
   .havebase, .bulk { gap: 16px; }
+}
+/* HP: gambar ubin 4:3 (bukan 1:1) — bagian datar/lebar, ruang kosong atas-bawah dipangkas demi tinggi halaman (koleksi-qa) */
+@media (max-width: 760px) {
+  .ptile__fig { aspect-ratio: 4 / 3; }
+  .ptile__fig svg { inset: 10% 14%; width: 72%; height: 80%; }
 }
 
 /* Lembar bagian: <dialog class="psheet paper"> (lamp.js renderSheet). Masuk --t-med, keluar --t-fast (.is-closing). */
@@ -945,7 +954,7 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
   body:not(.mks-has-panel) .spec__sum { pointer-events: none; cursor: default; } /* Mode Edit tetap bisa mengklik label untuk menyunting; desktop: label, bukan pembuka (lamp.js juga mengeluarkannya dari urutan Tab) */
 }
 @media (max-width: 1023px) {
-  .how { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .how { grid-template-columns: minmax(0, 1fr); gap: min(40px, var(--gap-head)); }
   .how > *, .faq__grid > * { max-width: 720px; }
   .spec { padding: 0; }
   .spec[open] { padding-bottom: 24px; }

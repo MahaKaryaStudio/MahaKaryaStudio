@@ -688,6 +688,7 @@
   // Nyala awal (adendum v3.1 §4, momen cahaya 1): lampu dirender redup (--dim 0.12 dari HTML), lalu wakeHero()
   // menulis --dim SATU kali setelah render pertama dan dua requestAnimationFrame (sesudah long task muat),
   // dengan delay --t-follow dan durasi --t-slow. Gerak dikurangi: dirender sudah menyala. Tidak ada kopling gulir.
+  // 860: pengecualian breakpoint koleksi-qa (hero tetap 860/861, sama dengan lamp.css)
   const heroNarrow = window.matchMedia ? window.matchMedia("(max-width: 860px)") : { matches: false };
   let heroKey = "";
   let heroWoke = reduceMotion();
@@ -1539,7 +1540,7 @@
   (function reel() {
     const v = $("#reel-video"), btn = $("#reel-play");
     if (!v || !("IntersectionObserver" in window) || reduceMotion()) return;
-    const narrow = window.matchMedia("(max-width: 860px)");
+    const narrow = window.matchMedia("(max-width: 860px)"); // pengecualian breakpoint koleksi-qa (hero 860/861)
     // Poster hanya dipasang saat video memang akan tampil (desktop, gerak aktif): HP tidak mengunduhnya
     const setPoster = () => { if (!narrow.matches && v.dataset.poster && !v.poster) v.poster = v.dataset.poster; };
     setPoster();

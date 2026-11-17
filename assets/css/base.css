@@ -342,7 +342,8 @@ h4 {
   text-transform: uppercase;
 }
 @media (max-width: 760px) {
-  :root { --nav-h: 56px; --grid-gap: 12px; }
+  /* Ritme HP dirapatkan di koleksi-qa (pengecualian dari 96/72/40 brief §5: 72/48/32): halaman index di 390 harus <= 16.500 px */
+  :root { --nav-h: 56px; --grid-gap: 12px; --pad-room: 72px; --pad-support: 48px; --gap-head: 32px; }
   h1 { line-height: 1; letter-spacing: -0.025em; }
   h2 { line-height: 1.08; letter-spacing: -0.02em; font-variation-settings: "opsz" 72; }
   h3 { line-height: 1.2; }

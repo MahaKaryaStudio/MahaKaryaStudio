@@ -22,7 +22,7 @@
 .hero__piece--0 { width: 58%; left: 22%; top: 0; z-index: 1; }
 .hero__piece--1 { width: 44%; left: 0; bottom: 2%; z-index: 2; }
 .hero__piece--2 { width: 42%; right: 0; bottom: 0; z-index: 3; }
-.hero__pill { position: absolute; right: 0; bottom: 0; z-index: 4; }
+.hero__pill { position: absolute; right: 0; top: 0; z-index: 4; } /* pojok atas yang kosong: tidak menutup alas benda */
 .noscript-note { margin: 0 0 16px; font-size: var(--fs-small); color: var(--ink-2); }
 
 /* ---------- Kenapa: empat baris hairline tanpa nomor ---------- */
@@ -41,15 +41,13 @@
 .product__art svg, .product__art img { width: 100%; height: 100%; object-fit: contain; }
 .product__art:focus-visible { outline-offset: -4px; } /* .product memotong overflow: cincin di dalam */
 .product__art:active { opacity: 0.8; transition-duration: var(--t-press); }
-.product__art .badge { position: absolute; top: 12px; left: 12px; z-index: 1; min-height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--scrim); color: var(--dark-fg-2); }
-.product__art .badge--baru { background: var(--green); color: var(--paper); }
-.product__art .badge--hadiah { background: var(--accent-ink); color: var(--paper); }
-.product__art .badge + .badge { top: 44px; }
-.product__il { position: absolute; left: 12px; bottom: 12px; z-index: 1; }
-.product__info { padding: 16px 18px 18px; }
+.product__il { position: absolute; left: 12px; top: 12px; z-index: 1; } /* pojok kiri atas seperti pil panggung index: tidak menutup kaki benda */
+.product__info { flex: 1; display: flex; flex-direction: column; padding: 16px 18px 18px; }
 .product__col { font: 500 var(--fs-label) / 1 var(--mono); text-transform: uppercase; letter-spacing: var(--ls-label); color: var(--ink-2); }
+.product__tag { color: var(--ink); }
+.product__tag::before { content: "·"; margin: 0 6px; color: var(--ink-2); }
 .product h3 { font-size: var(--fs-h3); margin: 8px 0 12px; }
-.product__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.product__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; } /* harga + tombol sejajar di dasar kartu walau judul dua baris */
 .price { font: 500 var(--fs-mono-price) / 1.4 var(--mono); font-variant-numeric: tabular-nums; }
 .price--lg { font: 400 var(--fs-title) / 1.05 var(--serif); letter-spacing: -0.02em; }
 .btn.product__add { height: 44px; }
@@ -123,7 +121,7 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 .modal__close { position: absolute; top: 12px; right: 12px; z-index: 2; }
 .modal__art { position: relative; background: linear-gradient(180deg, var(--paper-3), var(--paper-2)); padding: 32px; display: grid; place-items: center; }
 .modal__art svg { width: 100%; max-height: 380px; }
-.modal__art .product__il { left: 16px; bottom: 16px; }
+.modal__art .product__il { left: 16px; top: 16px; } /* kanan atas dipakai tombol tutup */
 .modal__info { padding: 36px 32px 32px; }
 .modal__info h3 { font-size: 32px; margin-top: 8px; }
 .specs { padding-left: 18px; color: var(--ink-2); font-size: 15px; margin: 0 0 22px; }
@@ -150,6 +148,8 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 .line__art { background: var(--paper-2); border-radius: 10px; padding: 4px; }
 .line__info { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-small); }
 .line__info span { color: var(--ink-2); }
+.line__info > span, .drawer__total strong { font: 500 var(--fs-mono-price) / 1.4 var(--mono); font-variant-numeric: tabular-nums; } /* harga DM Mono 14 seperti kartu */
+.drawer__total { align-items: baseline; }
 .line__info .qty { margin-top: 6px; align-self: flex-start; }
 .empty { text-align: center; padding: 48px 0; color: var(--ink-2); }
 .drawer__foot { padding: 18px 22px 22px; border-top: 1px solid var(--line); background: var(--paper-2); }
@@ -167,6 +167,21 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 
 /* ---------- Responsif: <= 1023 tata letak HP (761–1023 wadah 720), <= 760 satu kolom ---------- */
 @media (max-width: 1023px) {
+  /* Hero satu kolom (tata letak HP): eyebrow, judul, gambar utuh, tombol + tautan WhatsApp, lalu lead dan poin */
+  .hero__grid { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .hero__copy { display: contents; }
+  .hero .eyebrow { order: 1; margin-bottom: 12px; }
+  .hero h1 { order: 2; margin-bottom: 16px; }
+  .hero__art { order: 3; }
+  .hero__stage { width: auto; max-width: none; height: 320px; aspect-ratio: auto; margin: 0; }
+  .hero__piece--0 { width: auto; height: 100%; left: 50%; transform: translateX(-50%); }
+  .hero__piece--1 { width: auto; height: 62%; left: 4%; bottom: 0; }
+  .hero__piece--2 { width: auto; height: 60%; left: auto; right: 4%; bottom: 0; }
+  .hero__piece svg { height: 100%; width: auto; display: block; }
+  .hero__cta { order: 4; margin: 24px 0 0; }
+  .hero .lead { order: 5; margin-top: 24px; }
+  .hero__points { order: 6; margin-top: 8px; }
+  .hero .noscript-note { order: 7; }
   .hero__grid, .why__grid, .collection > .wrap, .custom__grid, .b2b > .wrap, .process__grid, .material__grid { max-width: 720px; }
   .hero__grid, .why > .wrap, .collection > .wrap, .custom > .wrap, .b2b > .wrap, .process > .wrap, .material > .wrap, .faq > .wrap { margin-inline: auto; }
   .why__grid, .process__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 32px; }
@@ -177,22 +192,11 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 @media (max-width: 760px) {
   /* Layar pertama 390 × 664: judul, gambar utuh, dua tombol, dan tautan WhatsApp; lead dan poin di bawahnya */
   .hero { padding-top: 24px; }
-  .hero__grid { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
-  .hero__copy { display: contents; }
-  .hero .eyebrow { order: 1; margin-bottom: 12px; }
-  .hero h1 { order: 2; font-size: 36px; margin-bottom: 16px; }
-  .hero__art { order: 3; }
-  .hero__stage { width: auto; max-width: none; height: 200px; aspect-ratio: auto; margin: 0; }
-  .hero__piece--0 { width: auto; height: 100%; left: 50%; transform: translateX(-50%); }
-  .hero__piece--1 { width: auto; height: 62%; left: 4%; bottom: 0; }
-  .hero__piece--2 { width: auto; height: 60%; left: auto; right: 4%; bottom: 0; }
-  .hero__piece svg { height: 100%; width: auto; display: block; }
-  .hero__cta { order: 4; margin: 16px 0 0; gap: 8px; }
+  .hero h1 { font-size: 36px; }
+  .hero__stage { height: 200px; }
+  .hero__cta { margin-top: 16px; gap: 8px; }
   .hero__cta .btn { flex: 1 1 auto; padding-inline: 16px; }
   .hero__wa { flex-basis: 100%; }
-  .hero .lead { order: 5; margin-top: 24px; }
-  .hero__points { order: 6; margin-top: 8px; }
-  .hero .noscript-note { order: 7; }
   .why__grid, .process__grid { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
   .why__row { padding: 24px 0; }
   .why__row:last-child { border-bottom: 1px solid var(--hairline); }
@@ -214,6 +218,9 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 .nav:not(.nav--float) .logo { min-height: 44px; }
 .filters .chip { min-height: 44px; }
 .cart-btn { flex: none; }
+/* Tanda logo tidak ikut menyusut (index: 28 di semua lebar); di layar sempit wordmark yang mengalah */
+@media (max-width: 1023px) { .nav:not(.nav--float) .logo svg { flex: none; width: 28px; height: 28px; } }
 .modal__info .link { display: inline-flex; align-items: center; min-height: 44px; }
 /* 320–359: logo, keranjang 44, dan menu 44 muat tanpa gulir samping (tombol keranjang tidak lagi menyusut di bawah 44) */
-@media (max-width: 359px) { .nav:not(.nav--float) .logo { font-size: 19px; gap: 8px; } .nav:not(.nav--float) .nav__inner { gap: 8px; } }
+@media (max-width: 379px) { .nav:not(.nav--float) .logo { font-size: 19px; gap: 8px; } .nav:not(.nav--float) .nav__inner { gap: 8px; } }
+@media (max-width: 339px) { .nav:not(.nav--float) .logo { font-size: 17px; gap: 6px; } }

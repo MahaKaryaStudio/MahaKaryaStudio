@@ -238,7 +238,7 @@ html.motion-off .final__stage { --dim: 1 !important; }
 @media (max-width: 1023px) {
   .final__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; max-width: 720px; }
   .final__inner > *, .final__inner > .eyebrow, .final h2, .final__inner > p:not(.eyebrow):not(.final__reply), .final__inner > .btn, .final__reply, .final__fig { grid-row: auto; }
-  .final__fig { grid-column: 1; justify-self: stretch; width: auto; margin-bottom: 40px; }
+  .final__fig { grid-column: 1; justify-self: stretch; width: auto; margin-bottom: min(40px, var(--gap-head)); }
   .final .final__fig > .stage.final__stage { aspect-ratio: 390 / 340; } /* menimpa 4 / 4.4 panggung HP di lamp.css */
 }
 
@@ -289,10 +289,13 @@ html.motion-off .final__stage { --dim: 1 !important; }
   .footer__wa { column-gap: 8px; }
   .footer__wa .btn { padding: 0 16px; }
   .footer__wa .copy { padding: 0 14px; }
-  .footer__bottom { margin-top: 32px; flex-direction: column; }
+  .footer__bottom { margin-top: 24px; padding-top: 16px; flex-direction: column; }
+  .footer__grid:has(> .footer__brand) { padding-top: 40px; }
+  .footer__brand .logo { margin-bottom: 8px; }
+  .footer__brand > p { margin-bottom: 16px; }
   .footer:has(.footer__brand) .footer__bottom > span + span::before { content: none; }
   .footer__col--kontak { grid-column: 1 / -1; }
-  .footer__grid:has(> .footer__brand) { grid-template-columns: minmax(0, 1fr); row-gap: 24px; }
+  .footer__grid:has(> .footer__brand) { grid-template-columns: minmax(0, 1fr); row-gap: 20px; }
   /* Tombol WA satu baris sendiri; nomor + Salin selalu berdampingan di baris kedua */
   .footer__wa { display: grid; grid-template-columns: auto auto; justify-content: start; row-gap: 8px; }
   .footer__wa .btn { grid-column: 1 / -1; justify-self: start; }

@@ -1,5 +1,5 @@
 // Cek langkah koleksi-qa: koleksi.html (K11) dan lintas halaman.
-// Pakai: node tools/qa/c21-koleksi.js <url> [--only=c21,ongkir,c11,c13,c14,c16,c19,c9,berisi,c23,edit,tinggi]
+// Pakai: node tools/qa/c21-koleksi.js <url> [--only=c21,ongkir,c11,c13,c14,c16,c19,c9,berisi,c23,edit,tinggi,rapi,laci]
 //   c21    tanpa .promo, .wa-float, animasi berjalan, nomor 01–04; 390×664: gambar hero utuh + satu aksi WA di layar pertama
 //   ongkir freeShipping false: tidak ada "gratis ongkir" di halaman maupun keranjang berisi; true: bilah memakai scaleX
 //   c11    setiap gambar bukan foto (hero, kartu, modal) berlabel ILUSTRASI; legal footer
@@ -12,6 +12,9 @@
 //   c23    suntingan lama koleksi (pita promo div:0, nomor kartu, h4 footer, tautan WhatsApp) tidak jatuh ke elemen lain
 //   edit   Mode Edit koleksi: panel, teks bisa disunting dan tersimpan, tab Produk, Ekspor memuat products.js dan freeShipping
 //   tinggi tinggi halaman index di 390 <= 16.500 (angka lab)
+//   rapi   'Pilihan studio' 0 kali di koleksi; tanda logo nav >= 28 di 320/360/390; pil ILUSTRASI di sepertiga atas gambar;
+//          tombol '+ Keranjang' sebaris per baris kartu (1440, 390); hero satu kolom di 820 dan 1000
+//   laci   keranjang: fokus masuk ke laci, isi halaman inert, Tab tetap di laci, Esc mengembalikan fokus ke tombol keranjang
 const { run } = require('./_lib');
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
@@ -191,6 +194,48 @@ run(async ({ open, check, opt, base }) => {
     const ex = await p.evaluate(() => document.querySelector('.mks-editor').innerText + [...document.querySelectorAll('.mks-editor textarea')].map((t) => t.value).join('\n'));
     check(/MKS_PRODUCTS/.test(ex) && /"freeShipping": true/.test(ex), 'Mode Edit koleksi: Ekspor memuat products.js dan config.js (dengan freeShipping)');
     check(p.__errs.length === 0, 'Mode Edit koleksi: tanpa error JS', p.__errs.join(' | '));
+  }
+
+  if (on('rapi')) {
+    for (const vp of ['desktop', 'hp']) {
+      const p = await open(vp, { ...K, wait: 1200 });
+      const r = await p.evaluate(() => {
+        const n = (document.body.innerText.match(/pilihan studio/gi) || []).length;
+        const pills = [...document.querySelectorAll('.product__art')].map((a) => { const A = a.getBoundingClientRect(), q = a.querySelector('.product__il'); if (!q) return true; const Q = q.getBoundingClientRect(); return Q.bottom <= A.top + A.height / 3; });
+        const rows = {};
+        document.querySelectorAll('.product').forEach((c) => { const t = Math.round(c.getBoundingClientRect().top); const b = c.querySelector('.product__add').getBoundingClientRect().top; (rows[t] = rows[t] || []).push(Math.round(b)); });
+        const misal = Object.values(rows).filter((v) => Math.max(...v) - Math.min(...v) > 1).length;
+        const art = document.querySelector('.hero__art').getBoundingClientRect(), hp = document.querySelector('.hero__pill').getBoundingClientRect();
+        return { n, pillsOk: pills.every(Boolean), misal, heroPill: hp.bottom <= art.top + art.height / 3 };
+      });
+      check(r.n === 0, `koleksi ${vp}: "Pilihan studio" tidak muncul (hanya sekali di situs, di index)`, String(r.n));
+      check(r.pillsOk && r.heroPill, `koleksi ${vp}: pil ILUSTRASI di sepertiga atas gambar (tidak menutup alas benda)`);
+      check(r.misal === 0, `koleksi ${vp}: harga dan "+ Keranjang" sebaris di setiap baris kartu`, String(r.misal));
+    }
+    for (const vp of [[320, 640, true], 'hp360', 'hp']) {
+      const p = await open(vp, K);
+      const w = await p.evaluate(() => { const r = document.querySelector('.nav .logo svg').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), document.documentElement.scrollWidth, innerWidth]; });
+      check(w[0] >= 28 && w[1] >= 28 && w[2] <= w[3], `koleksi ${[].concat(vp)[0]}: tanda logo nav >= 28 × 28, tanpa gulir samping`, w.join(' · '));
+    }
+    for (const vp of [[820, 1180, true], [1000, 800, false]]) {
+      const p = await open(vp, K);
+      const r = await p.evaluate(() => { const h = document.querySelector('.hero h1').getBoundingClientRect(), a = document.querySelector('.hero__art').getBoundingClientRect(); return { stacked: a.top >= h.bottom, lines: Math.round(h.height / parseFloat(getComputedStyle(document.querySelector('.hero h1')).lineHeight)) }; });
+      check(r.stacked && r.lines <= 3, `koleksi ${vp[0]}: hero satu kolom (gambar di bawah judul), judul <= 3 baris`, JSON.stringify(r));
+    }
+  }
+
+  if (on('laci')) {
+    const p = await open('desktop', { ...K, init: () => { try { localStorage.setItem('mks-cart-v1', JSON.stringify({ 'vas-kawung': 1 })); } catch (_) {} } });
+    await p.focus('.cart-btn'); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
+    const a = await p.evaluate(() => ({ inDrawer: !!document.activeElement.closest('[data-drawer]'), inert: document.querySelector('main').inert, role: document.querySelector('[data-drawer]').getAttribute('role') }));
+    for (let i = 0; i < 8; i++) await p.keyboard.press('Tab');
+    const t = await p.evaluate(() => !!document.activeElement.closest('[data-drawer]'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    const b = await p.evaluate(() => ({ back: document.activeElement.classList.contains('cart-btn'), inert: document.querySelector('main').inert }));
+    check(a.inDrawer && a.inert && a.role === 'dialog', 'Laci keranjang: fokus masuk ke laci, isi halaman inert, role dialog', JSON.stringify(a));
+    check(t, 'Laci keranjang: Tab tetap di dalam laci');
+    check(b.back && !b.inert, 'Laci keranjang: Esc menutup dan mengembalikan fokus ke tombol keranjang', JSON.stringify(b));
+    check(p.__errs.length === 0, 'Laci keranjang: tanpa error JS', p.__errs.join(' | '));
   }
 
   if (on('tinggi')) {

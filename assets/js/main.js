@@ -15,7 +15,9 @@
     { id: "aksesori", label: "Aksesori" },
     { id: "dinding", label: "Dinding" },
   ];
-  const TAG_LABEL = { bestseller: "Pilihan studio", baru: "Baru", hadiah: "Ide hadiah" };
+  // "Pilihan studio" hanya sekali di situs (lampu Kebun di index): tag bestseller di products.js tetap disimpan,
+  // tetapi tidak dirender sebagai badge di koleksi. Tag tanpa label tidak dirender.
+  const TAG_LABEL = { baru: "Baru", hadiah: "Ide hadiah" };
 
   /* ---------- Static bindings ---------- */
   function bindStatic() {
@@ -87,6 +89,8 @@
 
   // Label ilustrasi pada setiap gambar yang bukan foto (semua gambar ilustrasi berlabel; foto asli tidak diberi pil)
   const ilPill = (p) => (p.image ? "" : `<span class="pill product__il" aria-hidden="true">Ilustrasi</span>`);
+  // Tag sebagai teks di baris koleksi (bukan pil di gambar): gambar hanya membawa satu pil, ILUSTRASI
+  const tagText = (p) => (p.tags || []).filter((t) => TAG_LABEL[t]).map((t) => `<span class="product__tag">${TAG_LABEL[t]}</span>`).join("");
   const grid = $("[data-products]");
   function renderProducts() {
     const list = filter === "all" ? P : P.filter((p) => p.category === filter);
@@ -95,12 +99,11 @@
         (p) => `
       <article class="product">
         <button class="product__art" data-view="${esc(p.id)}" aria-label="Lihat detail ${esc(p.name)}">
-          ${(p.tags || []).map((t) => `<span class="badge badge--${esc(t)}">${TAG_LABEL[t] || esc(t)}</span>`).join("")}
           ${MKSArt.render(p, { small: true })}
           ${ilPill(p)}
         </button>
         <div class="product__info">
-          <span class="product__col">${esc(p.collection)}</span>
+          <span class="product__col">${esc(p.collection)}${tagText(p)}</span>
           <h3>${esc(p.name)}</h3>
           <div class="product__row">
             <span class="price">${rp(p.price)}</span>
@@ -256,28 +259,66 @@
 
   const drawer = $("[data-drawer]");
   const scrim = $("[data-scrim]");
+  // Laci = dialog modal: fokus masuk ke tombol tutup, Tab berputar di dalam laci, isi halaman inert selama terbuka,
+  // Esc/scrim/tutup mengembalikan fokus ke pembukanya
+  let cartOpener = null;
+  const pageParts = () => $$("body > header, body > main, body > footer");
   function openCart() {
+    if (drawer.classList.contains("is-open")) return;
+    cartOpener = document.activeElement;
     drawer.classList.add("is-open");
     scrim.classList.add("is-open");
     drawer.setAttribute("aria-hidden", "false");
+    pageParts().forEach((el) => (el.inert = true));
+    const close = $("[data-close-cart]", drawer);
+    if (close) close.focus({ preventScroll: true });
   }
   function closeCart() {
+    if (!drawer.classList.contains("is-open")) return;
     drawer.classList.remove("is-open");
     scrim.classList.remove("is-open");
     drawer.setAttribute("aria-hidden", "true");
+    pageParts().forEach((el) => (el.inert = false));
+    if (cartOpener && document.contains(cartOpener) && cartOpener.focus) cartOpener.focus({ preventScroll: true });
+    cartOpener = null;
   }
+  drawer.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || !drawer.classList.contains("is-open")) return;
+    const f = $$("a[href], button:not([disabled]), input, [tabindex]:not([tabindex='-1'])", drawer).filter((el) => el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   $$("[data-open-cart]").forEach((b) => b.addEventListener("click", openCart));
   // Salin nomor WhatsApp (footer): teks tombol berganti sebentar sebagai tanda
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-wa-copy]");
     if (!b) return;
+    const live = $("[data-copy-live]");
     const done = (ok) => {
       b.textContent = ok ? "Tersalin" : "Gagal menyalin";
+      if (live) live.textContent = ok ? "Nomor disalin" : "Gagal menyalin nomor";
       clearTimeout(b._t);
-      b._t = setTimeout(() => (b.textContent = "Salin"), ok ? 1600 : 3000);
+      b._t = setTimeout(() => { b.textContent = "Salin"; if (live) live.textContent = ""; }, ok ? 1600 : 3000);
     };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b.dataset.copy).then(() => done(true), () => done(false));
-    else done(false);
+    // Cadangan execCommand (file:// atau konteks tidak aman), seperti copyText di lamp.js
+    const legacy = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = b.dataset.copy;
+        ta.setAttribute("readonly", "");
+        ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        b.focus({ preventScroll: true });
+        done(ok);
+      } catch (_) { done(false); }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) navigator.clipboard.writeText(b.dataset.copy).then(() => done(true), legacy);
+    else legacy();
   });
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-close-cart]")) closeCart();

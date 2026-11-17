@@ -116,7 +116,8 @@
       rename: { [KF + "1/h4:0"]: KF + "1/h3:0", [KF + "2/h4:0"]: KF + "2/h3:0", [KF + "3/h4:0"]: KF + "3/h3:0" },
       drop: ["div:0", KW + "0/span:0", KW + "1/span:0", KW + "2/span:0", KW + "3/span:0", KW + "0/p:0",
         "#konten/section:0/div:0/div:0/div:0/a:0", "#konten/section:0/div:0/div:0/div:0/a:1", "#bisnis/div:0/div:0/article:1/p:0", "#bisnis/div:0/div:1/a:0",
-        "#proses/div:0/h2:0", "#konten/section:6/div:0/div:0/ul:0/li:0", "#faq/div:0/div:0/details:6/p:0", KF + "0/a:0", KF + "3/a:0"],
+        "#proses/div:0/h2:0", "#konten/section:6/div:0/div:0/ul:0/li:0", "#faq/div:0/div:0/details:6/p:0", KF + "0/a:0", KF + "3/a:0",
+        "#konten/section:0/div:0/div:0/p:0"],
     },
   };
   const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9], [10, MOVED_10], [11, MOVED_11]];
@@ -592,6 +593,10 @@
         <label>Desain baru (Rp)<input data-e="designFee.custom" type="number" value="${E.designFee.custom}" /></label>
       </div>
       <div class="mks-row"><button type="button" class="mks-btn" data-reset-config>Kembalikan pengaturan asli</button></div>`;
+    // Wadah panel dipakai ulang oleh semua tab: pendengar delegasi dipasang sekali saja (bukan tiap kali tab dibuka),
+    // jadi satu ketikan = satu configChanged. Atribut data-c/-s/-e/-cb hanya ada di tab ini.
+    if (body.dataset.cfgBound) return bindReset();
+    body.dataset.cfgBound = "1";
     body.addEventListener("change", (e) => {
       const cb = e.target.closest("[data-cb]");
       if (cb) { config[cb.dataset.cb] = cb.checked; configChanged(); }
@@ -622,15 +627,18 @@
       cur[k] = v;
       configChanged();
     });
-    $("[data-reset-config]", body).addEventListener("click", () =>
-      confirmBox(body, "Kontak dan harga estimator kembali ke versi asli. Lanjutkan?", () => {
-        replaceObject(config, ORIGINAL.config);
-        state.config = null;
-        save();
-        refreshAll();
-        tabConfig(body);
-      })
-    );
+    bindReset();
+    function bindReset() {
+      $("[data-reset-config]", body).addEventListener("click", () =>
+        confirmBox(body, "Kontak dan harga estimator kembali ke versi asli. Lanjutkan?", () => {
+          replaceObject(config, ORIGINAL.config);
+          state.config = null;
+          save();
+          refreshAll();
+          tabConfig(body);
+        })
+      );
+    }
   }
 
   /* ---------- Tab Ekspor ---------- */
