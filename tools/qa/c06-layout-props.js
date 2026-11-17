@@ -4,7 +4,7 @@
 // keyframes animasi yang berjalan hanya boleh memuat transform, opacity, warna, box-shadow, visibility.
 // Daftar selektor bawaan = seksi yang sudah lulus cek ini; langkah berikutnya menambah seksinya di SEKSI.
 const { run } = require('./_lib');
-const SEKSI = ['#tiga', '#pita', '.nav', '.nav__pesan', '#hero', '.story', '#cara .steps-l', '.edisi__stage', '#rakit .studio']; // gerak-hapus: nav, hero, cerita, garis #cara, panggung lengket; rakit: seluruh studio
+const SEKSI = ['#tiga', '#pita', '.nav', '.nav__pesan', '#hero', '.story', '#cara', '.edisi__stage', '#rakit .studio', '#aman', '#faq', '#konsultasi', '.footer']; // gerak-hapus: nav, hero, cerita, garis #cara, panggung lengket; rakit: seluruh studio; penutup: #cara–footer
 run(async ({ open, check, opt }) => {
   const sels = opt.sel ? String(opt.sel).split(',') : SEKSI;
   for (const vp of ['desktop', 'hp']) for (const reduce of [false, true]) {

@@ -934,6 +934,7 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
 .spec[open] { display: grid; gap: 16px; }
 .spec__sum { display: flex; align-items: center; justify-content: space-between; gap: 16px; list-style: none; font: 500 var(--fs-label) / 1 var(--mono); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--dark-muted); }
 .spec__sum::-webkit-details-marker { display: none; }
+.spec__sum:active { background: var(--press-bg); transition-duration: var(--t-press); }
 .spec .fig { position: relative; background: var(--stage-thumb); border-radius: var(--r-frame); overflow: hidden; }
 .spec .fig svg { width: 100%; height: auto; display: block; }
 .spec .fig .stage__pill { top: auto; bottom: 12px; left: 12px; } /* kiri bawah: label "Ø 20 cm" rakitan tertinggi berada di kiri atas */
@@ -952,7 +953,6 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
   .spec__sum { min-height: 56px; padding: 0 20px; cursor: pointer; border-radius: var(--r-tile); -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: background-color var(--t-fast) var(--ease-out); }
   .spec__sum::after { content: "+"; flex: none; width: 24px; text-align: center; font: 300 24px/1 var(--sans); color: var(--dark-fg); transition: transform var(--t-fast) var(--ease-out); }
   .spec[open] > .spec__sum::after { transform: rotate(45deg); }
-  .spec__sum:active { background: var(--press-bg); transition-duration: var(--t-press); }
   .spec .fig { max-width: 360px; }
 }
 
