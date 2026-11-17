@@ -453,8 +453,16 @@
     if (changed || (o && o.force)) renderControls();
   }
   // Chip edisi: tanda mengikuti rakitan (edisi yang sama persis), "Dari nol" tidak pernah bertanda
+  // Perubahan dari papan ketik (panah di indeks #edisi, tab, swatch) tidak dianimasikan (aturan 6): bendera dipasang di
+  // keydown/keyup dan dilepas di tugas berikutnya; selama itu tanda di studio berganti tanpa transisi.
+  let kbdNow = false, kbdT = 0;
+  const markKbd = (e) => { if (e.key === "Tab") return; kbdNow = true; clearTimeout(kbdT); kbdT = setTimeout(() => { kbdNow = false; }, 0); };
+  document.addEventListener("keydown", markKbd, true);
+  document.addEventListener("keyup", markKbd, true);
   function syncPresets() {
     const pi = presetIndex(state);
+    const studio = $("#studio");
+    if (kbdNow && studio) studio.dataset.input = "key";
     $$("#presets [data-preset]").forEach((b) => { const on = +b.dataset.preset === pi; if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", on); });
   }
   function renderPresets() {

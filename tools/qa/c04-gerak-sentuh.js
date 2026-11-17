@@ -267,8 +267,11 @@ run(async ({ open, check, base, opt, browser }) => {
     for (let i = 0; i < 5; i++) {
       const a = before[i], b = now[i];
       check(a.amount === b.amount && a.was === b.was && a.total === b.total, `C14 edisi ${i}: harga dan coret sama dengan snapshot`, `${b.amount} · ${b.was}`);
-      const diff = b.wa.filter((x, k) => x !== a.wa[k]);
-      check(a.order === b.order && diff.length === 0 && a.wa.length === b.wa.length, `C14 edisi ${i}: pesan WhatsApp plakat dan ${b.wa.length} tautan [data-wa] sama`, diff.slice(0, 2).join(' | ').slice(0, 200));
+      // dibandingkan sebagai himpunan pesan unik: langkah rakit menghapus tautan WA ringkasan HP kedua (#wa-link-hp) yang
+      // pesannya sama persis dengan #wa-link; setiap pesan sebelum langkah harus tetap ada dan tidak ada pesan baru
+      const ua = [...new Set(a.wa)].sort(), ub = [...new Set(b.wa)].sort();
+      const diff = [...ub.filter((x) => !ua.includes(x)).map((x) => 'baru: ' + x), ...ua.filter((x) => !ub.includes(x)).map((x) => 'hilang: ' + x)];
+      check(a.order === b.order && diff.length === 0, `C14 edisi ${i}: pesan WhatsApp plakat dan ${ub.length} pesan [data-wa] unik sama`, diff.slice(0, 2).join(' | ').slice(0, 200));
     }
   }
 

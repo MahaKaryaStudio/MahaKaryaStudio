@@ -146,11 +146,11 @@ run(async ({ open, check }) => {
     p = await open(vp);
     await center(p, '#exploded'); await p.waitForTimeout(300);
     s = await sheet(p);
-    const W = Array.isArray(vp) ? vp[0] : s.iw; // 320: innerWidth melebar karena gulir samping dari #rakit
+    const W = Array.isArray(vp) ? vp[0] : s.iw;
     check(near(s.x, 0, 0.5) && near(s.w, W) && near(s.h, W * 380 / 390, 2), `#tiga ${W}: lembar ringkas full-bleed ${W} × ${Math.round(W * 380 / 390)}`, `x ${s.x}, ${s.w} × ${s.h.toFixed(0)}`);
     check(/gambar kerja · ilustrasi/i.test(s.text) && /kap · ø 20 cm/i.test(s.text) && /badan · 1–3 bagian/i.test(s.text) && /alas · berpemberat/i.test(s.text) && /ulir m20 · tanpa lem/i.test(s.text), `#tiga ${W}: pil dan empat label ada`, s.text);
     check(s.over.length === 0 && s.out.length === 0, `#tiga ${W}: label tidak bertumpuk dan tidak keluar lembar`, [...s.over, ...s.out.map((t) => 'keluar: ' + t)].join(' | '));
-    if (W !== 320) check(s.sw <= W, `${W}: tanpa gulir samping`, s.sw); // 320: gulir samping berasal dari #rakit (langkah rakit)
+    check(s.sw <= W, `${W}: tanpa gulir samping`, s.sw); // 320 kembali diuji sejak studio rakit tidak lagi meluap
     check(near(s.pillX, s.wrapX, 0.5) && s.labMin >= s.wrapX - 0.5, `#tiga ${W}: pil sejajar kolom teks, label ≥ margin halaman dari tepi`, `pil ${s.pillX}, label paling kiri ${s.labMin.toFixed(1)}, kolom ${s.wrapX}`);
     if (vp === 'hp') {
       // Diukur terhadap angka brief saja; selisihnya dicatat sebagai deviasi di laporan langkah, bukan di skrip ini.
