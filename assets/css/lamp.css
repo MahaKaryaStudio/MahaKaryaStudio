@@ -236,11 +236,14 @@ html.motion-off .lhero__hint { display: none !important; }
    < 1024: lembar ringkas 390 × 380 lalu tiga baris hairline. Kertasnya (.tiga__fig) selebar kolom (full-bleed
    sampai 760, berbingkai di 761–1023); gambarnya (.gk) di tengah kertas dengan tinggi dibatasi
    min(480 px, 80vh), paling kecil 320 px lebar, supaya tablet dan HP mendatar tidak mendapat lembar setinggi
-   dua layar. Tinggi seksi di 390 nyatanya ±1.420: padding, kepala seksi, lembar 380 dan tiga baris bertipe
-   brief (label, H3 22 yang patah dua baris, dua baris body, meta) tidak muat di ±1.150.
+   dua layar. Di bawah 1024 jarak lembar–baris dan padding baris 16 (bukan 24) supaya seksi sependek mungkin
+   tanpa memotong copy; tinggi di 390 tetap ±1.350, di atas ±1.150 brief (deviasi tercatat: sisa selisihnya
+   kepala seksi, lembar 380, dan copy baris bertipe brief; memendekkan lagi = memendekkan copy, keputusan pemilik).
    Lembar (#exploded.gk) diisi lamp.js renderExploded(): SVG LampArt.sheet() + label HTML 12 px di jangkar persen.
-   Baris aktif: motion.js memindah .is-active dan menulis data-focus pada #exploded (kelas .tiga--live);
-   tanpa gerak baris pertama tetap bertanda dan gambar tidak diredupkan. Teks non-aktif tidak pernah diberi opacity. */
+   Baris aktif: motion.js memindah .is-active dan menulis data-focus pada #exploded (kelas .tiga--live); yang
+   digambar hanya hairline tinta pada baris itu (brief), gambar tidak diredupkan dan teks tidak pernah diberi opacity.
+   Tanpa gerak baris pertama tetap bertanda. Panggung lengket di ≥ 1024 baru bergerak bila kolom baris lebih tinggi
+   dari lembar (kolom sempit atau teks suntingan); di 1440 tingginya sama (3 × ±200 = 600) jadi tidak ada jarak lengket. */
 #tiga .section-sub { max-width: 560px; }
 .tiga { --gk-paper: var(--paper) radial-gradient(circle at 0.5px 0.5px, rgba(31, 26, 22, 0.08) 1px, transparent 1.5px) 11.5px 11.5px / 24px 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .tiga__fig { margin-inline: calc(-1 * var(--page-margin)); container-type: inline-size; }
@@ -278,6 +281,12 @@ html.motion-off .lhero__hint { display: none !important; }
   .tiga__fig { background: var(--gk-paper); overflow: hidden; }
   .gk { --gk-w: min(100cqw, max(320px, min(480px, 80vh) * 390 / 380)); width: var(--gk-w); margin-inline: auto; overflow: visible; background: none; }
   .gk__pill { left: calc(12px - (100cqw - var(--gk-w)) / 2); }
+  .tiga { gap: 16px; }
+  .tiga__row { padding: 16px 0; }
+}
+@media (max-width: 760px) {
+  /* kertas full-bleed: pil sejajar tepi kolom teks (margin halaman), bukan 12 px dari tepi layar */
+  .gk__pill { left: calc(var(--page-margin) - (100cqw - var(--gk-w)) / 2); }
 }
 @media (min-width: 761px) and (max-width: 1023px) {
   .tiga { max-width: 720px; }
@@ -299,10 +308,6 @@ html.motion-off .lhero__hint { display: none !important; }
   /* baris aktif: hairline atas terisi tinta 2 px (statis; transisinya di motion.css) */
   .tiga__row::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--fg); transform: scaleX(0); transform-origin: 0 50%; }
   .tiga__row.is-active::before { transform: none; }
-  /* sorot bagian di gambar hanya saat baris aktif mengikuti scroll (.tiga--live dari motion.js) */
-  .tiga--live .gk[data-focus="head"] [data-la-part]:not([data-la-part="head"]),
-  .tiga--live .gk[data-focus="body"] [data-la-part]:not([data-la-part="body"]),
-  .tiga--live .gk[data-focus="base"] [data-la-part]:not([data-la-part="base"]) { opacity: 0.3; }
 }
 
 /* ---------- 01 #edisi (ruang 01, paper) — brief §7 "01 #edisi" ----------
@@ -407,7 +412,8 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
    Gerbang ke babak gelap tepat sebelum #rakit. Rata kiri, tanpa CTA, tanpa gerak.
    Desktop ≥ 1024 (±620): display 96 tiga baris terkunci di kolom 1–8, sub 20 (maks 36ch), siluet garis lapisan
    360 × 520 di kolom 9–12 (opacity .10) dengan anotasi "LAPIS 0,2 MM". < 1024 (±420): display 48, siluet
-   160 × 240 rata kanan di belakang teks (opacity .08), tanpa anotasi.
+   160 × 240 rata kanan di belakang teks (opacity .08), tanpa anotasi; ≤ 760 kotaknya setinggi tiga baris display
+   dan rata atas, jadi siluet hanya di sebelah kanan baris display dan tidak pernah di bawah teks sub.
    Teks hasil Mode Edit (baris lebih panjang, atau simpanan lama <span>…</span> <em>…</em> tanpa .band__l) tetap
    aman: <em> selalu satu baris sendiri, di ≥ 1024 teks dibatasi di kiri kolom siluet, dan pita selalu cukup
    tinggi untuk siluetnya (ukuran kotak siluet --art-w × --art-h ada di .band__grid).
@@ -437,6 +443,10 @@ html.vt-edisi::view-transition-new(root) { animation-duration: 300ms; animation-
   .band__sil.is-on ~ .band__lead { display: block; position: absolute; left: -8px; bottom: var(--ann-y); height: 1px; width: calc(50% - var(--sil-base, 1) * var(--sil-w) / 2 + 14px); background: var(--dark-line-strong); }
 }
 @media (min-width: 1200px) { .band__grid { --art-h: 520px; } }
+@media (max-width: 760px) {
+  .band__grid { --art-h: calc(var(--fs-band) * 2.94); }
+  .band__art { top: 0; transform: none; }
+}
 
 /* ---------- 03 #rakit (konfigurator) ---------- */
 .presets p { font-size: var(--fs-small); color: var(--dark-muted); margin: 0 0 12px; }

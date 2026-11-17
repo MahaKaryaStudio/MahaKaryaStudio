@@ -606,7 +606,8 @@
      (label bagian: tepi kanan teks di x, tengah di y; thread: tepi kanan di x, tepi bawah di y). */
   const SHEETS = {
     wide: { w: 588, h: 600, cx: 330, top: 84, zone: 440, gap: 32, lab: 212, jr: 18, mag: 136, kMax: 1.2, half: 98 },
-    compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 120, jr: 12, mag: 96, kMax: 0.8, half: 60 },
+    // compact: tepi kanan label di 134 (bukan 120) supaya label terpanjang "BERPEMBERAT" tetap ≥ 20 px dari tepi layar di 320
+    compact: { w: 390, h: 380, cx: 212, top: 58, zone: 250, gap: 20, lab: 134, jr: 12, mag: 96, kMax: 0.8, half: 60 },
   };
   function sheet(cfg, o) {
     o = o || {};
@@ -633,6 +634,9 @@
     const jy = Y(L.bodyBottom + 8);
     if (jy < topY - 4) lead += `M${P(S.cx + S.jr, jy)}H${r1(mcx)}V${r1(topY)}`;
     else lead += `M${P(S.cx + S.jr, jy)}H${r1(mcx - Math.sqrt(Math.max(0, mr * mr - (jy - mcy) * (jy - mcy))))}`;
+    // compact: label ulir satu baris di kiri kaca, rata kanan, tepi bawahnya sejajar tepi bawah kaca; garis penunjuk
+    // 1 px pendek dari ujung label ke tepi kaca di tengah tinggi label (12 px × 1,2 → 7 px di atas tepi bawah)
+    if (o.sheet === "compact") { const ty = mcy + mr - 7; lead += `M${P(mcx - mr - 6, ty)}H${r1(mcx - Math.sqrt(mr * mr - (mr - 7) * (mr - 7)))}`; }
     labels.thread = o.sheet === "compact"
       ? { x: r1(((mcx - mr - 12) / S.w) * 100), y: r1(((mcy + mr) / S.h) * 100) }
       : { x: r1(((mcx + mr) / S.w) * 100), y: r1((Math.min(jy - 10, topY - 24) / S.h) * 100) };

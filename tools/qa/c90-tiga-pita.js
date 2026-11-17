@@ -25,7 +25,8 @@ run(async ({ open, check }) => {
     const out = labs.filter((b) => b.x + r.left < f.left - 0.5 || b.y + r.top < f.top - 0.5 || b.x + r.left + b.w > f.right + 0.5 || b.y + r.top + b.h > f.bottom + 0.5).map((b) => b.t);
     const lens = g.querySelector('.gk__lens').getBoundingClientRect();
     const sec = document.querySelector('#tiga').getBoundingClientRect();
-    return { x: r.left, w: r.width, h: r.height, fig: { x: f.left, w: f.width, h: f.height }, ih: innerHeight, text: labs.map((b) => b.t).join(' | '), over, out, lens: lens.width, secH: Math.round(sec.height), range: document.querySelectorAll('#tiga input[type=range], #swipe-range').length, sw: document.documentElement.scrollWidth, iw: innerWidth };
+    const lx = [...g.querySelectorAll('.gk__lab')].filter((e) => getComputedStyle(e).display !== 'none').map((e) => e.getBoundingClientRect().left);
+    return { pillX: g.querySelector('.gk__pill').getBoundingClientRect().left, labMin: Math.min(...lx), wrapX: document.querySelector('#tiga .wrap').getBoundingClientRect().left + parseFloat(getComputedStyle(document.querySelector('#tiga .wrap')).paddingLeft), x: r.left, w: r.width, h: r.height, fig: { x: f.left, w: f.width, h: f.height }, ih: innerHeight, text: labs.map((b) => b.t).join(' | '), over, out, lens: lens.width, secH: Math.round(sec.height), range: document.querySelectorAll('#tiga input[type=range], #swipe-range').length, sw: document.documentElement.scrollWidth, iw: innerWidth };
   });
   const center = (p, sel) => p.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center', behavior: 'instant' }), sel);
   const state = (p) => p.evaluate(() => ({
@@ -60,6 +61,8 @@ run(async ({ open, check }) => {
   check(/^1–2 bagian/.test(m.t[1]) && /1–2 bagian/i.test(m.lab) && /^3 bentuk/.test(m.t[2]), '#tiga: angka meta dan label lembar ikut berubah saat lamp-data berubah (maxBodies 2, satu alas dihapus)', `${m.t[1]} | ${m.t[2]} | ${m.lab}`);
   await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(700);
   await center(p, '#exploded'); await p.waitForTimeout(300);
+  const ce = await p.evaluate(() => [...document.querySelectorAll('#tiga [data-tiga-n]')].map((e) => e.getAttribute('contenteditable')));
+  check(ce.length === 4 && ce.every((v) => v === 'false'), '#tiga: angka meta [data-tiga-n] token atomik di Mode Edit (contenteditable=false)', ce.join(','));
   check(rows.every((r) => /^(Kap|Badan|Alas): /.test(r.t)), '#tiga: H3 "Kap: …", "Badan: …", "Alas: …" (titik dua)', rows.map((r) => r.t).join(' | '));
   const st = await p.evaluate(() => { const f = document.querySelector('#tiga .tiga__fig'), cs = getComputedStyle(f), a = cs.top; document.documentElement.style.setProperty('--nav-offset', '0px'); const b = getComputedStyle(f).top; document.documentElement.style.removeProperty('--nav-offset'); return { pos: cs.position, a, b, tp: cs.transitionProperty, td: cs.transitionDuration, navH: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) }; });
   check(st.pos === 'sticky' && st.a === st.b && near(parseFloat(st.a), st.navH + 24, 0.5), '#tiga 1440: panggung lengket, top tetap (tinggi nav + 24) walau --nav-offset berubah', `${st.pos} ${st.a} → ${st.b}`);
@@ -67,9 +70,9 @@ run(async ({ open, check }) => {
   for (const [i, key] of [[1, 'body'], [2, 'base'], [0, 'head']]) {
     await center(p, `#tiga [data-tiga-row="${key}"]`); await p.waitForTimeout(500);
     const a = await state(p);
-    const dimOk = Object.entries(a.op).every(([k, o]) => (k === key ? o === 1 : near(o, 0.3, 0.02)));
+    const dimOk = Object.values(a.op).every((o) => o === 1); // brief: hanya hairline; gambar tidak diredupkan
     check(a.active.length === 1 && a.active[0] === key && a.focus === key && dimOk && a.textOp === 1 && a.bar.filter((m) => m === 'none' || m === 'matrix(1, 0, 0, 1, 0, 0)').length === 1,
-      `#tiga 1440: baris "${key}" aktif saat di tengah layar (hairline tinta, bagian lain di gambar .3, teks tanpa opacity)`, JSON.stringify({ active: a.active, focus: a.focus, op: a.op, textOp: a.textOp }));
+      `#tiga 1440: baris "${key}" aktif saat di tengah layar (hairline tinta, gambar tidak diredupkan, teks tanpa opacity)`, JSON.stringify({ active: a.active, focus: a.focus, op: a.op, textOp: a.textOp }));
   }
   // Baris aktif adalah keadaan posisi, bukan jejak peristiwa: arah gulir berbalik (roda tetikus sungguhan) dan
   // lompatan tanpa melewati baris di antaranya harus berakhir di baris yang memuat garis tengah layar.
@@ -139,20 +142,19 @@ run(async ({ open, check }) => {
   check(a.active.length === 1 && a.active[0] === 'head' && a.focus === '' && Object.values(a.op).every((o) => o === 1) && anim === 0, '#tiga reduced motion: baris pertama tetap aktif, gambar tidak diredupkan, tanpa animasi', JSON.stringify({ active: a.active, focus: a.focus, op: a.op, anim }));
 
   /* ---------- 390 dan 360 ---------- */
-  for (const vp of ['hp', 'hp360']) {
+  for (const vp of ['hp', 'hp360', [320, 640, true]]) {
     p = await open(vp);
     await center(p, '#exploded'); await p.waitForTimeout(300);
     s = await sheet(p);
-    const W = s.iw;
+    const W = Array.isArray(vp) ? vp[0] : s.iw; // 320: innerWidth melebar karena gulir samping dari #rakit
     check(near(s.x, 0, 0.5) && near(s.w, W) && near(s.h, W * 380 / 390, 2), `#tiga ${W}: lembar ringkas full-bleed ${W} × ${Math.round(W * 380 / 390)}`, `x ${s.x}, ${s.w} × ${s.h.toFixed(0)}`);
     check(/gambar kerja · ilustrasi/i.test(s.text) && /kap · ø 20 cm/i.test(s.text) && /badan · 1–3 bagian/i.test(s.text) && /alas · berpemberat/i.test(s.text) && /ulir m20 · tanpa lem/i.test(s.text), `#tiga ${W}: pil dan empat label ada`, s.text);
     check(s.over.length === 0 && s.out.length === 0, `#tiga ${W}: label tidak bertumpuk dan tidak keluar lembar`, [...s.over, ...s.out.map((t) => 'keluar: ' + t)].join(' | '));
-    check(s.sw <= W, `${W}: tanpa gulir samping`, s.sw);
+    if (W !== 320) check(s.sw <= W, `${W}: tanpa gulir samping`, s.sw); // 320: gulir samping berasal dari #rakit (langkah rakit)
+    check(near(s.pillX, s.wrapX, 0.5) && s.labMin >= s.wrapX - 0.5, `#tiga ${W}: pil sejajar kolom teks, label ≥ margin halaman dari tepi`, `pil ${s.pillX}, label paling kiri ${s.labMin.toFixed(1)}, kolom ${s.wrapX}`);
     if (vp === 'hp') {
+      // Diukur terhadap angka brief saja; selisihnya dicatat sebagai deviasi di laporan langkah, bukan di skrip ini.
       info('#tiga 390: tinggi seksi', s.secH, 1150);
-      // ±1.150 tidak bisa dicapai dengan ukuran huruf dan jarak yang ditetapkan untuk seksi ini: padding 144, kepala
-      // seksi ±230, lembar 380 dan tiga baris (label, H3 22 yang patah dua baris, dua baris body, meta) sudah ±1.350.
-      console.log(`CATATAN #tiga 390: sasaran nyata 1.350–1.420 px; ${s.secH <= 1430 ? 'di dalam' : 'DI LUAR'} rentang itu. Memendekkan lagi berarti memendekkan copy (keputusan pemilik).`);
     }
     await center(p, '#tiga [data-tiga-row="base"]'); await p.waitForTimeout(400);
     a = await state(p);
@@ -166,7 +168,7 @@ run(async ({ open, check }) => {
     const sub = sec.querySelector('.band__sub'), sil = sec.querySelector('.band__sil'), sb = sil.getBoundingClientRect(), ann = sec.querySelector('.band__ann'), ab = ann.getBoundingClientRect();
     const wrap = sec.querySelector('.wrap').getBoundingClientRect();
     const moving = [...sec.querySelectorAll('*'), sec].filter((e) => { const c = getComputedStyle(e); return c.transitionDuration.split(',').some((d) => parseFloat(d) > 0) || c.animationName !== 'none'; }).length;
-    return { h: Math.round(r.height), fs: parseFloat(cs.fontSize), align: cs.textAlign, lines, wrapL: wrap.left, wrapR: wrap.right, subFs: parseFloat(getComputedStyle(sub).fontSize), subT: sub.textContent.trim(), subAlign: getComputedStyle(sub).textAlign,
+    return { subTop: sub.getBoundingClientRect().top - r.top, textTop: t.getBoundingClientRect().top - r.top, h: Math.round(r.height), fs: parseFloat(cs.fontSize), align: cs.textAlign, lines, wrapL: wrap.left, wrapR: wrap.right, subFs: parseFloat(getComputedStyle(sub).fontSize), subT: sub.textContent.trim(), subAlign: getComputedStyle(sub).textAlign,
       sil: { w: sb.width, h: sb.height, top: sb.top - r.top, bottom: r.bottom - sb.bottom, right: sb.right, op: +getComputedStyle(sil).opacity, mask: (getComputedStyle(sil).webkitMaskImage || getComputedStyle(sil).maskImage || '').slice(0, 8) },
       ann: { vis: getComputedStyle(ann).display !== 'none' && ab.width > 0, t: ann.textContent.trim(), fs: parseFloat(getComputedStyle(ann).fontSize), inside: ab.top >= r.top && ab.bottom <= r.bottom },
       cta: sec.querySelectorAll('a, button').length, moving, sw: document.documentElement.scrollWidth, iw: innerWidth };
@@ -200,14 +202,16 @@ run(async ({ open, check }) => {
   for (const vp of ['hp', 'hp360', [320, 640, true]]) {
     p = await open(vp); await center(p, '#pita'); await p.waitForTimeout(300);
     b = await band(p);
-    const W = b.iw;
+    const W = Array.isArray(vp) ? vp[0] : b.iw;
     check(near(b.fs, 48, W === 390 ? 0.5 : 3) && three(b) && b.lines.every((l) => near(l.left, b.wrapL, 1) && l.right <= b.wrapR + 0.5), `#pita ${W}: display 48, tiga baris, rata kiri, muat di wadah`, `${b.fs}px · kanan ${b.lines.map((l) => Math.round(l.right)).join('/')} vs ${b.wrapR}`);
     check(b.moving === 0 && b.cta === 0 && !b.ann.vis, `#pita ${W}: tanpa gerak, tanpa CTA, anotasi disembunyikan`, JSON.stringify({ moving: b.moving, cta: b.cta, ann: b.ann.vis }));
     if (W === 390) {
       info('#pita 390: tinggi seksi', b.h, 420);
-      check(near(b.sil.h, 240, 2) && b.sil.w <= 160 && near(b.sil.op, 0.08, 0.005), '#pita 390: siluet 160 × 240, opacity .08', JSON.stringify(b.sil));
+      check(b.sil.h <= 240 && b.sil.w <= 160 && near(b.sil.op, 0.08, 0.005), '#pita 390: siluet di dalam 160 × 240, opacity .08', JSON.stringify(b.sil));
       check(near(b.subFs, 17, 0.5), '#pita 390: sub 17', b.subFs);
     }
+    // ≤ 760: kotak siluet setinggi tiga baris display dan rata atas, jadi siluet tidak pernah di bawah teks sub
+    check(b.sil.h > 0 && b.sil.top + b.sil.h <= b.subTop + 0.5 && b.sil.top >= b.textTop - 0.5, `#pita ${W}: siluet hanya di samping baris display, tidak di bawah sub`, JSON.stringify({ sil: [b.sil.top, b.sil.h], text: b.textTop, sub: b.subTop }));
     if (W !== 320) check(b.sw <= W, `#pita ${W}: tanpa gulir samping`, b.sw);
   }
 });

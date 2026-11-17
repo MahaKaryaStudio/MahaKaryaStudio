@@ -134,8 +134,8 @@
        yang berbalik, lompatan (muat ulang, seret scrollbar, tautan #) dan ubah ukuran jendela selalu berakhir
        di baris yang benar. Dihitung di frame scroll bersama (satu rAF, baca dulu baru tulis), hanya selama
        #tiga terlihat dan hanya di tata letak ≥ 1024 px (di bawahnya tanda baris aktif tidak digambar).
-       Yang ditulis hanya pergantian kelas .is-active dan data-focus pada #exploded (bagian lain di gambar
-       meredup), dan hanya saat barisnya berganti; tampilan dan transisinya ada di CSS. */
+       Yang ditulis hanya pergantian kelas .is-active dan data-focus pada #exploded (penanda; gambar tidak
+       diredupkan), dan hanya saat barisnya berganti; tampilan dan transisinya ada di CSS. */
     const tigaGrid = $("#tiga .tiga");
     const rows = $$("#tiga [data-tiga-row]");
     if (rows.length && tigaGrid && "IntersectionObserver" in window) {

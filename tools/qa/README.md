@@ -31,7 +31,7 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   `editor.js`); kasus bertambah di langkah yang mengubah teks dasar.
 - `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif
   termasuk gulir berbalik dan lompatan, panggung lengket, lembar ringkas di tablet dan HP mendatar,
-  angka meta dari lamp-data, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
-  melaporkan tinggi seksi terhadap brief; `CATATAN` menjelaskan selisih yang sudah diterima.
+  angka meta dari lamp-data dan token atomiknya di Mode Edit, pil dan label lembar ringkas sejajar margin halaman sampai 320, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
+  melaporkan tinggi seksi terhadap angka brief saja (selisih dicatat sebagai deviasi di laporan langkah).
 
 Angka waktu dari skrip ini berasal dari Chromium ter-throttle, bukan HP sungguhan.

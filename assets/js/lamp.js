@@ -884,7 +884,7 @@
      #exploded diisi LampArt.sheet(): edisi pilihan studio terurai sebagai garis tinta, garis penunjuk,
      kaca pembesar ulir M20. Label ditaruh sebagai HTML 12 px di jangkar persen dari renderer, jadi tidak
      ikut mengecil bersama SVG. Lembar lebar (588×600) dari 1024 px, lembar ringkas (390×380) di bawahnya.
-     Sorot baris aktif: motion.js menulis data-focus="head|body|base" pada #exploded (CSS meredupkan sisanya).
+     Baris aktif: motion.js menulis data-focus="head|body|base" pada #exploded (penanda saja; gambar tidak diredupkan).
      Sekalian mengisi angka baris meta ([data-tiga-n="heads|bases|colors|maxBodies"]) dari lamp-data. */
   const tigaNarrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
   function renderExploded() {
@@ -921,6 +921,7 @@
       const k = s.dataset.tigaN;
       const v = k === "maxBodies" ? +d.maxBodies : ["heads", "bases", "colors"].includes(k) && Array.isArray(d[k]) ? d[k].length : 0;
       if (v > 0) s.textContent = String(v);
+      s.contentEditable = "false"; // token atomik di Mode Edit: menyunting baris meta tidak menghapus angkanya
     });
   }
   if (tigaNarrow.addEventListener) tigaNarrow.addEventListener("change", () => renderExploded());
