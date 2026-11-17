@@ -53,7 +53,9 @@
       const line = el.closest(".contact-line");
       if (line) line.hidden = !C.email;
     });
-    $$("[data-reply]").forEach((el) => (el.textContent = C.replyPromise || ""));
+    // jam balas utuh dalam .nowrap (sama dengan lamp.js di index)
+    const replyHtml = (t) => esc(t).replace(/(\d{1,2}[.:]\d{2})\s*[–-]\s*(\d{1,2}[.:]\d{2}(?:\s*WIB)?)/g, '<span class="nowrap">$1–$2</span>').replace(/&lt; (\d+) (menit|jam)/g, '<span class="nowrap">&lt; $1 $2</span>');
+    $$("[data-reply]").forEach((el) => (el.innerHTML = replyHtml(C.replyPromise || "")));
     $$("[data-city]").forEach((el) => (el.textContent = C.city));
     $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
   }

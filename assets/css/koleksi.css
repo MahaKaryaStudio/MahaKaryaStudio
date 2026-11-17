@@ -215,3 +215,5 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
 .filters .chip { min-height: 44px; }
 .cart-btn { flex: none; }
 .modal__info .link { display: inline-flex; align-items: center; min-height: 44px; }
+/* 320–359: logo, keranjang 44, dan menu 44 muat tanpa gulir samping (tombol keranjang tidak lagi menyusut di bawah 44) */
+@media (max-width: 359px) { .nav:not(.nav--float) .logo { font-size: 19px; gap: 8px; } .nav:not(.nav--float) .nav__inner { gap: 8px; } }
