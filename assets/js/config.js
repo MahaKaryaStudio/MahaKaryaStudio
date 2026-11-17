@@ -19,7 +19,7 @@ window.MKS_CONFIG = {
   nib: "",
   // Janji waktu balas chat; tampil di bawah tombol pesan dan di footer.
   replyPromise: "Dibalas < 15 menit, 09.00–21.00 WIB",
-  // Perkiraan ongkir per zona untuk lampu (kemasan ±25×25×25 cm). ANGKA CONTOH; cek tarif kurir.
+  // Perkiraan ongkir per zona untuk lampu (dus terurai 24×24×20 cm = 1,92 kg volumetrik → tarif 2 kg; lihat ops/kemasan.md). ANGKA CONTOH; cek tarif kurir.
   shipping: {
     zones: [
       { id: "jabodetabek", label: "Jabodetabek", price: 20000 },
