@@ -1,5 +1,5 @@
 // Cek langkah alur-bagian (adendum v3.1): 04 #alur sebagai simulasi jujur + 06 #bagian (ubin + lembar bagian).
-// Pakai: node tools/qa/c13-alur-bagian.js <url> [--only=c12,jujur,c15,c16,c11,c9,c20,ukur,lembar,gerak,c8,saring,karusel,ekspor]
+// Pakai: node tools/qa/c13-alur-bagian.js <url> [--only=c12,jujur,c15,c16,c11,c9,c20,ukur,lembar,gerak,c8,saring,karusel,ekspor,rapi]
 //  c12     label "Simulasi alur pesan" (mono, data-dynamic-text) terlihat di kepala seksi di 390 dan 1440.
 //  jujur   teks #alur tanpa nama orang, pujian, emoji, pola resi [A-Z]{2}\d{8,}; kolom tanpa bingkai ponsel di desktop.
 //  c15     tanpa "konfigurator" dan "—" di #alur, #bagian, dan lembar bagian; kepala kolom #alur tanpa durasi (A2b).
@@ -17,6 +17,9 @@
 //  saring  angka chip dari lamp-data (ikut berubah), chip menyaring ubin seketika.
 //  karusel HP: scroll-snap x mandatory, wadah bisa difokus dan panah kanan menggeser, kartu berikutnya mengintip, titik
 //          indikator mengikuti; tanpa gulir samping halaman di 320, 360, 390.
+//  rapi    kartu karusel HP setinggi isinya; pil thumb #alur di atas, thumb tanpa role=img bersarang; nama di rincian
+//          tidak terpotong baris; empat chip saring muat di 360/320; tombol dua sel penutup sejajar (desktop); warna yang
+//          dipilih di lembar ikut ke ubin; toast sisa disembunyikan saat lembar dibuka; tombol WhatsApp lembar terlihat di 320 × 640.
 //  ekspor  suntingan lama (layout 8) pada gelembung #alur dan .alur__note tidak muncul di halaman maupun Ekspor index.html.
 const { run } = require('./_lib');
 const fs = require('fs'), path = require('path');
@@ -294,6 +297,48 @@ run(async ({ open, check, opt }) => {
     const p = await open('desktop');
     const d = await p.evaluate(() => ({ tab: document.querySelector('#alur .alur').hasAttribute('tabindex'), dots: getComputedStyle(document.querySelector('#alur .alur__dots')).display, ph: (() => { const b = document.querySelector('#alur [data-alur-photo]').getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; })() }));
     check(!d.tab && d.dots === 'none' && d.ph[0] === 200 && d.ph[1] === 250, 'desktop: #alur bukan karusel (tanpa tabindex/titik), thumb 200 × 250', JSON.stringify(d));
+  }
+
+  if (want('rapi')) {
+    for (const vp of ['hp', 'hp360']) {
+      const p = await open(vp);
+      const r = await p.evaluate(() => {
+        const cols = [...document.querySelectorAll('#alur .alur__col')].map((c) => { const b = c.getBoundingClientRect(), last = c.querySelector('.alur__chat').lastElementChild.getBoundingClientRect(); return Math.round(b.bottom - last.bottom); });
+        const segs = [...document.querySelectorAll('[data-alur-lines] .nowrap')].filter((x) => x.getClientRects().length > 1).length;
+        const ph = document.querySelector('[data-alur-photo]'), pill = ph.querySelector('.pill').getBoundingClientRect(), pb = ph.getBoundingClientRect();
+        const chips = [...document.querySelectorAll('#catalog [data-pfilter]')].map((c) => c.getBoundingClientRect());
+        return { cols, segs, pillTop: Math.round(pill.top - pb.top), nested: ph.querySelectorAll('[role="img"]').length, chipR: Math.round(Math.max(...chips.map((c) => c.right))), vw: innerWidth };
+      });
+      check(r.cols.every((x) => x <= 24), `rapi ${vp}: tiap kartu #alur berakhir <= 24 px di bawah gelembung terakhir (tanpa bingkai kosong)`, JSON.stringify(r.cols));
+      check(r.segs === 0, `rapi ${vp}: nama bentuk/warna di rincian tidak terpotong baris`, `${r.segs} terpotong`);
+      check(r.pillTop <= 12 && r.nested === 0, `rapi ${vp}: pil ILUSTRASI thumb di atas; tanpa role=img bersarang`, JSON.stringify(r));
+      check(r.chipR <= r.vw - 16, `rapi ${vp}: empat chip saring muat di layar`, `${r.chipR} / ${r.vw}`);
+    }
+    {
+      const p = await open('desktop');
+      const r = await p.evaluate(() => [...document.querySelectorAll('.bagian__more .btn')].map((b) => Math.round(b.getBoundingClientRect().top)));
+      check(r.length === 2 && Math.abs(r[0] - r[1]) <= 1, 'rapi desktop: tombol dua sel penutup #bagian sejajar', JSON.stringify(r));
+      await openSheet(p);
+      const fill0 = await p.evaluate(() => document.querySelector('[data-ptile="body:bola"] .ptile__fig').innerHTML);
+      await p.evaluate(() => { const b = [...document.querySelectorAll('#psheet [data-ps-color]')].find((x) => x.getAttribute('aria-pressed') !== 'true' && !x.disabled); b.click(); });
+      await p.waitForTimeout(100);
+      const c = await p.evaluate(() => ({ fig: document.querySelector('[data-ptile="body:bola"] .ptile__fig').innerHTML, pick: document.querySelector('#psheet [data-ps-color][aria-pressed="true"]').getAttribute('aria-label') }));
+      check(c.fig !== fill0, 'rapi: warna yang dipilih di lembar ikut ke ubin', c.pick);
+      await p.evaluate(() => document.querySelector('#psheet [data-ps-use]').click());
+      await p.waitForTimeout(500);
+      await openSheet(p, 'head:' + (await p.evaluate(() => document.querySelector('[data-ptile^="head:"]').dataset.ptile.split(':')[1])));
+      const t = await p.evaluate(() => document.querySelector('#toast').classList.contains('show'));
+      check(!t, 'rapi: toast sisa "Pasang" disembunyikan saat lembar berikutnya dibuka');
+    }
+    {
+      // rakitan bawaan tiga badan: chip slot terbanyak (kasus terburuk)
+      const p = await open([320, 640, true]);
+      const cr = await p.evaluate(() => { const f = document.querySelector('#catalog .pcat__filter'), cs = getComputedStyle(f); return { r: Math.round(Math.max(...[...f.querySelectorAll('[data-pfilter]')].map((c) => c.getBoundingClientRect().right))), mask: (cs.maskImage || cs.webkitMaskImage || 'none') !== 'none', page: document.documentElement.scrollWidth }; });
+      check((cr.r <= 320 - 16 || cr.mask) && cr.page <= 320, 'rapi 320: chip saring muat, atau baris bergeser dengan tepi kanan memudar; halaman tanpa gulir samping', JSON.stringify(cr));
+      await openSheet(p);
+      const r = await p.evaluate(() => { const a = [...document.querySelectorAll('#psheet .psheet__act .btn')].map((x) => Math.round(x.getBoundingClientRect().bottom)); return { a, h: innerHeight, slots: document.querySelectorAll('#psheet [data-ps-slot]').length }; });
+      check(r.a.every((y) => y <= r.h), 'rapi 320 × 640: kedua tombol lembar terlihat tanpa gulir di dalam lembar', JSON.stringify(r));
+    }
   }
 
   if (want('ekspor')) {

@@ -176,7 +176,7 @@
   let pkgView = null;
 
   // Jam balas dari config ("09.00–21.00 WIB") tidak boleh terpotong di tengah rentang
-  const replyHtml = (txt) => esc(txt).replace(/(\d{1,2}[.:]\d{2})\s*[–-]\s*(\d{1,2}[.:]\d{2}(?:\s*WIB)?)/g, '<span class="nowrap">$1–$2</span>');
+  const replyHtml = (txt) => esc(txt).replace(/(\d{1,2}[.:]\d{2})\s*[–-]\s*(\d{1,2}[.:]\d{2}(?:\s*WIB)?)/g, '<span class="nowrap">$1–$2</span>').replace(/&lt; (\d+) (menit|jam)/g, '<span class="nowrap">&lt; $1 $2</span>');
   const lowerFirst = (s) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : "");
 
   /* ---------- Label SVG minimal 12 px di layar ----------
@@ -863,6 +863,14 @@
     }));
     el.innerHTML = h + "</ul>";
   }
+  // Ubin ikut warna yang dipilih di lembar (catColor), tanpa render ulang seluruh katalog
+  function refreshTile(kind, id) {
+    const fig = document.querySelector(`#catalog [data-ptile="${CSS.escape(kind + ":" + id)}"] .ptile__fig`);
+    if (!fig) return;
+    const cur = catColorOf(kind, id), photo = photoOf(kind, id, cur);
+    fig.classList.toggle("ptile__fig--photo", !!photo);
+    fig.innerHTML = partFig(kind, id, cur, "cat" + kind + id) + (photo ? '<span class="fig__tag">Foto asli</span>' : "") + '<i class="ptile__plus" aria-hidden="true"></i>';
+  }
   function setCatFilter(k) {
     catFilter = k;
     $$("#catalog [data-pfilter]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.pfilter === k)));
@@ -905,6 +913,7 @@
     if (!dlg) return;
     clearTimeout(sheet.closing);
     dlg.classList.remove("is-closing");
+    hideToast(); // toast sisa "Pasang" sebelumnya tidak tertinggal redup di bawah latar
     Object.assign(sheet, { kind, id, color: catColorOf(kind, id), slot: Math.min(ui.slot || 0, state.body.length - 1), from: from ? from.dataset.ptile : null });
     if (kind !== "body") sheet.slot = 0;
     renderSheet();
@@ -1197,14 +1206,15 @@
     // " · " (isi pesan WhatsApp sendiri, waText, tidak berubah); zona, ongkir, dan lama produksi dari data
     $$("[data-alur-code]").forEach((el) => (el.innerHTML = esc(code(cfg)).replace(/-/g, "-<wbr>")));
     // spasi tak-putus sebelum " · ": titik pemisah tidak pernah memulai baris di kartu HP
-    setHtml("[data-alur-lines]", pr.lines.map((l) => `• ${esc(l.label).replace(/ · /g, "&nbsp;· ")}&nbsp;· ${esc(l.color.name)}`).join("<br />"));
+    // tiap nama (bentuk, warna) utuh dalam .nowrap; baris hanya patah sesudah " · "
+    setHtml("[data-alur-lines]", pr.lines.map((l) => "• " + l.label.split(" · ").concat(l.color.name).map((x) => `<span class="nowrap">${esc(x)}</span>`).join("&nbsp;· ")).join("<br />"));
     setText("[data-alur-zone]", z ? z.label : "");
     setText("[data-alur-lead]", leadTimeOf(cfg));
     setText("[data-alur-pkg]", pr.pkg.name);
     setText("[data-alur-price]", rp(pr.total));
     setText("[data-alur-total]", rp(pr.total + (z ? z.price : 0)));
     setText("[data-alur-ship]", rp(z ? z.price : 0));
-    setHtml("[data-alur-photo]", A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.9, variant: "thumb", label: "Ilustrasi foto rakitan" }) + '<span class="pill">Ilustrasi</span>');
+    setHtml("[data-alur-photo]", A.renderLamp(cfg, { uid: "alur", on: true, dim: 0.9, variant: "thumb", decorative: true }) + '<span class="pill">Ilustrasi</span>');
     // huruf pertama kecil karena muncul di tengah kalimat; "WIB" tetap kapital
     setHtml("[data-reply-inline]", replyHtml(lowerFirst(C.replyPromise || "")));
   }
@@ -1314,7 +1324,7 @@
     if (d.ptile != null) { const [k, id] = d.ptile.split(":"); return openSheet(k, id, t); }
     if (t.closest("#psheet")) {
       if (d.psClose != null) return closeSheet();
-      if (d.psColor != null) { if (t.disabled) return; sheet.color = d.psColor; catColor[sheet.kind + sheet.id] = d.psColor; return keepFocus(renderSheet); }
+      if (d.psColor != null) { if (t.disabled) return; sheet.color = d.psColor; catColor[sheet.kind + sheet.id] = d.psColor; refreshTile(sheet.kind, sheet.id); return keepFocus(renderSheet); }
       if (d.psSlot != null) { sheet.slot = +d.psSlot; return keepFocus(renderSheet); }
       if (d.psUse != null) return useSheet();
       return;
