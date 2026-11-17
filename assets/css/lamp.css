@@ -623,17 +623,12 @@ html.motion-off .tile:active { transform: none; }
   .studio__stage .stage-ui .switch { position: absolute; top: 2px; right: var(--page-margin); z-index: 2; }
   .studio__stage .stage-ui__meta { position: absolute; left: var(--page-margin); bottom: 10px; z-index: 2; }
 }
-/* Panel HP masih bisa digulir: tepi bawah memudar 32 px sampai ujung isi tercapai (timeline gulir panel sendiri;
-   panel yang muat tanpa gulir punya timeline tidak aktif, jadi tidak memudar). Bukan gerak: hanya mengikuti gulir. */
-@property --panel-fade { syntax: "<length>"; inherits: false; initial-value: 0px; }
-@keyframes panel-ujung { 0%, 92% { --panel-fade: 32px; } 100% { --panel-fade: 0px; } }
-@supports (animation-timeline: scroll()) {
-  @media (max-width: 1023px) {
-    .studio__panel {
-      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--panel-fade)), transparent);
-      mask-image: linear-gradient(to bottom, #000 calc(100% - var(--panel-fade)), transparent);
-      animation: panel-ujung linear both; animation-timeline: scroll(self);
-    }
+/* Panel HP masih bisa digulir: tepi bawah memudar 32 px sampai ujung isi tercapai (.is-more diatur lamp.js saat
+   render dan saat panel digulir; tanpa transisi). Panel yang muat tanpa gulir tidak memudar. */
+@media (max-width: 1023px) {
+  .studio__panel.is-more {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
   }
 }
 /* HP sempit: harga saklar Listrik di bawah judulnya, saklar di kanan; pil panggung pindah ke kanan bawah */

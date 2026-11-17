@@ -13,8 +13,11 @@ const COUNT = () => {
   const nav = document.querySelector('.nav');
   const nr = nav ? nav.getBoundingClientRect() : { bottom: 0 };
   // panggung + tab studio rakit yang lengket di tepi atas (HP) menutupi apa pun di bawahnya, seperti nav
-  const cover = [...document.querySelectorAll('[data-studio-sticky]')].filter((e) => getComputedStyle(e).position === 'sticky').map((e) => e.getBoundingClientRect()).filter((r) => r.top <= 1 && r.bottom > 0);
-  const navBottom = Math.max(0, nr.bottom, ...cover.map((r) => r.bottom));
+  // (rantai dari tepi atas: panggung di 0, tab tepat di bawahnya)
+  const rects = [...document.querySelectorAll('[data-studio-sticky]')].filter((e) => getComputedStyle(e).position === 'sticky').map((e) => e.getBoundingClientRect()).sort((a, b) => a.top - b.top);
+  let edge = 1;
+  for (const r of rects) if (r.top <= edge + 1 && r.bottom > 0) edge = Math.max(edge, r.bottom);
+  const navBottom = Math.max(0, nr.bottom, edge > 1 ? edge : 0);
   const vis = [];
   for (const el of document.querySelectorAll(SEL)) {
     const dlg = el.closest('dialog'); if (dlg && !dlg.open) continue;

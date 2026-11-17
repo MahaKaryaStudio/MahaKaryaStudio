@@ -415,7 +415,17 @@
     }
     el.innerHTML = h;
     el.dataset.sig = ctrlSig();
+    panelEdgeSoon();
   }
+  // Panel HP (tinggi tetap, gulir sendiri): .is-more memudarkan tepi bawah selama isi belum habis digulir.
+  // Dibaca di rAF berikutnya, bukan di jalur ketukan.
+  let edgeRaf = 0;
+  function panelEdge() {
+    edgeRaf = 0;
+    const el = $("#controls");
+    if (el) el.classList.toggle("is-more", STUDIO_HP.matches && el.scrollHeight - el.scrollTop - el.clientHeight > 2);
+  }
+  function panelEdgeSoon() { if (!edgeRaf) edgeRaf = requestAnimationFrame(panelEdge); }
   // Tanda tangan struktur panel: bila sama, ketukan cukup memperbarui tanda dan judul di tempat (tanpa innerHTML)
   const ctrlSig = () => `${ui.tab}|${state.body.length}|${ui.slot}|${state.wiring !== false}|${!!state.led}`;
   function syncControls() {
@@ -1413,6 +1423,10 @@
       cancelAnimationFrame(szRaf);
       szRaf = requestAnimationFrame(() => keepFocus(renderStudio));
     }).observe($("#cfg-stage"));
+  }
+  if ($("#controls")) {
+    $("#controls").addEventListener("scroll", panelEdgeSoon, { passive: true });
+    window.addEventListener("resize", panelEdgeSoon, { passive: true });
   }
   // Tab studio (role=tablist): panah kiri/kanan + Home/End memindah pilihan dan fokus (aktivasi otomatis, seketika).
   // Bagian SVG panggung: Enter/Spasi membuka tabnya. Selama studio dipakai lewat papan ketik, transisi dimatikan

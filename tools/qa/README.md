@@ -47,14 +47,16 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   (CPU 4x, median 5): tanda terpilih tercat <= 100 ms, lampu baru tercat <= 150 ms (warna) / <= 200 ms (bentuk, edisi), harga
   berganti bersama tanda; 10 ketukan swatch berjarak 80 ms tanpa frame lampu kosong/pudar dan harga akhir benar; dua ketukan
   berjarak 100 ms keduanya masuk. "Tercat" = tugas pertama sesudah frame tempat perubahan terlihat (batas atas).
-- `c09-rakit-tata.js [--only=c8,c9,c19,c24,teks,tab,lengket,ukur]`: 03 #rakit: C8 semua kontrol di empat tab dan rincian;
-  C9 area tekan 44 × 44 (elementFromPoint) dan jarak visual 8 di 390/360; C19 tanpa gulir samping 320/360/390; C24
+- `c09-rakit-tata.js [--only=c8,c9,c19,c24,teks,tab,fungsi,lengket,ukur]`: 03 #rakit: C8 semua kontrol di empat tab dan rincian;
+  C9 area tekan 44 × 44 (elementFromPoint) dan jarak visual 8 di 390/360; C19 tanpa gulir samping 320/360/390, isi
+  panel tidak meluber dari kotaknya, kode rakitan hanya patah di tanda hubung; `fungsi` fokus tetap di Hapus, ketuk lalu
+  muat ulang tetap tersimpan, katalog #bagian tetap swatch 24 dan tombol pil; C24
   panggung HP 260/200 (lampu tidak tertutup pil/saklar/label, pil dan saklar tidak bertumpuk) dan tidak lengket di
   tinggi 520; C15, C20 kalimat ringkasan >= 16 px, C11 pil studio; ARIA tabs + papan ketik; bagian SVG desktop; orderbar
   dan nav HP; panggung desktop/laptop lengket di nav + 24; `UKUR` tinggi #rakit terhadap brief.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
-  (HP) dihitung tertutup, sama seperti di bawah nav.
+  (HP) dihitung tertutup, sama seperti di bawah nav (rantai dari tepi atas: panggung lalu tab tepat di bawahnya).
 - `c18-scroll.js [--rate=4]` (lewat `serve-gz.js`): biaya gaya per frame pin #kenapa dan nav sembunyi/muncul
   dengan CPU 4x (angka lab; tiga lintasan karena derau ±3 ms).
 - `c24-sticky.js [--shots=<folder>]`: top panggung lengket tetap saat nav berganti (1440, 1366; .edisi__stage,
