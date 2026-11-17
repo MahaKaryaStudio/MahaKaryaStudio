@@ -102,10 +102,12 @@ html.motion-off .nav { transition: background-color var(--t-fast) linear, border
    Hanya opacity/visibility/transform (C6): tombol selebar tetap 104 memudar di tempat, teks ringkasan bergeser
    ke kanan sejauh lebar tombol + gap lewat transform, jadi tidak ada lebar/margin yang dianimasikan. */
 .nav__mini { --pesan-w: 104px; }
-.nav__pesan { flex: none; width: var(--pesan-w); padding-inline: 0; justify-content: center; transition: opacity var(--t-fast) var(--ease-out), visibility 0s; }
-.nav__mini-text { transition: transform var(--t-med) var(--ease-out); }
+/* masuk (250 ms): ringkasan bergeser kembali dulu (150 ms), tombol memudar masuk setelah 100 ms, jadi tidak menutupi
+   harga; keluar (150 ms): tombol memudar, ringkasan menyusul ke slotnya (250 ms) */
+.nav__pesan { flex: none; width: var(--pesan-w); padding-inline: 0; justify-content: center; transition: opacity var(--t-fast) var(--ease-out) 100ms, visibility 0s; }
+.nav__mini-text { transition: transform var(--t-fast) var(--ease-out); }
 .nav--quiet .nav__pesan { opacity: 0; visibility: hidden; transition: opacity var(--t-fast) var(--ease-out), visibility 0s linear var(--t-fast); }
-.nav--quiet .nav__mini-text { transform: translateX(calc(var(--pesan-w) + 12px)); }
+.nav--quiet .nav__mini-text { transform: translateX(calc(var(--pesan-w) + 12px)); transition-duration: var(--t-med); }
 html.motion-off .nav__mini-text { transition: none; }
 /* Chip delta harga: muncul 1,2 dtk tepat di bawah nav saat harga rakitan berubah */
 .nav__delta { position: absolute; left: 0; top: calc(100% + 14px); white-space: nowrap; background: color-mix(in srgb, var(--amber) 24%, var(--nav-bg)); box-shadow: var(--shadow-float); }

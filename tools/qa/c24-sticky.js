@@ -61,12 +61,17 @@ run(async ({ open, check, opt }) => {
       window.scrollTo({ top: document.querySelector('#rakit').offsetTop - 600, behavior: 'instant' }); await wait();
       window.scrollBy({ top: -40, behavior: 'instant' }); await wait();
       const outside = Math.round(nav.getBoundingClientRect().bottom);
-      return { navH, out, up, outside };
+      // panggung (atau leluhurnya di #rakit) benar-benar sticky? Di HP sekarang .preview statis (top 0): uji celah
+      // baru bermakna setelah langkah rakit memasang studio sticky
+      let sticky = false;
+      for (let e = st; e && e.id !== 'rakit'; e = e.parentElement) if (getComputedStyle(e).position === 'sticky') sticky = true;
+      return { navH, out, up, outside, sticky };
     });
     const covered = [...r.out, r.up].filter((x) => x.stageTop < r.navH && x.stageTop + 40 > 0 && x.navBottom > 0.5);
     check(covered.length === 0, `C24 ${vp}: nav tidak menutupi panggung #rakit (setiap tepi atas panggung < tinggi nav → nav tersembunyi)`, JSON.stringify(covered.length ? covered : r.out));
     const gap = r.out.filter((x) => x.off <= 0 && x.stageTop > 0.5 && x.stageTop < r.navH);
-    check(gap.length === 0, `C24 ${vp}: tidak ada celah di atas panggung #rakit saat panggung mencapai tepi atas`, JSON.stringify(gap));
+    if (r.sticky) check(gap.length === 0, `C24 ${vp}: tidak ada celah di atas panggung #rakit saat panggung mencapai tepi atas`, JSON.stringify(gap));
+    else console.log(`N/A  C24 ${vp}: celah di atas panggung #rakit tidak diuji: panggung statis di HP (studio sticky dibangun di langkah rakit)`);
     check(r.outside >= r.navH - 0.5, `C24 ${vp}: di luar #rakit nav muncul lagi saat gulir naik`, `nav bawah ${r.outside}`);
     if (opt.shots) {
       await p.evaluate(() => { const st = document.querySelector('#cfg-stage'); window.scrollTo({ top: st.getBoundingClientRect().top + scrollY - 10, behavior: 'instant' }); });

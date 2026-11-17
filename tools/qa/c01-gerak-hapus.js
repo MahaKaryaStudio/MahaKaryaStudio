@@ -57,7 +57,7 @@ const SPY = () => {
     // baca per frame: --dim panggung dan opasitas lapisan cahaya
     window.__frames = [];
     const st = document.querySelector('#hero-stage');
-    const tick = () => { const lit = host.querySelector('[data-la-lit]'); window.__frames.push({ t: performance.now(), dim: st ? getComputedStyle(st).getPropertyValue('--dim').trim() : '', op: lit ? +getComputedStyle(lit).opacity : null }); if (window.__frames.length < 240) requestAnimationFrame(tick); };
+    const tick = () => { const lit = host.querySelector('[data-la-lit]'); const cs = lit && getComputedStyle(lit); window.__frames.push({ t: performance.now(), dim: st ? getComputedStyle(st).getPropertyValue('--dim').trim() : '', op: cs ? +cs.opacity : null, wk: !!(st && st.classList.contains('is-waking')), tr: cs ? cs.transitionDuration + '|' + cs.transitionDelay : '' }); if (window.__frames.length < 240) requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
   });
 };
@@ -74,9 +74,14 @@ run(async ({ open, check }) => {
       const one = f.find((x) => parseFloat(x.dim) === 1);
       const ops = [...new Set(f.filter((x) => x.op != null).map((x) => x.op.toFixed(3)))];
       const lo = Math.min(...ops.map(Number)), hi = Math.max(...ops.map(Number));
-      return { lampAt: window.__lampAt, t1: one ? Math.round(one.t - window.__lampAt) : null, mids: ops.filter((o) => +o > lo + 0.01 && +o < hi - 0.01).length, lo, hi, dimWrites: window.__w.dim, text: document.body.innerText.includes('Gulir untuk menyalakan') };
+      // cahaya sungguh penuh (opasitas lapisan cahaya, bukan hanya --dim yang langsung 1 saat ditulis) dan durasinya
+      const full = f.find((x) => x.op != null && x.op >= 0.99);
+      const wk = f.find((x) => x.wk);
+      return { tFull: full ? Math.round(full.t - window.__lampAt) : null, wkTr: wk ? wk.tr : '', lampAt: window.__lampAt, t1: one ? Math.round(one.t - window.__lampAt) : null, mids: ops.filter((o) => +o > lo + 0.01 && +o < hi - 0.01).length, lo, hi, dimWrites: window.__w.dim, text: document.body.innerText.includes('Gulir untuk menyalakan') };
     });
     check(h.lampAt != null && h.t1 != null && h.t1 <= 1200, `C4 ${vp}: --dim hero = 1 dalam 1,2 s sejak #hero-lamp berisi, tanpa gulir`, `${h.t1} ms`);
+    check(h.tFull != null && h.tFull <= 1200, `C4 ${vp}: opasitas lapisan cahaya hero >= 0,99 dalam 1,2 s sejak #hero-lamp berisi`, `${h.tFull} ms`);
+    check(h.wkTr === '0.6s|0.2s', `C4 ${vp}: selama .is-waking transisi lapisan cahaya 600 ms dengan delay 200 ms`, h.wkTr || 'tidak terbaca');
     check(h.mids >= 3, `C4 ${vp}: >= 3 nilai antara opasitas lapisan cahaya terbaca per frame (transisi, bukan lompatan)`, `${h.mids} nilai antara, ${h.lo.toFixed(2)} → ${h.hi.toFixed(2)}`);
     check(h.dimWrites === 1, `C4 ${vp}: lamp.js menulis --dim hero tepat satu kali saat muat`, `${h.dimWrites} kali`);
     check(!h.text, `C4 ${vp}: teks "Gulir untuk menyalakan" tidak ada`);

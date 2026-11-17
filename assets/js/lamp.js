@@ -979,7 +979,7 @@
     if (!t) return;
     const d = t.dataset;
     const D_ = D();
-    if (t.id === "hero-switch") { hero.on = !hero.on; heroWoke = true; return renderHero(); }
+    if (t.id === "hero-switch") { hero.on = !hero.on; heroWoke = true; const hs = $("#hero-stage"); if (hs) hs.classList.remove("is-waking"); return renderHero(); }
     if (t.id === "cfg-switch") { state.on = !state.on; renderPreview(); return emit("switch"); }
     if (d.pkgView != null) return viewPackage(+d.pkgView);
     if (t.closest("#rakit, #paket, #bagian")) touched = true;

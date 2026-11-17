@@ -201,10 +201,12 @@ html.motion-off .lhero__media { display: none !important; }
 .story--pin .story__lamp.is-on { opacity: 1; }
 /* edisi pilihan studio masuk redup, lalu menyala (lapisan cahaya 600 ms, tertunda 200 ms) */
 /* --dim ditulis pada elemen yang membacanya (lapisan cahaya ber-style var(--dim)), bukan pada wadah lampu: pergantian
-   kalimat tidak menghitung ulang seluruh SVG lampu (aturan performa §4.2) */
+   kalimat tidak menghitung ulang seluruh SVG lampu (aturan performa §4.2). motion.js memberi .is-lit langsung pada
+   lapisan itu (dua kelompok, di dua frame setelah .is-on), jadi .is-on pada wadah lampu tidak menghitung ulang isi SVG
+   mana pun dan biaya pergantian kalimat terbagi ke beberapa frame */
 .story--pin .story__lamp[data-k="3"] [style*="--dim"] { --dim: 0.15; }
-.story--pin .story__lamp[data-k="3"].is-on [style*="--dim"] { --dim: 1; }
-.story--pin .story__lamp[data-k="3"].is-on :is([data-la-lit], [data-la-off]) { transition-delay: var(--t-follow, 200ms); }
+.story--pin .story__lamp[data-k="3"] [style*="--dim"].is-lit { --dim: 1; }
+.story--pin .story__lamp[data-k="3"] :is([data-la-lit], [data-la-off]) { transition-delay: var(--t-follow, 200ms); }
 .story--pin .story__pill:not(.is-ed) .story__pill-ed { display: none; }
 
 @media (max-width: 699px) {

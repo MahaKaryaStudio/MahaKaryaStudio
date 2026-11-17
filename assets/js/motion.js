@@ -56,7 +56,8 @@
        Bawaan CSS = kalimat bertumpuk. .story--pin (200vh desktop / 160vh HP, isi terpaku) hanya dipasang bila
        gerak aktif, layar cukup tinggi untuk isi pin, dan Mode Edit tidak terbuka. Yang ditulis hanya saat
        berganti: data-step (kalimat 0–2), data-sub (0/1: dua lampu selingan di kalimat kedua), kelas baris
-       is-on/is-past/is-next, segmen progres, dan penutup (.story__close.is-on di kalimat terakhir). */
+       is-on/is-past/is-next, segmen progres, dan penutup (.story__close.is-on di kalimat terakhir), lampu .is-on,
+       pil .is-ed, dan .is-lit pada lapisan cahaya lampu 3, bertahap selama lima frame (lihat queue). */
     const story = $(".story");
     if (story) {
       const lines = $$(".story__line", story), segs = $$(".story__prog i", story), close = $(".story__close", story);
@@ -64,6 +65,15 @@
       // lampu scene: kalimat 0 -> lampu 0, kalimat 1 -> lampu 1/2 (data-sub), kalimat 2 -> lampu 3 (pilihan studio)
       const lampK = (idx, sub) => (idx === 0 ? 0 : idx === 1 ? 1 + sub : 3);
       const setLamps = (k) => $$(".story__lamp", story).forEach((l) => l.classList.toggle("is-on", l.dataset.k === k));
+      // lapisan cahaya lampu 3 (elemen ber-style var(--dim)) diberi .is-lit langsung, dalam dua kelompok: part 0 =
+      // penggelap dan rona hangat, part 1 = [data-la-lit]; part null = keduanya
+      const setLit = (on, part) => $$('.story__lamp[data-k="3"] [style*="--dim"]', story).forEach((el) => {
+        if (part == null || el.hasAttribute("data-la-lit") === (part === 1)) el.classList.toggle("is-lit", on);
+      });
+      // pergantian kalimat ditulis bertahap, satu tahap per frame: (1) kalimat yang keluar dan segmen; (2) kalimat yang
+      // masuk dan penutup; (3) lampu .is-on dan pil; (4, 5) .is-lit pada lapisan cahaya lampu 3. Tiap tahap memulai
+      // transisinya sendiri; satu frame tidak menanggung seluruh hitung ulang gaya (anggaran c18 <= 5 ms di CPU 4x).
+      let queue = [];
       const MIN_H = 600;
       const nearStory = near(story, "50% 0px 50% 0px");
       let last = "", pinned = null;
@@ -80,7 +90,9 @@
           return { pin, idx, sub: f - idx >= 0.5 ? 1 : 0, key: idx + ":" + (f - idx >= 0.5 ? 1 : 0) };
         },
         write(s) {
+          if (queue.length && s.pin === pinned && (s.key == null || s.key === last)) { queue.shift()(); if (queue.length) sync(); return; }
           if (s.pin !== pinned) {
+            queue = [];
             pinned = s.pin;
             last = "";
             story.classList.toggle("story--pin", s.pin);
@@ -91,6 +103,7 @@
               segs.forEach((d) => d.classList.remove("is-on"));
               if (close) close.classList.remove("is-on");
               setLamps("");
+              setLit(false);
               if (pill) pill.classList.toggle("is-ed", false);
             }
             // tinggi seksi berubah: hitung lagi di frame berikutnya (baca setelah tulis = frame baru)
@@ -102,11 +115,17 @@
           const n = lines.length;
           story.dataset.step = String(s.idx);
           story.dataset.sub = String(s.sub);
-          lines.forEach((l, i) => { l.classList.toggle("is-on", i === s.idx); l.classList.toggle("is-past", i < s.idx); l.classList.toggle("is-next", i > s.idx); });
+          // frame ini: kalimat yang keluar dan segmen; frame berikut: kalimat yang masuk dan penutup
+          lines.forEach((l, i) => { if (i === s.idx) return; l.classList.remove("is-on"); l.classList.toggle("is-past", i < s.idx); l.classList.toggle("is-next", i > s.idx); });
           segs.forEach((d, i) => d.classList.toggle("is-on", i === s.idx));
-          if (close) close.classList.toggle("is-on", s.idx === n - 1);
-          setLamps(String(lampK(s.idx, s.sub)));
-          if (pill) pill.classList.toggle("is-ed", s.idx === n - 1);
+          const k = String(lampK(s.idx, s.sub)), ed = s.idx === n - 1, cur = lines[s.idx];
+          queue = [
+            () => { if (cur) { cur.classList.remove("is-past", "is-next"); cur.classList.add("is-on"); } if (close) close.classList.toggle("is-on", ed); },
+            () => { setLamps(k); if (pill) pill.classList.toggle("is-ed", ed); },
+            () => setLit(k === "3", 0),
+            () => setLit(k === "3", 1),
+          ];
+          sync();
         },
       });
       // lamp.js menggambar ulang scene (refresh, Mode Edit, ganti lebar): pasang lagi .is-on di frame berikutnya
