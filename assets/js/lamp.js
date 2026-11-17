@@ -349,14 +349,18 @@
 
   /* ---------- Potongan HTML ---------- */
   const inStock = (c) => c.stock !== false;
-  const swatchesHtml = (list, current, attr) =>
-    `<div class="swatches">${list
-      .map((c) => `<button class="sw${inStock(c) ? "" : " sw--out"}" type="button" aria-pressed="${c.id === current}" title="${esc(c.name)}${inStock(c) ? "" : " — habis"}" style="background:${c.hex}" ${attr} data-color="${c.id}" ${inStock(c) ? "" : "disabled"}><span>${esc(c.name)}${inStock(c) ? "" : " (habis)"}</span></button>`)
+  // Swatch 40 (HP 44) dengan area tekan 44; nama warna di judul grup dan aria-label
+  const swatchesHtml = (list, current, attr, label) =>
+    `<div class="swatches-row studio__sw" role="group" aria-label="${esc(label)}">${list
+      .map((c) => `<button class="swatch${inStock(c) ? "" : " swatch--out"}" type="button" aria-pressed="${c.id === current}" aria-label="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="--sw:${c.hex}" ${attr} data-color="${c.id}" data-name="${esc(c.name)}" ${inStock(c) ? "" : "disabled"}></button>`)
       .join("")}</div>`;
-  const shapesHtml = (kind, list, current, attr) =>
-    `<div class="shapes">${list
-      .map((s) => `<button class="shape" type="button" aria-pressed="${s.id === current}" ${attr} data-shape="${s.id}">${A.iconSvg(kind, s.id, "ic" + kind + s.id + attr.replace(/[^a-z0-9]/gi, ""))}${esc(s.name)}</button>`)
+  // Ubin bentuk 64/72: ikon saja, nama bentuk tampil di judul grup ("BENTUK: BOLA")
+  const tilesHtml = (kind, list, current, attr, label) =>
+    `<div class="tiles" role="group" aria-label="${esc(label)}">${list
+      .map((s) => `<button class="tile" type="button" aria-pressed="${s.id === current}" aria-label="${esc(s.name)}" ${attr} data-shape="${s.id}" data-name="${esc(s.name)}" data-price="${s.price}">${A.iconSvg(kind, s.id, "ic" + kind + s.id)}</button>`)
       .join("")}</div>`;
+  const grpHead = (what, name, priceTxt) =>
+    `<p class="grp__head"><span class="grp__title">${what}: <b data-grp-name>${esc(name)}</b></span>${priceTxt != null ? `<span class="grp__price num" data-grp-price>${priceTxt}</span>` : ""}</p>`;
   // Gambar satu bagian: foto asli jika ada, kalau tidak ilustrasi
   function partFig(kind, shape, colorId, uid) {
     const photo = photoOf(kind, shape, colorId);
@@ -364,94 +368,204 @@
     return A.partSvg(kind, shape, find(colorsOf(kind), colorId).hex, uid);
   }
 
-  /* ---------- Render ---------- */
+  /* ---------- 03 #rakit: studio rakit ----------
+     Chip "Mulai dari edisi" → panggung lengket (rig malam, bagian SVG bisa diketuk/difokus dan membuka tabnya) →
+     tab Kap / Badan (n) / Alas / Listrik (ARIA tabs, roving tabindex) → panel (judul grup + ubin bentuk + swatch;
+     Badan: chip slot + "+ Tambah" + "Hapus"; Listrik: dua saklar 64) → ringkasan (harga, WA, rincian, janji).
+     Gerbang frekuensi (adendum §4 aturan 5): ketukan bentuk/warna/edisi memasang tanda terpilih seketika pada node yang
+     diketuk dan memperbarui harga + siaran mks:change di handler yang sama (harga tidak pernah ditunda); render lampu
+     penuh (innerHTML, tanpa fade) dijadwalkan sesudah cat berikutnya (rAF + tugas) dan dibatalkan oleh ketukan berikutnya. */
+  const ui = { tab: "head", slot: 0 };
+  const TABS = ["head", "body", "base", "power"];
+  const TAB_LABEL = { head: "Kap", body: "Badan", base: "Alas", power: "Listrik" };
   function renderControls() {
     const el = $("#controls");
     if (!el) return;
     const d = D();
-    const hd = find(d.heads, state.head.shape);
-    let h =
-      `<div class="ctrl"><div class="ctrl-head"><h3>Kap <small>Head</small></h3><span class="price num">${rp(hd.price)}</span></div>` +
-      `<div><div class="lbl">Bentuk</div>${shapesHtml("head", d.heads, state.head.shape, 'data-part="head"')}</div>` +
-      `<div><div class="lbl">Warna kap</div>${swatchesHtml(d.shadeColors, state.head.color, 'data-part="head"')}</div></div>`;
-    h += `<div class="ctrl"><div class="ctrl-head"><h3>Badan <small>Body · ${state.body.length} dari ${d.maxBodies}</small></h3></div>`;
-    state.body.forEach((b, i) => {
-      const bd = find(d.bodies, b.shape);
+    ui.slot = Math.max(0, Math.min(ui.slot, state.body.length - 1));
+    let h = "";
+    if (ui.tab === "head" || ui.tab === "base") {
+      const kind = ui.tab, part = state[kind], list = listOf(kind), cols = colorsOf(kind), sh = find(list, part.shape), co = find(cols, part.color);
+      const attr = `data-part="${kind}"`;
+      h += `<div class="grp">${grpHead("Bentuk", sh.name, rp(sh.price))}${tilesHtml(kind, list, part.shape, attr, `Bentuk ${TAB_LABEL[kind].toLowerCase()}`)}</div>`;
+      h += `<div class="grp">${grpHead("Warna", co.name)}${swatchesHtml(cols, part.color, attr, `Warna ${TAB_LABEL[kind].toLowerCase()}`)}</div>`;
+    } else if (ui.tab === "body") {
+      const full = state.body.length >= d.maxBodies, i = ui.slot, b = state.body[i], sh = find(d.bodies, b.shape), co = find(d.colors, b.color);
+      h += `<div class="slots chips-row" role="group" aria-label="Pilih badan">` +
+        state.body.map((_, k) => `<button class="chip slot-chip" type="button" data-slot="${k}" aria-pressed="${k === i}"><span class="slot-chip__k">Badan </span>${k + 1}</button>`).join("") +
+        `<button class="chip chip--line" type="button" id="add-body"${full ? ' aria-disabled="true"' : ""}>+ Tambah</button>` +
+        `<button class="chip chip--line" type="button" data-remove="${i}"${state.body.length > 1 ? "" : ' aria-disabled="true"'} aria-label="Hapus badan ${i + 1}">Hapus</button></div>`;
+      const attr = `data-part="body" data-i="${i}"`;
+      h += `<div class="grp">${grpHead(`Bentuk badan ${i + 1}`, sh.name, rp(sh.price))}${tilesHtml("body", d.bodies, b.shape, attr, `Bentuk badan ${i + 1}`)}</div>`;
+      h += `<div class="grp">${grpHead(`Warna badan ${i + 1}`, co.name)}${swatchesHtml(d.colors, b.color, attr, `Warna badan ${i + 1}`)}</div>`;
+      if (full) h += `<p class="grp__note">Maksimal ${d.maxBodies} badan.</p>`;
+    } else {
+      const [wName, ...wRest] = String(d.wiringLabel || "Kit kelistrikan").split(", ");
       h +=
-        `<div class="slot"><div class="slot-top"><b>Badan ${i + 1} · ${rp(bd.price)}</b>${state.body.length > 1 ? `<button class="x" type="button" data-remove="${i}">Hapus</button>` : ""}</div>` +
-        `<div><div class="lbl">Bentuk</div>${shapesHtml("body", d.bodies, b.shape, `data-part="body" data-i="${i}"`)}</div>` +
-        `<div><div class="lbl">Warna</div>${swatchesHtml(d.colors, b.color, `data-part="body" data-i="${i}"`)}</div></div>`;
+        `<button class="switch toggle" type="button" id="wiring-switch" role="switch" aria-checked="${state.wiring !== false}" aria-describedby="wiring-desc">` +
+        `<span class="toggle__txt"><b>${esc(wName)}</b><small>${esc(wRest.join(", "))}</small></span><span class="toggle__price num">${rp(d.wiringPrice)}</span><i></i></button>` +
+        `<button class="switch toggle" type="button" id="led-switch" role="switch" aria-checked="${!!state.led}">` +
+        `<span class="toggle__txt"><b>Bohlam LED 5 W warna hangat</b><small>2700 K, E27. Maksimal 5 W agar kap tetap dingin.</small></span><span class="toggle__price num">${rp(d.ledPrice)}</span><i></i></button>` +
+        `<p class="grp__note" id="wiring-desc">Komponen dari produsen terdaftar. Tanpa kit, kamu menerima bagian cetak saja dan memasang kelistrikan sendiri.</p>`;
+    }
+    el.innerHTML = h;
+    el.dataset.sig = ctrlSig();
+  }
+  // Tanda tangan struktur panel: bila sama, ketukan cukup memperbarui tanda dan judul di tempat (tanpa innerHTML)
+  const ctrlSig = () => `${ui.tab}|${state.body.length}|${ui.slot}|${state.wiring !== false}|${!!state.led}`;
+  function syncControls() {
+    const el = $("#controls");
+    if (!el) return;
+    if (el.dataset.sig !== ctrlSig()) return keepFocus(renderControls);
+    const part = ui.tab === "body" ? state.body[ui.slot] : state[ui.tab];
+    if (!part) return;
+    el.querySelectorAll("[data-part]").forEach((b) => {
+      const on = b.dataset.shape ? b.dataset.shape === part.shape : b.dataset.color === part.color;
+      if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", on);
     });
-    const full = state.body.length >= d.maxBodies;
-    h += `<button class="add" type="button" id="add-body" ${full ? "disabled" : ""}>${full ? `Maksimal ${d.maxBodies} badan` : "+ Tambah badan"}</button></div>`;
-    const ba = find(d.bases, state.base.shape);
-    h +=
-      `<div class="ctrl"><div class="ctrl-head"><h3>Alas <small>Base</small></h3><span class="price num">${rp(ba.price)}</span></div>` +
-      `<div><div class="lbl">Bentuk</div>${shapesHtml("base", d.bases, state.base.shape, 'data-part="base"')}</div>` +
-      `<div><div class="lbl">Warna</div>${swatchesHtml(d.colors, state.base.color, 'data-part="base"')}</div></div>`;
-    h +=
-      `<div class="ctrl"><div class="ctrl-head"><h3>Kelistrikan <small>opsional</small></h3></div>` +
-      `<div class="toggle-row"><div class="desc"><b id="wiring-label">${esc(d.wiringLabel)}</b><small id="wiring-desc">Komponen dari produsen terdaftar. Tanpa kit ini, kamu menerima bagian cetak saja dan memasang kelistrikan sendiri.</small></div><button class="switch" type="button" id="wiring-switch" role="switch" aria-labelledby="wiring-label wiring-switch" aria-describedby="wiring-desc" aria-checked="${state.wiring !== false}"><i></i>${rp(d.wiringPrice)}</button></div>` +
-      `<div class="toggle-row"><div class="desc"><b id="led-label">Bola LED 5 W warna hangat</b><small id="led-desc">2700 K, E27. Maksimal 5 W agar kap tetap dingin.</small></div><button class="switch" type="button" id="led-switch" role="switch" aria-labelledby="led-label led-switch" aria-describedby="led-desc" aria-checked="${state.led}"><i></i>${rp(d.ledPrice)}</button></div>` +
-      `<div class="row-wrap"><button class="ghost" type="button" id="random"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4h3l6 8h3M2 12h3l1.5-2M9.5 6L11 4h3M12 2l2 2-2 2M12 10l2 2-2 2"/></svg>Acak kombinasi</button></div></div>`;
+    const names = el.querySelectorAll("[data-grp-name]"), sel = el.querySelectorAll('[aria-pressed="true"][data-part]');
+    sel.forEach((b) => {
+      const g = b.closest(".grp");
+      const n = g && g.querySelector("[data-grp-name]");
+      if (n && n.textContent !== b.dataset.name) n.textContent = b.dataset.name;
+      const pr = b.dataset.price && g.querySelector("[data-grp-price]");
+      if (pr && pr.textContent !== rp(+b.dataset.price)) pr.textContent = rp(+b.dataset.price);
+    });
+    return names;
+  }
+  function syncTabs(focus) {
+    const n = $("[data-tab-n]");
+    if (n) n.textContent = `(${state.body.length})`;
+    $$("#studio-tabs [role=tab]").forEach((t) => {
+      const on = t.dataset.tab === ui.tab;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      if (on && focus) t.focus();
+    });
+    const pn = $("#controls");
+    if (pn) pn.setAttribute("aria-labelledby", "tab-" + ui.tab);
+  }
+  function selectTab(tab, o) {
+    if (!TABS.includes(tab)) return;
+    const changed = ui.tab !== tab;
+    ui.tab = tab;
+    syncTabs(o && o.focus);
+    if (changed || (o && o.force)) renderControls();
+  }
+  // Chip edisi: tanda mengikuti rakitan (edisi yang sama persis), "Dari nol" tidak pernah bertanda
+  function syncPresets() {
+    const pi = presetIndex(state);
+    $$("#presets [data-preset]").forEach((b) => { const on = +b.dataset.preset === pi; if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", on); });
+  }
+  function renderPresets() {
+    const el = $("#presets");
+    if (!el) return;
+    el.innerHTML =
+      `<p class="label studio__chips-label" id="presets-label">Mulai dari edisi</p><div class="chips-row studio__chips-row" role="group" aria-labelledby="presets-label">` +
+      D().presets.map((p, i) => `<button class="chip" type="button" data-preset="${i}" aria-pressed="false">${esc(p.name)}</button>`).join("") +
+      `<button class="chip chip--line" type="button" id="from-scratch">Dari nol</button></div>`;
+    syncPresets();
+  }
+
+  // Ringkasan: label + kalimat ringkasan (16 px) + harga 40 (coret + hemat rupiah) + WA 56 + jam balas.
+  // Diperbarui di tempat (tanpa innerHTML) supaya harga berganti di handler ketukan yang sama.
+  function sumLine() {
+    const pi = presetIndex(state), p = price(state);
+    return `${pi >= 0 ? `Edisi ${D().presets[pi].name}` : "Rakitan custom"} · ${p.n} bagian · tinggi ≈ ${A.totalCm(state).toFixed(0)} cm`;
+  }
+  function sumNote(p) {
+    return (p.wiring ? "Termasuk kit kelistrikan (komponen bertanda SNI/K3L)" : "Bagian cetak saja, tanpa kit kelistrikan") + (p.led ? " dan bohlam LED." : ".");
+  }
+  function renderSummary() {
+    const summary = $("#summary");
+    if (!summary) return;
+    const p = price(state), anchorTotal = p.parts + p.wiring + p.led;
+    summary.innerHTML =
+      `<p class="label sum__label">Rakitanmu</p>` +
+      `<p class="sum__line" data-sum-line>${esc(sumLine())}</p>` +
+      `<div class="price-block price-block--md sum__price">` +
+      `<p class="price-block__was" data-sum-was>${wasHtml(anchorTotal, p.total)}</p>` +
+      `<p class="price-block__amount num" data-sum-total>${amountHtml(p.total)}</p>` +
+      `<p class="price-block__note" data-sum-note>${esc(sumNote(p))}</p></div>` +
+      `<a class="btn btn--wa btn--lg btn--block" id="wa-link" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
+      `<p class="sum__reply">${replyHtml(C.replyPromise || "")}</p>`;
+  }
+  function quickSummary() {
+    const s = $("#summary");
+    if (!s || !s.querySelector("[data-sum-total]")) return renderSummary();
+    const p = price(state), anchorTotal = p.parts + p.wiring + p.led;
+    const put = (sel, v, html) => { const n = s.querySelector(sel); if (!n) return; if (html) { if (n.innerHTML !== v) n.innerHTML = v; } else if (n.textContent !== v) n.textContent = v; };
+    put("[data-sum-total]", amountHtml(p.total), true);
+    put("[data-sum-was]", wasHtml(anchorTotal, p.total), true);
+    put("[data-sum-line]", sumLine());
+    put("[data-sum-note]", sumNote(p));
+  }
+  // Rincian (<details> statis tetap terbuka/tertutup; isinya dirender ulang): baris .rincian__row
+  function renderRincian() {
+    const el = $("#rincian-body");
+    if (!el) return;
+    const p = price(state), pi = presetIndex(state), z = zoneOf(state), zs = zones();
+    const row = (a, b, cls) => `<div class="rincian__row${cls ? " " + cls : ""}"><span>${a}</span><span class="num">${b}</span></div>`;
+    let h = p.lines.map((l) => row(`<i class="swatch-dot" style="--sw:${l.color.hex}"></i>${esc(l.label.replace(" · ", " "))}, ${esc(l.color.name)}`, rp(l.price))).join("");
+    h += row(`Harga satuan ${p.n} bagian`, `<s>${rp(p.parts)}</s>`);
+    if (p.disc) h += row(`Potongan paket ${esc(p.pkg.name)}, ${Math.round(p.pkg.disc * 100)}% dari bagian cetak`, `− ${rp(p.disc)}`, "rincian__row--disc");
+    h += p.wiring ? row("Kit kelistrikan (komponen bertanda SNI/K3L)", rp(p.wiring)) : row("Tanpa kit kelistrikan (hanya bagian cetak)", "Rp0");
+    h += state.led ? row("Bohlam LED 5 W hangat", rp(p.led)) : row("Tanpa bohlam (LED sendiri, maks 5 W)", "Rp0");
+    h += row("<b>Total</b>", `<b>${rp(p.total)}</b>`, "rincian__row--total");
+    if (zs.length)
+      h += `<div class="rincian__ship"><label class="field-label" for="zone-select">Kirim ke</label><select class="select" id="zone-select">${zs.map((x) => `<option value="${esc(x.id)}"${z && x.id === z.id ? " selected" : ""}>${esc(x.label)} · ±${rp(x.price)}</option>`).join("")}</select>` +
+        row("Perkiraan total dengan ongkir", `±${rp(p.total + (z ? z.price : 0))}`) +
+        `<p class="rincian__small">${esc((C.shipping && C.shipping.note) || "")}</p></div>`;
+    h += `<div class="gift${state.gift.on ? " is-on" : ""}"><label class="gift__head"><input class="checkbox" type="checkbox" id="gift-on" ${state.gift.on ? "checked" : ""}/><span>Kirim sebagai kado<small>Kartu ucapan gratis, dikemas rapi, tanpa harga di paket</small></span></label>` +
+      (state.gift.on
+        ? `<div class="gift__fields"><label class="sr-only" for="gift-to">Nama penerima</label><input class="input" id="gift-to" type="text" maxlength="40" placeholder="Nama penerima" value="${esc(state.gift.to)}" /><label class="sr-only" for="gift-msg">Pesan di kartu</label><textarea class="textarea" id="gift-msg" rows="2" maxlength="120" placeholder="Pesan di kartu (maks 120 huruf)">${esc(state.gift.msg)}</textarea><label class="gift__opt"><input class="checkbox" type="checkbox" id="gift-hide" ${state.gift.hide === false ? "" : "checked"}/><span>Tanpa harga di paket</span></label></div>`
+        : "") +
+      `</div>`;
+    h += row("Kode rakitan", `<span class="mono-code">${esc(code(state))}</span>`, "rincian__row--code");
+    h += `<div class="rincian__acts"><button class="btn btn--ghost btn--sm" type="button" id="share-link">Bagikan rakitan</button><button class="btn btn--ghost btn--sm" type="button" id="copy-summary">Salin ringkasan</button></div>`;
+    h += `<p class="rincian__small">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (edisi, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>`;
+    h += marketRow(pi >= 0 ? D().presets[pi] : null, "mkt--dark");
     el.innerHTML = h;
   }
 
-  function renderSummary() {
-    const p = price(state);
-    const anchorTotal = p.parts + p.wiring + p.led;
-    const pi = presetIndex(state);
-    const z = zoneOf(state);
-    const zs = zones();
-    const summary = $("#summary");
-    if (summary) {
-      let rows = p.lines
-        .map((l) => `<div class="row row-sw"><span><i style="background:${l.color.hex}"></i>${esc(l.label)} — ${esc(l.color.name)}</span><span class="num">${rp(l.price)}</span></div>`)
-        .join("");
-      rows += `<div class="row"><span>Harga satuan ${p.n} bagian</span><span class="num"><s>${rp(p.parts)}</s></span></div>`;
-      if (p.disc) rows += `<div class="row row-disc"><span>Potongan paket ${esc(p.pkg.name)} (${Math.round(p.pkg.disc * 100)}% dari bagian cetak)</span><span class="num">− ${rp(p.disc)}</span></div>`;
-      rows += p.wiring
-        ? `<div class="row"><span>Kit kelistrikan (komponen bertanda SNI/K3L)</span><span class="num">${rp(p.wiring)}</span></div>`
-        : `<div class="row"><span>Tanpa kelistrikan (hanya bagian cetak)</span><span class="num">Rp0</span></div>`;
-      rows += state.led
-        ? `<div class="row"><span>Bola LED 5 W hangat</span><span class="num">${rp(p.led)}</span></div>`
-        : `<div class="row"><span>Tanpa bohlam (LED sendiri, maks 5 W)</span><button class="add-led" type="button" id="led-add">+ Bohlam LED ${rp(D().ledPrice)}</button></div>`;
-      summary.innerHTML =
-        `<div class="badges"><span class="badge">Paket ${esc(p.pkg.name)} · ${p.n} bagian</span>${pi >= 0 ? `<span class="badge">Edisi ${esc(D().presets[pi].name)}</span>` : '<span class="badge">Rakitan custom</span>'}</div>` +
-        `<div class="rows">${rows}</div>` +
-        `<div class="total"><div><small>${p.wiring ? "Total termasuk kit kelistrikan" : "Total bagian cetak"}${p.led ? " + bohlam" : ""}</small>${p.disc ? `<s class="was num">${rp(anchorTotal)}</s>` : ""}<b class="num">${rp(p.total)}</b></div><span class="code">${code(state)}</span></div>` +
-        (p.disc ? `<div class="save">Hemat <b>${rp(p.disc)}</b> dibanding beli ${p.n} bagian satuan</div>` : "") +
-        (zs.length
-          ? `<div class="ship"><label for="zone-select">Kirim ke</label><select id="zone-select">${zs.map((x) => `<option value="${esc(x.id)}"${z && x.id === z.id ? " selected" : ""}>${esc(x.label)} · ±${rp(x.price)}</option>`).join("")}</select><div class="ship__total"><span>Perkiraan total dengan ongkir</span><b class="num">±${rp(p.total + (z ? z.price : 0))}</b></div><small>${esc((C.shipping && C.shipping.note) || "")}</small></div>`
-          : "") +
-        `<div class="gift${state.gift.on ? " is-on" : ""}"><label class="gift__head"><input type="checkbox" id="gift-on" ${state.gift.on ? "checked" : ""}/> <span>Kirim sebagai kado</span><small>Kartu ucapan gratis, dikemas rapi, tanpa harga di paket</small></label>` +
-        (state.gift.on
-          ? `<div class="gift__fields"><input id="gift-to" type="text" maxlength="40" placeholder="Nama penerima" value="${esc(state.gift.to)}" /><textarea id="gift-msg" rows="2" maxlength="120" placeholder="Pesan di kartu (maks 120 huruf)">${esc(state.gift.msg)}</textarea><label class="gift__opt"><input type="checkbox" id="gift-hide" ${state.gift.hide === false ? "" : "checked"}/> Tanpa harga di paket</label></div>`
-          : "") +
-        `</div>` +
-        // Desktop: tombol WA berisi. HP (≤ 900): orderbar memegang tombol berisi, jadi ringkasan memakai tautan teks
-        // (tetap di urutan Tab, tidak menambah tombol berisi kedua di viewport).
-        `<div class="acts"><a class="btn btn--wa btn--lg" id="wa-link" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp</a>` +
-        `<a class="text-link summary__wa-hp" id="wa-link-hp" data-wa="order" href="${waLink(waText(state))}" target="_blank" rel="noopener">Pesan via WhatsApp <span class="arrow" aria-hidden="true">→</span></a>` +
-        `<small class="reply">${replyHtml(C.replyPromise || "")}</small>` +
-        `<div class="acts__row"><button class="btn btn--ghost btn--sm" type="button" id="share-link">Bagikan rakitan</button>` +
-        `<button class="btn btn--ghost btn--sm" type="button" id="copy-summary">Salin ringkasan</button></div>` +
-        (pi < 0 ? `<button class="btn btn--ghost btn--sm" type="button" id="back-preset">Kembali ke edisi awal</button>` : "") +
-        `</div>` +
-        `<p class="note">Produksi <b>${esc(leadTimeOf(state))}</b>${pi >= 0 ? " (edisi, bagian berstok)" : " (kombinasi custom dicetak khusus)"}. Bayar transfer bank / QRIS setelah konfirmasi.</p>` +
-        marketRow(pi >= 0 ? D().presets[pi] : null, "mkt--dark");
+  // Panggung studio: rig malam, lampu diganti seketika lewat innerHTML (tanpa fade). Bagian SVG (kap, badan, alas)
+  // bisa diketuk dan difokus (role=button) dan membuka tab bagiannya. HP: bingkai lebar 390 × 260 (200 saat tinggi
+  // layar <= 640), lantai 80%, lampu acuan ±50% tinggi, supaya pil di atas dan saklar di bawah tidak menutupi lampu.
+  const STUDIO_HP = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
+  function renderStudio() {
+    const host = $("#cfg-lamp");
+    if (host) {
+      const st = $("#cfg-stage");
+      const r = st && STUDIO_HP.matches ? st.getBoundingClientRect() : null;
+      // selalu dirender menyala; nyala/mati lewat --dim panggung (transisi cahaya 600 ms, tanpa render ulang)
+      const o = { uid: "cfg", on: true, variant: "studio", label: "Ilustrasi rakitanmu" };
+      if (r && r.width > 0 && r.height > 0) Object.assign(o, { frame: [Math.round(r.width), Math.round(r.height)], floor: 0.8, lampFrac: r.height < 230 ? 0.46 : 0.5 });
+      host.innerHTML = A.renderLamp(state, o);
+      const svg = host.firstElementChild;
+      if (svg) {
+        svg.setAttribute("role", "group");
+        svg.setAttribute("aria-label", "Ilustrasi rakitanmu. Pilih kap, badan, atau alas untuk mengubahnya.");
+        svg.querySelectorAll("[data-la-part]").forEach((g) => {
+          const k = g.getAttribute("data-la-part");
+          g.setAttribute("tabindex", "0");
+          g.setAttribute("role", "button");
+          g.setAttribute("aria-label", `${KIND_LABEL[k]}: buka tab ${KIND_LABEL[k]}`);
+        });
+      }
     }
-    // Bilah pesan HP (#orderbar) diisi nav.js dari event "mks:change"
-    // Strip bagian terpilih: foto asli bila ada
-    setHtml(
-      "#parts-strip",
-      p.lines.map((l, i) => `<figure class="pstrip__item"><div class="pstrip__fig">${partFig(l.kind, l.shape, l.color.id, "ps" + i)}</div><figcaption>${esc(l.label.split(" · ")[1] || l.label)}<small>${esc(l.color.name)}</small></figcaption></figure>`).join("")
-    );
+    renderStudioLight();
+    setText("#cfg-height", `≈ ${A.totalCm(state).toFixed(0)} cm`);
   }
-
-  function renderPreview() {
+  // #cara: spesifikasi rakitanmu (di luar layar saat merakit; dirender sesudah panggung)
+  function renderSpec() {
     const cm = `≈ ${A.totalCm(state).toFixed(0)} cm`;
-    setHtml("#cfg-lamp", A.renderLamp(state, { uid: "cfg", on: state.on, variant: "studio", label: "Ilustrasi rakitanmu" }));
+    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 464", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
+    setText("#spec-height", cm);
+    setText("#spec-weight", `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`);
+    fitSvgText($("#spec-fig"));
+  }
+  function renderPreview() { renderStudio(); renderSpec(); }
+  function renderStudioLight() {
     const st = $("#cfg-stage");
     if (st) st.style.setProperty("--dim", state.on ? 1 : 0);
     const sw = $("#cfg-switch");
@@ -459,11 +573,6 @@
       sw.setAttribute("aria-checked", state.on);
       if (sw.lastChild && sw.lastChild.nodeType === 3) sw.lastChild.nodeValue = state.on ? "Nyala" : "Mati";
     }
-    setText("#cfg-height", cm);
-    setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 464", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
-    setText("#spec-height", cm);
-    setText("#spec-weight", `≈ ${A.totalKg(state).toFixed(1).replace(".", ",")} kg`);
-    fitSvgText($("#spec-fig"));
   }
   // Render ulang lewat innerHTML menghancurkan elemen yang sedang fokus; simpan "alamat"nya
   // (id atau kombinasi data-*) lalu fokuskan lagi elemen yang setara setelah render.
@@ -471,8 +580,9 @@
     if (!el || el === document.body || !el.closest("#rakit, #edisi, #bagian, #paket, [data-keep-focus]")) return null;
     if (el.id) return "#" + CSS.escape(el.id);
     if (el.name === "edisi") return `input[name="edisi"][value="${CSS.escape(el.value)}"]`;
+    if (el.matches && el.matches("#cfg-lamp [data-la-part]")) return `#cfg-lamp [data-la-part="${CSS.escape(el.getAttribute("data-la-part"))}"]`;
     const d = el.dataset || {};
-    const keys = ["part", "i", "shape", "color", "cat", "use", "preset", "pkg", "remove", "edisiOrder", "edisiEdit"].filter((k) => d[k] != null);
+    const keys = ["part", "i", "shape", "color", "slot", "cat", "use", "preset", "pkg", "remove", "edisiOrder", "edisiEdit"].filter((k) => d[k] != null);
     if (!keys.length) return null;
     const attr = (k) => "data-" + k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
     return el.tagName.toLowerCase() + keys.map((k) => `[${attr(k)}="${CSS.escape(d[k])}"]`).join("");
@@ -488,9 +598,13 @@
   }
   // Semua perubahan rakitan lewat sini: render, simpan, siarkan
   function renderAll(reason) {
+    cancelLate();
     keepFocus(() => {
       renderControls();
+      syncTabs();
+      syncPresets();
       renderSummary();
+      renderRincian();
       renderPreview();
     });
     // #edisi menampilkan edisi yang sama dengan rakitan selama rakitan berupa edisi (preset dari studio, tautan, pulihan)
@@ -499,7 +613,33 @@
     persist();
     return emit(reason);
   }
-
+  // Jalur cepat ketukan #rakit (gerbang frekuensi): tanda + harga + siaran sekarang; lampu sesudah cat berikutnya,
+  // lalu rincian, spesifikasi #cara, #edisi, dan simpan di tugas berikutnya lagi. Ketukan baru membatalkan yang tertunda.
+  let lateRaf = 0, lateT = 0, late2 = 0;
+  function cancelLate() { cancelAnimationFrame(lateRaf); clearTimeout(lateT); clearTimeout(late2); lateRaf = lateT = late2 = 0; }
+  function quick(reason) {
+    syncControls();
+    syncTabs();
+    syncPresets();
+    quickSummary();
+    const det = emit(reason);
+    cancelLate();
+    lateRaf = requestAnimationFrame(() => {
+      lateT = setTimeout(() => {
+        lateT = 0;
+        keepFocus(renderStudio);
+        late2 = setTimeout(() => {
+          late2 = 0;
+          keepFocus(renderRincian);
+          renderSpec();
+          const pi = presetIndex(state);
+          if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); }
+          persist();
+        }, 0);
+      }, 0);
+    });
+    return det;
+  }
   // Hero: rig malam lamp-art varian "hero" (desktop 588 × 735) / "hero-hp" (HP 390 × 440).
   // Lampu selalu dirender dengan lapisan nyala; nyala/mati/redup lewat --dim panggung (transisi 600 ms),
   // jadi SVG hanya dirender ulang bila edisi atau varian berubah.
@@ -552,19 +692,6 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeroH1);
   let fitT = 0;
   addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(fitHeroH1, 150); });
-  function renderPresets() {
-    const el = $("#presets");
-    if (!el) return;
-    el.innerHTML =
-      "<p>Mulai dari salah satu edisi:</p><div class=\"presets__row\">" +
-      D()
-        .presets.map((p, i) => {
-          const n = p.body.length + 2;
-          const pr = price(Object.assign(sanitize(clone(p)), { wiring: true, led: false }));
-          return `<button class="preset" type="button" data-preset="${i}">${A.renderLamp(sanitize(clone(p)), { uid: "pr" + i, on: true, dim: 0.7, table: false, vb: "50 60 220 400" })}<b>${esc(p.name)}</b><small>${n} bagian · ${esc((D().packages[n] || {}).name || "")}</small><span class="preset__price num">${rp(pr.total)}</span></button>`;
-        })
-        .join("") + "</div>";
-  }
   /* ---------- 05 #paket ----------
      Desktop (≥ 1024): tabel 3 kolom hairline. HP/tablet: segmented dua baris berharga + satu panel.
      Siluet skala nyata 4 px/cm (HP 3 px/cm) dari angka cm terbesar di packages[n].cm, pada garis dasar bersama.
@@ -1007,12 +1134,19 @@
     return p;
   }
   document.addEventListener("click", (e) => {
+    // Bagian SVG di panggung studio (kap, badan, alas): membuka tab bagiannya
+    const g = e.target.closest && e.target.closest("#cfg-lamp [data-la-part]");
+    if (g) return selectTab(g.getAttribute("data-la-part"));
     const t = e.target.closest && e.target.closest("button, a");
     if (!t) return;
     const d = t.dataset;
     const D_ = D();
     if (t.id === "hero-switch") { hero.on = !hero.on; heroWoke = true; const hs = $("#hero-stage"); if (hs) hs.classList.remove("is-waking"); return renderHero(); }
-    if (t.id === "cfg-switch") { state.on = !state.on; renderPreview(); return emit("switch"); }
+    // Saklar panggung: hanya --dim (momen cahaya 4, 600 ms); lampu tidak dirender ulang
+    if (t.id === "cfg-switch") { state.on = !state.on; renderStudioLight(); return emit("switch"); }
+    if (d.tab != null && t.closest("#studio-tabs")) return selectTab(d.tab);
+    if (d.slot != null) { ui.slot = +d.slot; return keepFocus(renderControls); }
+    if (t.getAttribute("aria-disabled") === "true") return;
     if (d.pkgView != null) return viewPackage(+d.pkgView);
     if (t.closest("#rakit, #paket, #bagian")) touched = true;
     if (t.id === "share-link") {
@@ -1034,34 +1168,35 @@
       if (waOrder) return;
       // Tautan #rakit menggulir sendiri (dan memindahkan titik fokus); tombol digulirkan dari sini
       if (!(t.tagName === "A" && (t.getAttribute("href") || "").charAt(0) === "#")) scrollToEl(d.edisiOrder != null ? $("#summary") || $("#rakit") : $("#rakit"), d.edisiOrder != null ? "center" : "start");
-      const cw = $("#ctrl-wrap");
-      if (d.edisiEdit != null && cw) cw.open = true;
+      if (d.edisiEdit != null) selectTab("head");
       return toast(d.edisiOrder != null ? `Edisi ${p.name} siap dipesan` : `Edisi ${p.name} dimuat, ubah bagian mana pun`);
     }
     if (t.id === "led-switch" || t.id === "led-add") { state.led = !state.led; return renderAll("led"); }
     if (t.id === "wiring-switch") { state.wiring = state.wiring === false; return renderAll("wiring"); }
-    if (t.id === "back-preset") {
-      const p = sanitize(clone(D_.presets[D_.popularPreset] || D_.presets[0]));
-      Object.assign(state, { head: p.head, body: p.body, base: p.base });
-      renderAll("preset");
-      return toast(`Kembali ke ${p.name}`);
-    }
     if (t.id === "add-body") {
-      if (state.body.length < D_.maxBodies) state.body.push({ shape: pick(D_.bodies), color: pick(D_.colors) });
+      if (state.body.length < D_.maxBodies) { state.body.push({ shape: pick(D_.bodies), color: pick(D_.colors) }); ui.slot = state.body.length - 1; }
       return renderAll("add-body");
     }
-    if (d.remove != null) { state.body.splice(+d.remove, 1); return renderAll("remove-body"); }
-    if (t.id === "random") {
-      state.body = state.body.map(() => ({ shape: pick(D_.bodies), color: pick(D_.colors) }));
-      state.head = { shape: pick(D_.heads), color: pick(D_.shadeColors) };
-      state.base = { shape: pick(D_.bases), color: pick(D_.colors) };
-      return renderAll("random");
+    if (d.remove != null) {
+      if (state.body.length < 2) return;
+      state.body.splice(+d.remove, 1);
+      ui.slot = Math.min(+d.remove, state.body.length - 1);
+      return renderAll("remove-body");
     }
-    if (d.preset != null) {
+    // "Dari nol": tiga bagian polos (bentuk dan warna pertama di data), kit kelistrikan ya, mulai dari tab Kap
+    if (t.id === "from-scratch") {
+      const f = (list) => list.find(inStock) || list[0];
+      Object.assign(state, { head: { shape: D_.heads[0].id, color: f(D_.shadeColors).id }, body: [{ shape: D_.bodies[0].id, color: f(D_.colors).id }], base: { shape: D_.bases[0].id, color: f(D_.colors).id } });
+      ui.tab = "head"; ui.slot = 0;
+      renderAll("scratch");
+      return toast("Mulai dari nol: pilih bentuk dan warna tiap bagian");
+    }
+    // Chip edisi: jalur cepat (tanda di chip + harga sekarang, lampu sesudah cat berikutnya)
+    if (d.preset != null && t.closest("#presets")) {
       const p = sanitize(clone(D_.presets[+d.preset]));
       Object.assign(state, { head: p.head, body: p.body, base: p.base });
-      renderAll("preset");
-      return toast(`Kombinasi ${p.name} dimuat`);
+      t.setAttribute("aria-pressed", "true");
+      return quick("preset");
     }
     if (d.pkg != null) {
       const want = +d.pkg - 2;
@@ -1071,12 +1206,14 @@
       scrollToEl($("#rakit"), "start");
       return toast(`Paket ${(D_.packages[+d.pkg] || {}).name || ""} disiapkan`);
     }
+    // Ubin bentuk dan swatch: tanda terpilih dipasang di sini pada node yang diketuk (syncControls), harga ikut
     if (d.part) {
+      if (t.disabled) return;
       const target = d.part === "body" ? state.body[+d.i] : state[d.part];
       if (!target) return;
       if (d.shape) target.shape = d.shape;
       if (d.color) target.color = d.color;
-      return renderAll("part");
+      return quick("part");
     }
     if (d.cat) { catColor[d.cat.replace(":", "")] = d.color; return renderCatalog(); }
     if (d.use) {
@@ -1115,14 +1252,14 @@
     if (t.id === "zone-select") {
       touched = true;
       state.zone = t.value;
-      keepFocus(renderSummary);
+      keepFocus(renderRincian);
       persist();
       return emit("zone");
     }
     if (t.id === "gift-on") {
       touched = true;
       state.gift.on = t.checked;
-      keepFocus(renderSummary);
+      keepFocus(renderRincian);
       persist();
       emit("gift");
       if (state.gift.on) { const g = $("#gift-to"); if (g) g.focus(); }
@@ -1245,11 +1382,40 @@
     fitRaf = requestAnimationFrame(() => { fitRaf = 0; fitSvgText(); });
   }, { passive: true });
 
-  // Di layar lebar panel ubah bentuk selalu terbuka; di HP dilipat sebagai langkah opsional
-  const wide = window.matchMedia("(min-width: 901px)");
-  const syncCtrl = () => { const cw = $("#ctrl-wrap"); if (cw && wide.matches) cw.open = true; };
-  syncCtrl();
-  if (wide.addEventListener) wide.addEventListener("change", syncCtrl);
+  // Panggung studio HP: bingkai mengikuti ukuran panggung (260 / 200 / lebar layar); render ulang sekali per frame
+  if ("ResizeObserver" in window && $("#cfg-stage")) {
+    let sz = "", szRaf = 0;
+    new ResizeObserver((es) => {
+      const r = es[0].contentRect, k = STUDIO_HP.matches ? `${Math.round(r.width)}x${Math.round(r.height)}` : "wide";
+      if (k === sz) return;
+      const first = !sz;
+      sz = k;
+      if (first) return;
+      cancelAnimationFrame(szRaf);
+      szRaf = requestAnimationFrame(() => keepFocus(renderStudio));
+    }).observe($("#cfg-stage"));
+  }
+  // Tab studio (role=tablist): panah kiri/kanan + Home/End memindah pilihan dan fokus (aktivasi otomatis, seketika).
+  // Bagian SVG panggung: Enter/Spasi membuka tabnya. Selama studio dipakai lewat papan ketik, transisi dimatikan
+  // (#studio[data-input="key"], aturan 6); ketukan atau klik berikutnya mengembalikannya.
+  document.addEventListener("keydown", (e) => {
+    const studio = $("#studio");
+    if (studio && studio.contains(e.target) && e.key !== "Tab") studio.dataset.input = "key";
+    const g = e.target.closest && e.target.closest("#cfg-lamp [data-la-part]");
+    if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); return selectTab(g.getAttribute("data-la-part"), { focus: true }); }
+    const tb = e.target.closest && e.target.closest("#studio-tabs [role=tab]");
+    if (!tb) return;
+    const i = TABS.indexOf(tb.dataset.tab), k = e.key;
+    let j = -1;
+    if (k === "ArrowRight") j = (i + 1) % TABS.length;
+    else if (k === "ArrowLeft") j = (i - 1 + TABS.length) % TABS.length;
+    else if (k === "Home") j = 0;
+    else if (k === "End") j = TABS.length - 1;
+    if (j < 0) return;
+    e.preventDefault();
+    selectTab(TABS[j], { focus: true });
+  });
+  document.addEventListener("pointerdown", () => { const studio = $("#studio"); if (studio && studio.dataset.input) delete studio.dataset.input; }, true);
   function refresh() {
     sanitize(state);
     sanitize(hero.cfg);

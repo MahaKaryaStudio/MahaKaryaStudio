@@ -201,35 +201,46 @@
       </div>
     </section>
 
-    <!-- KONFIGURATOR (gelap) -->
+    <!-- 03 STUDIO RAKIT (gelap): chip edisi, panggung lengket, tab Kap/Badan/Alas/Listrik, ringkasan -->
     <section id="rakit" class="dark room-lg">
       <div class="wrap">
         <p class="eyebrow">03 · Studio rakit</p>
         <h2 class="section-title">Rakit lampumu.</h2>
         <p class="section-sub">Mulai dari salah satu edisi, lalu ubah bagian mana pun kalau mau. Harga menyesuaikan seketika; kit kelistrikan bisa ditambahkan atau dilepas.</p>
-        <div class="presets room-body" id="presets" data-dynamic></div>
-        <div class="config">
-          <div class="preview" data-studio-sticky>
+        <div class="studio room-body" id="studio">
+          <div class="studio__chips" id="presets" data-dynamic></div>
+          <div class="studio__stage" data-studio-sticky>
             <div class="stage" id="cfg-stage" style="--dim:1">
               <div class="lamp" id="cfg-lamp" data-dynamic></div>
               <span class="pill stage__pill" data-stage-pill="rakit">Ilustrasi · Rakitanmu</span>
               <div class="stage-ui">
-                <button class="switch" id="cfg-switch" role="switch" aria-checked="true"><i></i><span class="sr-only">Lampu </span>Nyala</button>
-                <span class="stage-ui__meta" id="cfg-height">≈ — cm</span>
+                <button class="switch" id="cfg-switch" type="button" role="switch" aria-checked="true"><i></i><span class="sr-only">Lampu </span>Nyala</button>
+                <span class="stage-ui__meta" id="cfg-height" data-dynamic>≈ — cm</span>
               </div>
             </div>
-            <div class="pstrip" id="parts-strip" data-dynamic aria-label="Bagian yang dipilih"></div>
-            <div class="summary" id="summary" data-dynamic></div>
-            <ul class="trust trust--summary">
-              <li>Bayar transfer bank / QRIS setelah konfirmasi</li>
-              <li>Garansi 30 hari untuk cacat cetak</li>
-              <li>Foto rakitan dikirim sebelum paket berangkat</li>
-            </ul>
           </div>
-          <details class="ctrl-wrap" id="ctrl-wrap">
-            <summary class="ctrl-toggle"><span>Ubah bentuk &amp; warna sendiri</span><small>Langkah opsional. Edisi pilihan sudah dimuat.</small></summary>
-            <div class="controls" id="controls" data-dynamic></div>
-          </details>
+          <div class="tabs studio__tabs" id="studio-tabs" role="tablist" aria-label="Bagian lampu" data-studio-sticky>
+            <button class="tab" type="button" role="tab" id="tab-head" data-tab="head" aria-controls="controls" aria-selected="true">Kap</button>
+            <button class="tab" type="button" role="tab" id="tab-body" data-tab="body" aria-controls="controls" aria-selected="false" tabindex="-1">Badan <span class="tab__n" data-tab-n></span></button>
+            <button class="tab" type="button" role="tab" id="tab-base" data-tab="base" aria-controls="controls" aria-selected="false" tabindex="-1">Alas</button>
+            <button class="tab" type="button" role="tab" id="tab-power" data-tab="power" aria-controls="controls" aria-selected="false" tabindex="-1">Listrik</button>
+          </div>
+          <div class="studio__panel" id="controls" role="tabpanel" aria-labelledby="tab-head" data-dynamic></div>
+          <div class="studio__sum">
+            <div class="sum" id="summary" data-dynamic></div>
+            <details class="rincian" id="rincian">
+              <summary>Rincian harga dan pengiriman</summary>
+              <div class="rincian__body" id="rincian-body" data-dynamic></div>
+            </details>
+            <div class="janji" id="janji">
+              <h3 class="janji__title">Janji kami</h3>
+              <ul class="janji__list">
+                <li>Foto rakitan dikirim sebelum paket berangkat</li>
+                <li>Garansi 30 hari untuk cacat cetak</li>
+                <li>Semua bagian dijual satuan dan tinggal diputar ke ulir yang sama</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>

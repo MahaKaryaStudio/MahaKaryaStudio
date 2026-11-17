@@ -11,15 +11,16 @@
  *     | mini (#alur–#faq: ringkasan rakitan + WA "Pesan")
  *   - WA "Pesan" di ringkasan disembunyikan selama tombol berisi lain terlihat        → .nav--quiet
  *     (maksimal satu tombol berisi per viewport)
- *   - html.in-studio: HP, saat blok [data-studio-sticky] di #rakit sudah mencapai tepi atas dan #rakit masih
- *     di layar → nav disembunyikan penuh (tidak ada celah di atas panggung, nav tidak menutupinya)
+ *   - html.in-studio: <= 1023, saat panggung lengket [data-studio-sticky] #rakit mencapai area nav dan belum dilepas
+ *     ujung studio → nav disembunyikan penuh (tidak ada celah di atas panggung, nav tidak menutupinya)
  *  Tombol berisi: satu IntersectionObserver menyempitkan kandidat ke tombol berisi di dalam layar; per frame hanya
  *   kandidat itu yang diperiksa (visibility, dialog, batas atas). Daftar disegarkan saat DOM berubah.
  *  Menu HP: <dialog id="menu"> layar penuh; Escape / tombol tutup menutup, fokus kembali ke tombol menu.
  *  Orderbar HP (#orderbar, elemen terakhir di DOM):
  *   - isi dari event "mks:change" (nama · jumlah bagian, harga, chip delta, tautan WA)
  *   - tampil dari #edisi sampai .final masuk layar; disembunyikan selama tombol berisi lain terlihat
- *     dan selama <dialog> terbuka; selalu tampil di dalam #rakit            → #orderbar.is-on, html.has-orderbar
+ *     dan selama <dialog> terbuka; di #rakit tampil begitu WA ringkasan keluar layar atau tertutup panggung
+ *     dan tab yang lengket                                                   → #orderbar.is-on, html.has-orderbar
  */
 (function () {
   const html = document.documentElement;
@@ -46,6 +47,8 @@
   const float = nav.classList.contains("nav--float");
   const mq = (q) => (window.matchMedia ? window.matchMedia(q) : { matches: false, addEventListener() {} });
   const HP = mq("(max-width: 900px)");
+  // Studio rakit memakai tata letak HP sampai 1023 (breakpoint adendum 760/1024)
+  const STUDIO = mq("(max-width: 1023px)");
   const onChange = (m, fn) => (m.addEventListener ? m.addEventListener("change", fn) : m.addListener && m.addListener(fn));
 
   /* ---------- Menu HP: <dialog> layar penuh ---------- */
@@ -91,6 +94,7 @@
   }
   if (menuBtn) menuBtn.addEventListener("click", openMenu);
   onChange(HP, () => { if (!HP.matches) closeMenu(); sync(); });
+  onChange(STUDIO, () => sync());
 
   /* ---------- Gulir: sembunyi/muncul, tema, slot, tautan aktif, orderbar ---------- */
   const sections = $$("main > section, body > footer");
@@ -181,13 +185,15 @@
     else if (y < lastY - 4) hiddenByScroll = false;
     lastY = y;
 
-    // Studio rakit HP: blok sticky menempel di atas → nav disembunyikan penuh
-    let studio = false;
-    const st = HP.matches ? $("[data-studio-sticky]") : null;
-    if (st && !menuOpen) {
+    // Studio rakit HP (<= 1023): panggung lengket mencapai area nav → nav disembunyikan penuh, sampai panggung lepas
+    // (ujung studio mendorongnya ke atas). Panggung tidak lengket (tinggi layar <= 520): nav berperilaku biasa.
+    let studio = false, studioBottom = 0;
+    const st = STUDIO.matches ? $("[data-studio-sticky]") : null;
+    if (st && !menuOpen && getComputedStyle(st).position === "sticky") {
       const r = st.getBoundingClientRect();
-      const sec = (st.closest("section") || st).getBoundingClientRect();
-      studio = r.top <= h + 1 && sec.bottom > h + Math.min(r.height, vh) * 0.5;
+      const box = (st.parentElement || st).getBoundingClientRect();
+      studio = r.top <= h + 1 && r.top > -1 && box.bottom > r.bottom + 1;
+      if (studio) $$("[data-studio-sticky]").forEach((el) => { studioBottom = Math.max(studioBottom, el.getBoundingClientRect().bottom); });
     }
     if (studio !== state.studio) { state.studio = studio; html.classList.toggle("in-studio", studio); }
     const off = (hiddenByScroll || studio) && !focusIn && !menuOpen;
@@ -223,13 +229,12 @@
     if (bar && barReady) {
       let on = false;
       if (HP.matches) {
-        const ed = $("#edisi"), fin = $(".final"), rk = $("#rakit");
+        const ed = $("#edisi"), fin = $(".final");
         const started = ed ? ed.getBoundingClientRect().top <= vh * 0.5 : y > vh;
         const ended = fin ? fin.getBoundingClientRect().top < vh : false;
-        let inRakit = false;
-        if (rk) { const r = rk.getBoundingClientRect(); inRakit = r.top <= vh * 0.5 && r.bottom > vh * 0.5; }
+        // Di #rakit orderbar tampil begitu WA ringkasan keluar layar (atau tertutup panggung + tab yang lengket)
         const dlgOpen = !!document.querySelector("dialog[open]");
-        on = started && !ended && !dlgOpen && (inRakit || !filledInView(0));
+        on = started && !ended && !dlgOpen && !filledInView(studioBottom);
       }
       setOrderbar(on);
     }
