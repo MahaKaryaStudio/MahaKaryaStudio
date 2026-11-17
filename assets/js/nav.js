@@ -46,7 +46,7 @@
   if (!nav) return;
   const float = nav.classList.contains("nav--float");
   const mq = (q) => (window.matchMedia ? window.matchMedia(q) : { matches: false, addEventListener() {} });
-  const HP = mq("(max-width: 900px)");
+  const HP = mq("(max-width: 1023px)");
   // Studio rakit memakai tata letak HP sampai 1023 (breakpoint adendum 760/1024)
   const STUDIO = mq("(max-width: 1023px)");
   // Panggung lengket hanya bila tinggi layar > 520 (lamp.css); dibaca dari media query, bukan gaya terhitung per frame

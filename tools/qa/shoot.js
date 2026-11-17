@@ -3,12 +3,13 @@
 //   --sel  : screenshot per elemen (digulir ke tampilan dulu, maks tinggi 2400 px)
 //   --view : screenshot viewport pada posisi scrollY tertentu
 //   --full : screenshot halaman penuh (dikecilkan otomatis bila sangat tinggi)
-// Viewport: desktop 1440x900, laptop 1366x768, hp 390x844 (innerHeight nyata ±664 diabaikan), hp360 360x740, hpshort 390x664.
+// Viewport: desktop 1440x900, laptop 1366x768, hp 390x844 (innerHeight nyata ±664 diabaikan), hp360 360x740, hpshort 390x664, hp320 320x640;
+// tablet (breakpoint 760/1024): t820 820x1180, t880 880x900 (sentuh), t1000 1000x800, t1024 1024x768.
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const [base, outDir, ...rest] = process.argv.slice(2);
 const opt = Object.fromEntries(rest.map((a) => { const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true]; }));
-const VPS = { desktop: [1440, 900, false], laptop: [1366, 768, false], hp: [390, 844, true], hp360: [360, 740, true], hpshort: [390, 664, true] };
+const VPS = { desktop: [1440, 900, false], laptop: [1366, 768, false], hp: [390, 844, true], hp360: [360, 740, true], hpshort: [390, 664, true], hp320: [320, 640, true], t820: [820, 1180, true], t880: [880, 900, true], t1000: [1000, 800, false], t1024: [1024, 768, false] };
 (async () => {
   fs.mkdirSync(outDir, { recursive: true });
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });

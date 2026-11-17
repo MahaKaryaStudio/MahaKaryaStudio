@@ -137,7 +137,7 @@ html.motion-off .price-delta.orderbar__delta.is-instant { transition: none; }
 .menu-sheet__close { display: grid; gap: 0; }
 .menu-sheet__close i { grid-area: 1 / 1; transform: rotate(45deg); }
 .menu-sheet__close i + i { transform: rotate(-45deg); }
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .nav--float .nav__inner { display: flex; justify-content: space-between; gap: 12px; }
   .nav--float .nav__links,
   .nav--float .nav__slot { display: none; }

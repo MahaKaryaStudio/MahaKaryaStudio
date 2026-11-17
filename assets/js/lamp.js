@@ -1007,7 +1007,7 @@
      (motion.js memberi .is-on pada lampu yang tampil): 0 siluet lampu "satu bentuk" (--ink-2, mati) · 1 dan 2 dua edisi
      lain (redup, --dim .35: bagian berganti bentuk dan warna) · 3 edisi pilihan studio menyala.
      Tanpa pin (gerak dikurangi) hanya lapisan 3 yang tampil, menyala penuh. */
-  const storyNarrow = window.matchMedia ? window.matchMedia("(max-width: 699px)") : { matches: false };
+  const storyNarrow = window.matchMedia ? window.matchMedia("(max-width: 760px)") : { matches: false };
   function renderStory() {
     const host = $("#story-art");
     if (!host) return;

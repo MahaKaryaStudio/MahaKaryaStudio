@@ -213,8 +213,8 @@ html.motion-off .lhero__media { display: none !important; }
 .story--pin .story__lamp[data-k="3"] :is([data-la-lit], [data-la-off]) { transition-delay: var(--t-follow); }
 .story--pin .story__pill:not(.is-ed) .story__pill-ed { display: none; }
 
-@media (max-width: 699px) {
-  /* HP bertumpuk: scene 350 × 260 di atas, kalimat 40 berjarak 40 */
+@media (max-width: 760px) {
+  /* HP bertumpuk (761–1023 memakai tata letak dua kolom: di 1000 versi bertumpuk tampak kosong; pengecualian breakpoint koleksi-qa): scene 350 × 260 di atas, kalimat 40 berjarak 40 */
   .story__pin { grid-template-columns: minmax(0, 1fr); row-gap: 40px; padding-inline: var(--page-margin); }
   .story__scene { grid-column: 1; grid-row: 1; position: relative; top: auto; justify-self: center; width: min(100%, 350px); aspect-ratio: 350 / 260; }
   .story__text { grid-column: 1; grid-row: 2; row-gap: 40px; }
@@ -658,7 +658,7 @@ html.motion-off .tile:active { transform: none; }
    72 + safe-area, dua baris teks ("KEBUN · 5 BAGIAN" mono 12 + harga Fraunces 24) + chip delta + WA "Pesan".
    Tersembunyi: translateY(100%) + visibility hidden (tidak bisa difokus). Gerak dikurangi: opasitas saja. */
 .orderbar { display: none; }
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .orderbar {
     position: fixed;
     left: 0;
@@ -984,6 +984,6 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
 @media (hover: hover) and (pointer: fine) { .copy:hover { color: var(--dark-fg); box-shadow: inset 0 0 0 1px var(--dark-fg); } }
 .copy:active { background: var(--press-bg, var(--dark-bg-4)); color: var(--dark-fg); transition-duration: var(--t-press); }
 
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .stage:not(.stage--hero):not(.stage--vitrine) { aspect-ratio: 4 / 4.4; }
 }
