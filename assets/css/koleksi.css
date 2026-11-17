@@ -209,3 +209,9 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
   .modal__art svg { max-height: 240px; }
   .modal__info { padding: 22px; }
 }
+
+/* Sasaran sentuh 44 (C9): logo nav, chip saring, tombol keranjang tidak menyusut, tautan custom di modal */
+.nav:not(.nav--float) .logo { min-height: 44px; }
+.filters .chip { min-height: 44px; }
+.cart-btn { flex: none; }
+.modal__info .link { display: inline-flex; align-items: center; min-height: 44px; }
