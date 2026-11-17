@@ -251,12 +251,20 @@
     name: $("[data-nav-name]"), price: $("[data-nav-price]"), delta: $("[data-nav-delta]"), pesan: $(".nav__pesan"),
   };
   let lastTotal = null;
+  // Perubahan dari papan ketik (panah di indeks edisi, tab, segmented) tidak dianimasikan (adendum §4 aturan 6):
+  // change dari tombol terjadi tepat setelah keydown/keyup-nya; ketukan atau klik mengakhiri jendela itu.
+  let keyAt = -1e9;
+  const markKey = (e) => { if (e.key !== "Tab") keyAt = performance.now(); };
+  document.addEventListener("keydown", markKey, true);
+  document.addEventListener("keyup", markKey, true);
+  document.addEventListener("pointerdown", () => { keyAt = -1e9; }, true);
+  const fromKey = () => performance.now() - keyAt < 150;
   // Harga berganti di node yang sama: crossfade 200 ms (opasitas saja, aman untuk gerak dikurangi)
   function swap(el, h) {
     if (!el || el.innerHTML === h) return;
     const first = !el.innerHTML;
     el.innerHTML = h;
-    if (!first && el.animate) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+    if (!first && !fromKey() && el.animate) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
   }
   function setText(el, t) { if (el && el.textContent !== t) el.textContent = t; }
   function showDelta(el, d) {

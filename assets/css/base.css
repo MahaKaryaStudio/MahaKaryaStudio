@@ -824,12 +824,14 @@ html.has-orderbar .toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px))
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
   .btn:active { transform: none; }
+  .btn { transition-property: background-color, color, box-shadow; } /* skala tekan mati: transisi transform 100 ms ikut dilepas (C10 reduce) */
   .swatch:hover { transform: none !important; }
   .toast, .toast.show, .toast.is-on { transform: translateX(-50%); transition: opacity 150ms linear; }
 }
 html.motion-off { --t-fast: 0ms; --t-med: 150ms; --t-slow: 150ms; scroll-behavior: auto; }
 html.motion-off *, html.motion-off *::before, html.motion-off *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
 html.motion-off .btn:active { transform: none; }
+html.motion-off .btn { transition-property: background-color, color, box-shadow; }
 html.motion-off .swatch:hover { transform: none; }
 html.motion-off .toast,
 html.motion-off .toast.show,

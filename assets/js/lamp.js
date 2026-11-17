@@ -870,10 +870,18 @@
     nodes.forEach((n) => { if (n && n.animate && !n.hidden) { n.getAnimations().forEach((x) => x.cancel()); n.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: ease }); } });
   }
   // Ketukan/klik vs papan ketik: change dari panah atau spasi pada radio edisi terjadi tepat setelah keydown/keyup-nya
+  // (aturan 6: tanpa animasi). Selama indeks dipakai lewat papan ketik, transisi warna barisnya juga dimatikan
+  // (data-input="key" di .edisi__list); ketukan atau klik berikutnya mengembalikannya.
   let edKeyAt = -1e9;
-  const edKey = (e) => { if (e.target && e.target.name === "edisi") edKeyAt = e.timeStamp; };
+  const edKey = (e) => {
+    if (!e.target || e.target.name !== "edisi") return;
+    edKeyAt = e.timeStamp;
+    const list = e.target.closest(".edisi__list");
+    if (list) list.setAttribute("data-input", "key");
+  };
   document.addEventListener("keydown", edKey, true);
   document.addEventListener("keyup", edKey, true);
+  document.addEventListener("pointerdown", (e) => { edKeyAt = -1e9; const list = e.target.closest && e.target.closest(".edisi__list"); if (list) list.removeAttribute("data-input"); }, true);
   // Pilih edisi di indeks. Selama rakitan masih berupa edisi (belum diubah bagiannya), rakitan ikut berganti supaya
   // studio rakit, orderbar, dan ringkasan nav menunjuk edisi yang sama; rakitan custom tidak pernah ditimpa di sini.
   function selectEdition(i, ev) {

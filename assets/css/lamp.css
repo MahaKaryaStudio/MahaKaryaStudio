@@ -351,6 +351,7 @@ html.motion-off .lhero__media { display: none !important; }
 .edisi__opt.is-on::before { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 2px; background: var(--ink); }
 .edisi__opt.is-on .edisi__name { font-style: italic; }
 .edisi__opt.is-on .edisi__ind { background: var(--amber); box-shadow: 0 0 10px rgba(242, 163, 58, 0.6); }
+.edisi__list[data-input="key"] :is(.edisi__opt, .edisi__ind) { transition: none; } /* panah/spasi: ganti seketika (lamp.js) */
 .edisi__opt:has(input:focus-visible) { outline: 2px solid var(--ring-c); outline-offset: 2px; border-radius: var(--r-tile); z-index: 1; }
 @media (hover: hover) { .edisi__opt:not(.is-on):hover { background: var(--paper-2); } }
 .edisi__opt:not(.is-on):active { background: var(--paper-3); }
