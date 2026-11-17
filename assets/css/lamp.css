@@ -691,21 +691,37 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
 /* Chip delta: menumpang tepi atas bar (tidak bertabrakan dengan toast di 88 px), latar padat agar terbaca di seksi mana pun */
 .orderbar__delta { position: absolute; left: var(--page-margin); top: -12px; background: color-mix(in srgb, var(--amber) 24%, var(--dark-bg)); box-shadow: inset 0 0 0 1px rgba(242, 163, 58, 0.5); color: var(--dark-fg); }
 
-/* ---------- 04 #alur (seksi .dark-2) ---------- */
-.alur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.phone { background: var(--dark-bg); color: var(--dark-fg); border-radius: var(--r-tile); padding: 16px; display: grid; gap: 12px; align-content: start; }
-.phone header { display: grid; grid-template-columns: 36px 1fr; gap: 4px 12px; align-items: center; }
-.phone__step { grid-row: span 2; width: 36px; height: 36px; border-radius: 50%; background: var(--dark-bg-4); color: var(--dark-fg); font: 400 18px/1 var(--serif); display: grid; place-items: center; }
-.phone header b { font-size: var(--fs-ui); font-weight: 500; }
-.phone header small { color: var(--dark-muted); font-size: 12px; }
-.phone__chat { background: var(--dark-bg-2); border-radius: var(--r-tile); padding: 12px; display: grid; gap: 8px; min-height: 240px; }
-.bub { margin: 0; max-width: 92%; background: var(--dark-bg-3); border-radius: 16px 16px 16px 4px; padding: 12px 16px; font-size: 15px; line-height: 1.5; }
-.bub--you { justify-self: end; background: var(--dark-bg-4); border-radius: 16px 16px 4px 16px; }
-.bub--img { position: relative; aspect-ratio: 3 / 4; max-width: 60%; padding: 0; overflow: hidden; background: var(--stage-thumb); }
+/* ---------- 04 #alur (seksi .dark-2): simulasi tiga pesan ----------
+   ≥ 1024: tiga kolom tanpa bingkai ponsel, dipisah hairline di gutter; kepala kolom (label mono tanpa durasi) + H3 28;
+   gelembung masuk --dark-bg-3, keluar --dark-bg-4, 16 px. ≤ 1023: karusel scroll-snap asli (kartu ≤ 300 dengan intip
+   kartu berikutnya, wadah bisa difokus, titik indikator). Label "Simulasi alur pesan" di kepala seksi. */
+.alur__sim { margin: 0; color: var(--dark-fg-2); }
+.alur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 64px; }
+.alur__col { position: relative; display: grid; grid-template-rows: auto 1fr; gap: 24px; align-content: start; min-width: 0; }
+.alur__col + .alur__col::before { content: ""; position: absolute; top: 0; bottom: 0; left: -32.5px; width: 1px; background: var(--hairline); }
+.alur__head .label { margin: 0 0 12px; }
+.alur__head h3 { margin: 0; }
+.alur__chat { display: grid; gap: 8px; align-content: start; }
+.bub { justify-self: start; max-width: 92%; margin: 0; padding: 12px 16px; border-radius: 16px 16px 16px 4px; background: var(--dark-bg-3); color: var(--dark-fg); font-size: 16px; line-height: 1.5; }
+.bub--you { justify-self: end; border-radius: 16px 16px 4px 16px; background: var(--dark-bg-4); }
+.bub__code { overflow-wrap: normal; }
+.bub--img { position: relative; width: 200px; height: 250px; max-width: 100%; padding: 0; overflow: hidden; background: var(--stage-thumb); }
 .bub--img svg { width: 100%; height: 100%; display: block; }
 .bub--img .pill { position: absolute; left: 8px; bottom: 8px; }
-.alur__note { margin: 24px 0 0; font-size: var(--fs-small); color: var(--fg-2); }
-@media (max-width: 860px) { .alur { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: thin; } .phone { scroll-snap-align: start; } }
+.alur__dots { display: none; }
+.alur__note { margin: 40px 0 0; font-size: var(--fs-small); color: var(--fg-2); }
+@media (max-width: 1023px) {
+  .alur { display: flex; gap: 12px; margin-inline: calc(-1 * var(--page-margin)); padding: 0 var(--page-margin) 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--page-margin); scrollbar-width: none; }
+  .alur::-webkit-scrollbar { display: none; }
+  .alur:focus-visible { outline-offset: -2px; }
+  .alur__col { flex: none; width: min(300px, 100vw - 72px); gap: 20px; padding: 20px 16px; border-radius: var(--r-tile); box-shadow: inset 0 0 0 1px var(--hairline); scroll-snap-align: start; }
+  .alur__col + .alur__col::before { display: none; }
+  .bub--img { width: 160px; height: 200px; }
+  .alur__dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+  .alur__dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--dark-line-strong); transition: background-color var(--t-fast) var(--ease-out); }
+  .alur__dots i.is-on { background: var(--dark-fg); }
+  .alur__note { margin-top: 24px; }
+}
 
 /* ---------- 05 #paket (ruang 05, paper) ----------
    ≥ 1024: tabel 3 kolom hairline (kolom pilihan studio = paper-2, radius 16, tombol primer tinta).
@@ -794,44 +810,87 @@ html.motion-off .orderbar.is-on { opacity: 1; transition: opacity 150ms linear, 
   .paket__hp, .paket__note-hp, .paket__incl { max-width: 640px; }
 }
 
-/* ---------- 06 #bagian ---------- */
-/* K4: baris label setelah lead (data-dynamic-text: tidak bisa disunting di Mode Edit) */
+/* ---------- 06 #bagian (paper-2): katalog ubin + lembar bagian ----------
+   Chip saring (angka dari data) → grid ubin <button> (≥ 1024 enam kolom ±180; ≤ 1023 dua kolom, wadah maks 720):
+   gambar 1:1 di kertas, ikon "+", jenis, nama, harga. Angkat hover hanya pointer halus; tekan = latar --press-bg pada
+   gambar + skala. Ubin membuka <dialog class="psheet"> (modal 440 di desktop, lembar bawah di HP). */
 .bagian__il { margin: 0; }
-.pcat { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.pcard { background: var(--surface-1); border-radius: var(--r-tile); padding: 16px; display: grid; gap: 12px; grid-template-rows: auto auto auto 1fr auto; }
-.pcard .fig { position: relative; border-radius: var(--r-control); background: var(--stage-thumb); aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; }
-.pcard .fig svg, .pcard .fig img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.pcard .fig--photo { background: var(--paper-2); }
+.pcat__filter { margin-bottom: 32px; }
+.pcat__grid { list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 40px var(--grid-gap); margin: 0; padding: 0; }
+.ptile { display: grid; justify-items: start; gap: 4px; width: 100%; padding: 0; border: 0; border-radius: var(--r-tile); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform var(--t-fast) var(--ease-out); }
+.ptile__fig { position: relative; display: block; width: 100%; aspect-ratio: 1; margin-bottom: 12px; overflow: hidden; border-radius: var(--r-tile); background: var(--paper); transition: background-color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out); }
+.ptile__fig svg { position: absolute; inset: 14%; width: 72%; height: 72%; }
+.ptile__fig--photo img { width: 100%; height: 100%; object-fit: cover; }
+.ptile__plus { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.ptile__plus::before,
+.ptile__plus::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 1.5px; margin: -0.75px 0 0 -6px; background: var(--ink); }
+.ptile__plus::after { transform: rotate(90deg); }
+.ptile__kind { font: 500 var(--fs-label) / 1.3 var(--mono); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink-2); }
+.ptile__name { font: 500 var(--fs-body) / 1.3 var(--sans); color: var(--ink); }
+.ptile__price { font: 400 var(--fs-mono-price) / 1.4 var(--mono); color: var(--ink-2); }
 .fig__tag { position: absolute; top: 8px; left: 8px; font: 500 12px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; background: var(--scrim); color: var(--dark-fg-2); padding: 6px 10px; border-radius: 999px; }
-.pcard .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.pcard .meta h3 { font-size: 20px; margin: 0; }
-.pcard .meta small { font: 500 12px/1 var(--mono); color: var(--fg-2); letter-spacing: 0.14em; text-transform: uppercase; }
-.pcard .price { font: 400 14px/1.4 var(--mono); color: var(--fg-2); }
-.pcard .price b { color: var(--fg); font-weight: 500; }
-/* Swatch kecil dan tombol "Pakai di rakitan" katalog: aturan v2 dipulihkan apa adanya sampai langkah alur-bagian
-   membangun ulang #bagian (studio #rakit memakai .swatch dan .btn). */
-.pcard .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
-.pcard .sw { border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--swatch-ring); }
-.pcard .sw::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid transparent; transition: border-color var(--t-fast); }
-.pcard .sw[aria-pressed="true"]::after { border-color: var(--sel); }
-.pcard .sw:focus-visible { outline: 2px solid var(--sel); outline-offset: 5px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--swatch-ring); }
-.pcard .sw span { position: absolute; left: -9999px; }
-.pcard .sw--out { opacity: 0.4; cursor: not-allowed; }
-.pcard .sw--out::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1.5px; background: currentColor; transform: rotate(45deg); }
-.pcard .ghost { background: transparent; border: 0; border-radius: 999px; padding: 0 16px; font-size: var(--fs-small); display: inline-flex; gap: 8px; align-items: center; justify-content: center; }
-.pcard .sw { width: 24px; height: 24px; }
-.pcard .sw::after { inset: -4px; }
-.pcard .ghost { box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); width: 100%; min-height: 44px; }
-.pcard .ghost:hover { background: var(--ink); color: var(--paper); }
+@media (hover: hover) and (pointer: fine) {
+  .ptile:hover { transform: translateY(-2px); }
+  .ptile:hover .ptile__fig { box-shadow: var(--shadow-lift); }
+}
+.ptile:active { transform: scale(var(--press-scale)); transition-duration: var(--t-press); }
+.ptile:active .ptile__fig { background: var(--press-bg); transition-duration: var(--t-press); }
+/* Dua sel penutup: hairline atas, tanpa kartu */
+.bagian__more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; margin-top: 72px; }
 .havebase,
-.bulk { margin-top: 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; background: var(--surface-1); border-radius: var(--r-tile); padding: 24px 28px; }
+.bulk { display: grid; align-content: start; justify-items: start; gap: 20px; padding-top: 24px; border-top: 1px solid var(--line); }
 .havebase h3,
-.bulk h3 { margin-bottom: 4px; }
+.bulk h3 { margin: 0 0 8px; }
 .havebase p,
-.bulk p { color: var(--fg-2); margin: 0; max-width: 560px; }
-@media (max-width: 1000px) { .pcat { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .pcat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 420px) { .pcat { grid-template-columns: 1fr; } }
+.bulk p { margin: 0; color: var(--ink-2); max-width: 46ch; }
+@media (max-width: 1023px) {
+  .pcat { max-width: 720px; }
+  .pcat__filter { margin-bottom: 20px; }
+  .pcat__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+  .ptile { gap: 2px; }
+  .ptile__fig { margin-bottom: 8px; }
+  .bagian__more { grid-template-columns: none; row-gap: 24px; max-width: 720px; margin-top: 40px; }
+  .havebase, .bulk { gap: 16px; }
+}
+
+/* Lembar bagian: <dialog class="psheet paper"> (lamp.js renderSheet). Masuk --t-med, keluar --t-fast (.is-closing). */
+.psheet { width: min(440px, 100% - 32px); max-width: none; max-height: min(760px, 100% - 48px); padding: 0; border: 0; border-radius: var(--r-tile); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-float); overflow-y: auto; overscroll-behavior: contain; }
+.psheet[open] { animation: psheet-in var(--t-med) var(--ease-out); }
+.psheet::backdrop { background: var(--scrim-soft); }
+.psheet[open]::backdrop { animation: psheet-fade var(--t-med) var(--ease-out); }
+.psheet.is-closing { opacity: 0; transform: translateY(16px); transition: opacity var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out); }
+.psheet.is-closing::backdrop { opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
+@keyframes psheet-in { from { opacity: 0; transform: translateY(16px); } }
+@keyframes psheet-fade { from { opacity: 0; } }
+.psheet__in { display: grid; gap: 20px; padding: 24px; }
+.psheet__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.psheet__kind { margin: 0 0 8px; }
+.psheet__title { margin: 0; }
+.psheet__close { position: relative; display: grid; place-content: center; flex: none; width: 44px; height: 44px; margin: -10px -10px 0 0; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color var(--t-fast) var(--ease-out); }
+.psheet__close i { grid-area: 1 / 1; display: block; width: 18px; height: 1.5px; border-radius: 1px; background: currentColor; transform: rotate(45deg); }
+.psheet__close i + i { transform: rotate(-45deg); }
+@media (hover: hover) and (pointer: fine) { .psheet__close:hover { background: var(--chip-hover); } }
+.psheet__close:active { background: var(--press-bg); transition-duration: var(--t-press); }
+.psheet__fig { position: relative; height: 200px; border-radius: var(--r-tile); background: var(--paper-2); }
+.psheet__fig svg { position: absolute; inset: 20px; width: calc(100% - 40px); height: calc(100% - 40px); }
+.psheet__fig--photo img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.psheet__fig .pill { position: absolute; left: 12px; bottom: 12px; }
+.psheet__price { margin: 0; font: 400 var(--fs-mono-price) / 1.4 var(--mono); color: var(--ink-2); }
+.psheet__price b { font-weight: 500; color: var(--ink); }
+.psheet__grp { display: grid; gap: 12px; }
+.psheet__sw { gap: 8px; }
+.psheet__sw .swatch::before { content: ""; position: absolute; inset: -2px; } /* area tekan persegi >= 44 × 44 */
+.psheet .chip--line { box-shadow: inset 0 0 0 1px var(--line-strong); }
+.psheet .chip--line[aria-pressed="true"] { box-shadow: none; }
+.psheet__act { display: grid; gap: 12px; }
+@media (max-width: 1023px) {
+  .psheet { width: min(100%, 720px); max-height: calc(100% - 24px); margin: auto auto 0; border-radius: var(--r-tile) var(--r-tile) 0 0; }
+  .psheet__in { padding: 20px var(--page-margin) calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .psheet__fig { height: 160px; }
+}
+@media (prefers-reduced-motion: reduce) { .ptile:active { transform: none; } @media (hover: hover) and (pointer: fine) { .ptile:hover { transform: none; } } }
+html.motion-off .ptile:active { transform: none; }
+@media (hover: hover) and (pointer: fine) { html.motion-off .ptile:hover { transform: none; } }
 
 /* ---------- 07 #cara (garis waktu) + spesifikasi ---------- */
 .how { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(24px, 5vw, 64px); align-items: start; }

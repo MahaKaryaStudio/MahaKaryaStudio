@@ -354,11 +354,6 @@
     `<div class="swatches-row studio__sw" role="group" aria-label="${esc(label)}">${list
       .map((c) => `<button class="swatch${inStock(c) ? "" : " swatch--out"}" type="button" aria-pressed="${c.id === current}" aria-label="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="--sw:${c.hex}" ${attr} data-color="${c.id}" data-name="${esc(c.name)}" ${inStock(c) ? "" : "disabled"}></button>`)
       .join("")}</div>`;
-  // Katalog #bagian: swatch kecil v2 (.sw 24) sampai langkah alur-bagian membangun ulang seksi itu
-  const catSwatchesHtml = (list, current, attr) =>
-    `<div class="swatches">${list
-      .map((c) => `<button class="sw${inStock(c) ? "" : " sw--out"}" type="button" aria-pressed="${c.id === current}" title="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="background:${c.hex}" ${attr} data-color="${c.id}" ${inStock(c) ? "" : "disabled"}><span>${esc(c.name)}${inStock(c) ? "" : " (habis)"}</span></button>`)
-      .join("")}</div>`;
   // Ubin bentuk 64/72: ikon saja, nama bentuk tampil di judul grup ("BENTUK: BOLA")
   const tilesHtml = (kind, list, current, attr, label) =>
     `<div class="tiles" role="group" aria-label="${esc(label)}">${list
@@ -608,7 +603,7 @@
     if (el.name === "edisi") return `input[name="edisi"][value="${CSS.escape(el.value)}"]`;
     if (el.matches && el.matches("#cfg-lamp [data-la-part]")) return `#cfg-lamp [data-la-part="${CSS.escape(el.getAttribute("data-la-part"))}"]`;
     const d = el.dataset || {};
-    const keys = ["part", "i", "shape", "color", "slot", "cat", "use", "preset", "pkg", "remove", "edisiOrder", "edisiEdit"].filter((k) => d[k] != null);
+    const keys = ["part", "i", "shape", "color", "slot", "ptile", "pfilter", "psColor", "psSlot", "psUse", "psClose", "preset", "pkg", "remove", "edisiOrder", "edisiEdit"].filter((k) => d[k] != null);
     if (!keys.length) return null;
     const attr = (k) => "data-" + k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
     return el.tagName.toLowerCase() + keys.map((k) => `[${attr(k)}="${CSS.escape(d[k])}"]`).join("");
@@ -828,26 +823,141 @@
     panel.innerHTML = pkgPanelHtml(n);
     if (panel.animate) panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: "cubic-bezier(.22,1,.36,1)" });
   }
+  /* ---------- 06 #bagian: katalog ubin + lembar bagian ----------
+     Chip saring "Semua 12 · Kap 3 · Badan 5 · Alas 4" (angka dari data) di atas grid ubin <button> (gambar 1:1, ikon "+",
+     jenis, nama, harga). Ubin membuka "Lembar bagian" (<dialog> modal; lembar bawah di HP): swatch, pilihan slot badan,
+     "Pasang di rakitanku" (satu-satunya tombol berisi selama lembar terbuka) dan tautan WA pesan satuan.
+     Pasang: rakitan berubah, lembar menutup, toast dengan aksi "Lihat di studio ↑" (halaman tidak pernah digulir sendiri).
+     Lembar masuk --t-med, keluar --t-fast (aturan 10); Escape dan klik latar menutup; fokus kembali ke ubinnya. */
+  const KINDS = ["head", "body", "base"];
+  let catFilter = "all";
+  const sheet = { kind: null, id: null, color: null, slot: 0, from: null, closing: 0 };
+  // Warna awal ubin: berselang di palet (badan mulai dari warna ke-4, alas ke-2) supaya bentuk terbaca di kertas;
+  // hanya pilihan tampilan awal, bukan klaim stok. Warna habis dilewati.
+  const CAT_OFFSET = { head: 0, body: 3, base: 1 };
+  const catColorOf = (kind, id) => {
+    const list = colorsOf(kind);
+    const c = catColor[kind + id];
+    if (c && list.some((x) => x.id === c && inStock(x))) return c;
+    const ok = list.filter(inStock);
+    if (!ok.length) return list[0].id;
+    const i = Math.max(0, listOf(kind).findIndex((x) => x.id === id));
+    return kind === "head" ? ok[0].id : ok[(i + CAT_OFFSET[kind]) % ok.length].id;
+  };
   function renderCatalog() { keepFocus(renderCatalogNow); }
   function renderCatalogNow() {
     const el = $("#catalog");
     if (!el) return;
-    let h = "";
-    const card = (kind, item) => {
-      const list = colorsOf(kind);
-      const cur = catColor[kind + item.id] || list[0].id;
+    const n = { head: D().heads.length, body: D().bodies.length, base: D().bases.length };
+    const chip = (k, label, count) =>
+      `<button class="chip" type="button" data-pfilter="${k}" aria-pressed="${catFilter === k}">${label} <span class="chip__count num">${count}</span></button>`;
+    let h = `<div class="pcat__filter chips-row" role="group" aria-label="Saring bagian">${chip("all", "Semua", n.head + n.body + n.base)}${KINDS.map((k) => chip(k, KIND_LABEL[k], n[k])).join("")}</div><ul class="pcat__grid" role="list">`;
+    KINDS.forEach((kind) => listOf(kind).forEach((item) => {
+      const cur = catColorOf(kind, item.id);
       const photo = photoOf(kind, item.id, cur);
+      const hide = catFilter !== "all" && catFilter !== kind;
       h +=
-        `<div class="pcard" data-card="${kind}:${item.id}"><div class="fig${photo ? " fig--photo" : ""}">${partFig(kind, item.id, cur, "cat" + kind + item.id)}${photo ? '<span class="fig__tag">Foto asli</span>' : ""}</div>` +
-        `<div class="meta"><h3>${esc(item.name)}</h3><small>${KIND_LABEL[kind]}</small></div><div class="price num"><b>${rp(item.price)}</b> / pcs</div>` +
-        catSwatchesHtml(list, cur, `data-cat="${kind}:${item.id}"`) +
-        `<button class="ghost" type="button" data-use="${kind}:${item.id}">Pakai di rakitan</button></div>`;
-    };
-    D().heads.forEach((x) => card("head", x));
-    D().bodies.forEach((x) => card("body", x));
-    D().bases.forEach((x) => card("base", x));
-    el.innerHTML = h;
+        `<li class="pcat__cell"${hide ? " hidden" : ""} data-pkind="${kind}"><button class="ptile" type="button" data-ptile="${kind}:${item.id}" aria-haspopup="dialog" aria-label="${esc(KIND_LABEL[kind])} ${esc(item.name)}, ${rp(item.price)}. Buka lembar bagian">` +
+        `<span class="ptile__fig${photo ? " ptile__fig--photo" : ""}">${partFig(kind, item.id, cur, "cat" + kind + item.id)}${photo ? '<span class="fig__tag">Foto asli</span>' : ""}<i class="ptile__plus" aria-hidden="true"></i></span>` +
+        `<span class="ptile__kind">${KIND_LABEL[kind]}</span><span class="ptile__name">${esc(item.name)}</span><span class="ptile__price num">${rp(item.price)}</span></button></li>`;
+    }));
+    el.innerHTML = h + "</ul>";
   }
+  function setCatFilter(k) {
+    catFilter = k;
+    $$("#catalog [data-pfilter]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.pfilter === k)));
+    $$("#catalog .pcat__cell").forEach((li) => { li.hidden = k !== "all" && li.dataset.pkind !== k; });
+  }
+  const slotName = (kind, slot) => (kind === "body" ? `Badan ${slot + 1}` : KIND_LABEL[kind]);
+  function sheetMsg(kind, item, col) {
+    return `Halo ${C.brand}, saya mau pesan bagian satuan:\n• ${KIND_LABEL[kind]} · ${item.name} · ${col.name} (${rp(item.price)})\nUlir M20, cocok dengan rakitan mana pun.\n\nNama: \nAlamat kirim: `;
+  }
+  function renderSheet() {
+    const dlg = $("#psheet");
+    if (!dlg || !sheet.kind) return;
+    const kind = sheet.kind, item = find(listOf(kind), sheet.id), list = colorsOf(kind), col = find(list, sheet.color);
+    const photo = photoOf(kind, item.id, col.id);
+    const nb = state.body.length, max = D().maxBodies;
+    let slots = "";
+    if (kind === "body") {
+      const chips = state.body.map((b, i) => `<button class="chip" type="button" data-ps-slot="${i}" aria-pressed="${sheet.slot === i}">Badan ${i + 1}</button>`);
+      if (nb < max) chips.push(`<button class="chip chip--line" type="button" data-ps-slot="${nb}" aria-pressed="${sheet.slot === nb}">+ Badan ${nb + 1}</button>`);
+      slots = `<div class="psheet__grp"><p class="grp__head"><span class="grp__title">Pasang di: <b>${sheet.slot < nb ? `Badan ${sheet.slot + 1}` : `Badan ${nb + 1} (baru)`}</b></span></p><div class="chips-row" role="group" aria-label="Pasang di slot badan">${chips.join("")}</div></div>`;
+    }
+    dlg.innerHTML =
+      `<div class="psheet__in">` +
+      `<div class="psheet__top"><div><p class="label psheet__kind">${KIND_LABEL[kind]}</p><h3 class="psheet__title" id="psheet-title">${esc(item.name)}</h3></div>` +
+      `<button class="psheet__close" type="button" data-ps-close aria-label="Tutup lembar bagian"><i></i><i></i></button></div>` +
+      `<div class="psheet__fig${photo ? " psheet__fig--photo" : ""}">${partFig(kind, item.id, col.id, "ps" + kind + item.id)}<span class="pill">${photo ? "Foto asli" : "Ilustrasi"}</span></div>` +
+      `<p class="psheet__price num"><b>${rp(item.price)}</b> / pcs</p>` +
+      `<div class="psheet__grp"><p class="grp__head"><span class="grp__title">Warna: <b>${esc(col.name)}</b></span></p>` +
+      `<div class="swatches-row psheet__sw" role="group" aria-label="Warna ${esc(KIND_LABEL[kind].toLowerCase())}">${list
+        .map((c) => `<button class="swatch${inStock(c) ? "" : " swatch--out"}" type="button" data-ps-color="${c.id}" aria-pressed="${c.id === col.id}" aria-label="${esc(c.name)}${inStock(c) ? "" : " (habis)"}" style="--sw:${c.hex}" ${inStock(c) ? "" : "disabled"}></button>`)
+        .join("")}</div></div>` +
+      slots +
+      `<div class="psheet__act"><button class="btn btn--primary btn--block" type="button" data-ps-use>Pasang di rakitanku</button>` +
+      `<a class="btn btn--ghost btn--block" href="${esc(waLink(sheetMsg(kind, item, col)))}" target="_blank" rel="noopener">Pesan satuan via WhatsApp</a></div>` +
+      `</div>`;
+  }
+  const sheetEvt = () => { try { document.dispatchEvent(new CustomEvent("mks:dialog")); } catch {} };
+  function openSheet(kind, id, from) {
+    const dlg = $("#psheet");
+    if (!dlg) return;
+    clearTimeout(sheet.closing);
+    dlg.classList.remove("is-closing");
+    Object.assign(sheet, { kind, id, color: catColorOf(kind, id), slot: Math.min(ui.slot || 0, state.body.length - 1), from: from ? from.dataset.ptile : null });
+    if (kind !== "body") sheet.slot = 0;
+    renderSheet();
+    if (!dlg.open) { if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", ""); }
+    const first = dlg.querySelector('.swatch[aria-pressed="true"]') || dlg.querySelector("button");
+    if (first) first.focus({ preventScroll: true });
+    sheetEvt();
+  }
+  // Tutup dengan keluar --t-fast (aturan 10); fokus kembali ke ubin asalnya (render ulang katalog dicari lewat data-ptile)
+  function closeSheet(noReturn) {
+    const dlg = $("#psheet");
+    if (!dlg || !dlg.open) return;
+    const ms = motionMs("--t-fast", 150);
+    const done = () => {
+      dlg.classList.remove("is-closing");
+      if (typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+      if (!noReturn && sheet.from) { const t = document.querySelector(`[data-ptile="${CSS.escape(sheet.from)}"]`); if (t) t.focus({ preventScroll: true }); }
+      sheetEvt();
+    };
+    clearTimeout(sheet.closing);
+    if (ms <= 0) return done();
+    dlg.classList.add("is-closing");
+    sheet.closing = setTimeout(done, ms);
+  }
+  function useSheet() {
+    const kind = sheet.kind, item = find(listOf(kind), sheet.id), col = find(colorsOf(kind), sheet.color);
+    let where = slotName(kind, sheet.slot);
+    if (kind === "head") state.head = { shape: item.id, color: col.id };
+    else if (kind === "base") state.base = { shape: item.id, color: col.id };
+    else {
+      const i = Math.min(sheet.slot, state.body.length, D().maxBodies - 1);
+      state.body[i] = { shape: item.id, color: col.id };
+      where = `Badan ${i + 1}`;
+      ui.slot = i;
+    }
+    ui.tab = kind;
+    touched = true;
+    closeSheet();
+    renderAll("use-part");
+    toast(`${item.name} (${col.name}) dipasang di ${where}`, { action: { label: "Lihat di studio ↑", href: "#rakit" } });
+  }
+  (function bindSheet() {
+    const dlg = $("#psheet");
+    if (!dlg) return;
+    // Escape: tutup dengan gerak keluar yang sama (bukan tutup instan bawaan)
+    dlg.addEventListener("cancel", (e) => { e.preventDefault(); closeSheet(); });
+    // Klik di latar (di luar kotak lembar) menutup
+    dlg.addEventListener("click", (e) => {
+      if (e.target !== dlg) return;
+      const r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeSheet();
+    });
+  })();
   /* ---------- Marketplace: hanya link yang ada di config.js ---------- */
   const MARKETS = [
     // Menerima link toko penuh maupun link pendek dari tombol Bagikan (shp.ee, tk.tokopedia, vt.tiktok)
@@ -1059,12 +1169,37 @@
     if (follow) renderAll("edition"); else emit("edition");
     say(editionLive(i));
   }
+  // 04 #alur HP (≤ 1023): karusel scroll-snap asli. Wadah bisa difokus (panah kiri/kanan menggeser) hanya saat ia
+  // memang menggulir; titik indikator mengikuti kolom yang tampil lewat IntersectionObserver (tanpa pendengar scroll).
+  (function bindAlur() {
+    const track = $("#alur .alur"), dots = $$("#alur .alur__dots i");
+    if (!track) return;
+    const narrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
+    const tab = () => { if (narrow.matches) track.tabIndex = 0; else track.removeAttribute("tabindex"); };
+    tab();
+    if (narrow.addEventListener) narrow.addEventListener("change", tab);
+    if (!("IntersectionObserver" in window) || !dots.length) return;
+    const cols = $$(".alur__col", track);
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const k = cols.indexOf(e.target);
+        dots.forEach((d, j) => d.classList.toggle("is-on", j === k));
+      });
+    }, { root: track, threshold: 0.6 });
+    cols.forEach((c) => io.observe(c));
+  })();
   // Mockup alur WA mengikuti edisi pilihan studio
   function renderAlur() {
     const d = D(); const i = d.popularPreset || 0; const cfg = presetCfg(i); const pr = price(cfg);
     const z = zones()[0];
-    $$("[data-alur-code]").forEach((el) => (el.textContent = code(cfg)));
-    setHtml("[data-alur-lines]", pr.lines.map((l) => `• ${esc(l.label)} — ${esc(l.color.name)}`).join("<br />"));
+    // Simulasi (label "Simulasi alur pesan" di kepala seksi). Kode hanya patah di tanda hubung; rincian di halaman memakai
+    // " · " (isi pesan WhatsApp sendiri, waText, tidak berubah); zona, ongkir, dan lama produksi dari data
+    $$("[data-alur-code]").forEach((el) => (el.innerHTML = esc(code(cfg)).replace(/-/g, "-<wbr>")));
+    // spasi tak-putus sebelum " · ": titik pemisah tidak pernah memulai baris di kartu HP
+    setHtml("[data-alur-lines]", pr.lines.map((l) => `• ${esc(l.label).replace(/ · /g, "&nbsp;· ")}&nbsp;· ${esc(l.color.name)}`).join("<br />"));
+    setText("[data-alur-zone]", z ? z.label : "");
+    setText("[data-alur-lead]", leadTimeOf(cfg));
     setText("[data-alur-pkg]", pr.pkg.name);
     setText("[data-alur-price]", rp(pr.total));
     setText("[data-alur-total]", rp(pr.total + (z ? z.price : 0)));
@@ -1174,6 +1309,16 @@
     // Saklar panggung: hanya --dim (momen cahaya 4, 600 ms); lampu tidak dirender ulang
     if (t.id === "cfg-switch") { state.on = !state.on; renderStudioLight(); return emit("switch"); }
     if (d.tab != null && t.closest("#studio-tabs")) return selectTab(d.tab);
+    // 06 #bagian: chip saring, ubin, dan kontrol lembar bagian (bukan perubahan rakitan sampai "Pasang")
+    if (d.pfilter != null) return setCatFilter(d.pfilter);
+    if (d.ptile != null) { const [k, id] = d.ptile.split(":"); return openSheet(k, id, t); }
+    if (t.closest("#psheet")) {
+      if (d.psClose != null) return closeSheet();
+      if (d.psColor != null) { if (t.disabled) return; sheet.color = d.psColor; catColor[sheet.kind + sheet.id] = d.psColor; return keepFocus(renderSheet); }
+      if (d.psSlot != null) { sheet.slot = +d.psSlot; return keepFocus(renderSheet); }
+      if (d.psUse != null) return useSheet();
+      return;
+    }
     if (d.slot != null) { ui.slot = +d.slot; return keepFocus(renderControls); }
     if (t.getAttribute("aria-disabled") === "true") return;
     if (d.pkgView != null) return viewPackage(+d.pkgView);
@@ -1243,18 +1388,6 @@
       if (d.shape) target.shape = d.shape;
       if (d.color) target.color = d.color;
       return quick("part");
-    }
-    if (d.cat) { catColor[d.cat.replace(":", "")] = d.color; return renderCatalog(); }
-    if (d.use) {
-      const [kind, shape] = d.use.split(":");
-      const col = catColor[kind + shape] || colorsOf(kind)[0].id;
-      if (kind === "head") state.head = { shape, color: col };
-      else if (kind === "base") state.base = { shape, color: col };
-      else if (state.body.length < D_.maxBodies) state.body.push({ shape, color: col });
-      else state.body[state.body.length - 1] = { shape, color: col };
-      renderAll("use-part");
-      scrollToEl($("#rakit"), "start");
-      return toast("Dipakai di rakitan");
     }
     if (t.id === "copy-summary") return copyText(waText(state), "Ringkasan disalin");
     if (d.copy) return copyText(d.copy, "Nomor disalin");

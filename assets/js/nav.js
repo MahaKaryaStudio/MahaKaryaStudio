@@ -244,6 +244,8 @@
   }
   function sync() { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
   window.addEventListener("scroll", sync, { passive: true });
+  // Lembar bagian (#bagian) dibuka/ditutup: orderbar disembunyikan selama <dialog> terbuka, slot "Pesan" nav ikut diam
+  document.addEventListener("mks:dialog", sync);
   window.addEventListener("resize", sync);
   window.addEventListener("load", sync);
   nav.addEventListener("focusin", sync);

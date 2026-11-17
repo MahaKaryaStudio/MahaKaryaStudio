@@ -34,8 +34,13 @@
      Tahap 8 (rakit): 03 #rakit menjadi studio rakit (#studio). Daftar jaminan di bawah ringkasan menjadi "Janji kami"
      (#janji): "Garansi 30 hari…" dan "Foto rakitan…" berteks sama, jadi suntingannya ikut pindah; baris "Bayar transfer
      bank / QRIS…" pindah ke rincian (dinamis) dan suntingannya diarsipkan, begitu juga ringkasan details#ctrl-wrap
-     yang dihapus. Eyebrow, judul, dan lead #rakit tidak berpindah. */
-  const LAYOUT = 8;
+     yang dihapus. Eyebrow, judul, dan lead #rakit tidak berpindah.
+     Tahap 9 (alur-bagian): chat 04 #alur ditulis ulang sebagai simulasi tanpa pelanggan, pujian, resi, atau emoji
+     karangan; lead #alur tanpa "persis seperti ini"; baris label "Simulasi alur pesan" (data-dynamic-text) masuk di
+     #alur/div:0/p:2 dan catatan .alur__note (teks baru) pindah ke p:3. Semua suntingan gelembung lama, lead, dan catatan
+     lama diarsipkan. 06 #bagian: lead dan kalimat "Sudah punya lampunya?" ditulis ulang (diarsipkan); dua sel penutup
+     dibungkus .bagian__more, jadi judul, kalimat volume, dan tombolnya yang tidak berubah kata dipindah (rename). */
+  const LAYOUT = 9;
   const MOVED = {
     "index.html": {
       rename: {"main:0/section:0/div:1/div:0/h1:0": "#hero/div:2/div:0/h1:0", "main:0/section:0/div:1/div:0/p:1": "#hero/div:2/div:0/p:1", "main:0/section:0/div:1/div:0/div:1/a:0": "#hero/div:2/div:0/div:0/a:0", "#bagian/div:0/div:3/div:0/h3:0": "#bagian/div:0/div:2/div:0/h3:0", "#bagian/div:0/div:3/div:0/p:0": "#bagian/div:0/div:2/div:0/p:0", "#bagian/div:0/div:3/a:0": "#bagian/div:0/div:2/a:0", "main:0/section:8/div:0/p:0": "#pita/div:0/p:0", "main:0/section:12/div:0/h2:0": "#konsultasi/div:0/h2:0", "main:0/section:12/div:0/p:0": "#konsultasi/div:0/p:1", "main:0/section:12/div:0/a:0": "#konsultasi/div:0/a:0"},
@@ -74,7 +79,14 @@
       drop: ["#rakit/div:0/div:1/div:0/ul:0/li:0", "#ctrl-wrap/summary:0"],
     },
   };
-  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8]];
+  const AC = "#alur/div:0/div:0/article:";
+  const MOVED_9 = {
+    "index.html": {
+      rename: {"#bagian/div:0/div:1/div:0/h3:0": "#bagian/div:0/div:1/div:0/div:0/h3:0", "#bagian/div:0/div:1/a:0": "#bagian/div:0/div:1/div:0/a:0", "#bagian/div:0/div:2/div:0/h3:0": "#bagian/div:0/div:1/div:1/div:0/h3:0", "#bagian/div:0/div:2/div:0/p:0": "#bagian/div:0/div:1/div:1/div:0/p:0", "#bagian/div:0/div:2/a:0": "#bagian/div:0/div:1/div:1/a:0"},
+      drop: ["#alur/div:0/p:1", "#alur/div:0/p:2", AC + "0/div:0/p:0", AC + "0/div:0/p:1", AC + "1/div:0/p:0", AC + "1/div:0/p:1", AC + "2/div:0/p:0", AC + "2/div:0/p:1", "#bagian/div:0/p:1", "#bagian/div:0/div:1/div:0/p:0"],
+    },
+  };
+  const STAGES = [[3, MOVED], [4, MOVED_4], [5, MOVED_5], [6, MOVED_6], [7, MOVED_7], [8, MOVED_8], [9, MOVED_9]];
   const PAGE = window.MKS_PAGE || document.body.dataset.page || "index.html";
   const products = window.MKS_PRODUCTS || null;
   const config = window.MKS_CONFIG;

@@ -245,37 +245,39 @@
       </div>
     </section>
 
-    <!-- BEGINI PESANANNYA BERJALAN -->
+    <!-- BEGINI PESANANNYA BERJALAN: simulasi tiga pesan (tanpa pelanggan, pujian, resi, atau emoji karangan) -->
     <section id="alur" class="dark dark-2">
       <div class="wrap">
         <p class="eyebrow">04 · Setelah tombol WhatsApp</p>
         <h2 class="section-title">Begini pesananmu berjalan.</h2>
-        <p class="section-sub">Tidak ada akun, tidak ada keranjang. Tiga pesan dari kami yang akan kamu terima, persis seperti ini.</p>
-        <div class="alur room-body">
-          <article class="phone">
-            <header><span class="phone__step">A</span><b>Konfirmasi &amp; total</b><small>&lt; 1 jam setelah kode diterima</small></header>
-            <div class="phone__chat">
-              <p class="bub bub--you">Halo MahaKarya Studio, saya mau pesan lampu rakitan:<br />Kode: <span class="mono" data-alur-code>MK-PLIGAD-BOLZAI-CINKRE-KUBSAL-BULHIT</span> …</p>
-              <p class="bub">Halo Rani, ini rinciannya:<br /><span data-alur-lines>• Kap · Silinder plisir — Gading<br />• Badan 1 · Bola — Zaitun<br />• Badan 2 · Cincin — Krem<br />• Badan 3 · Kubus — Salmon<br />• Alas · Bulat — Hitam arang</span><br />Paket <span data-alur-pkg>Kuinto</span>: <b data-alur-price>Rp —</b><br />Ongkir ke Jabodetabek: ±<span data-alur-ship>Rp —</span><br /><b>Total <span data-alur-total>Rp —</span></b><br />Produksi 3–5 hari kerja setelah pembayaran.</p>
+        <p class="section-sub">Tidak ada akun, tidak ada keranjang. Tiga pesan dari kami yang akan kamu terima.</p>
+        <p class="label alur__sim" data-dynamic-text>Simulasi alur pesan</p>
+        <div class="alur room-body" role="region" aria-label="Simulasi alur pesan: tiga pesan">
+          <article class="alur__col" data-alur-col="0">
+            <header class="alur__head"><p class="label">A · Setelah kode diterima</p><h3>Konfirmasi &amp; total</h3></header>
+            <div class="alur__chat">
+              <p class="bub bub--you" data-dynamic-text>Halo MahaKarya Studio, saya mau pesan lampu rakitan:<br />Kode: <span class="mono bub__code" data-alur-code>MK-<wbr>PLIGAD-<wbr>BOLZAI-<wbr>CINKRE-<wbr>KUBSAL-<wbr>BULHIT</span> …</p>
+              <p class="bub" data-dynamic-text>Halo, ini rinciannya:<br /><span data-alur-lines>• Kap · Silinder plisir · Gading<br />• Badan 1 · Bola · Zaitun<br />• Badan 2 · Cincin · Krem<br />• Badan 3 · Kubus · Salmon<br />• Alas · Bulat · Hitam arang</span><br />Paket <span data-alur-pkg>Kuinto</span>: <b data-alur-price>Rp —</b><br />Ongkir ke <span data-alur-zone>Jabodetabek</span>: ±<span data-alur-ship>Rp —</span><br /><b>Total <span data-alur-total>Rp —</span></b><br />Produksi <span data-alur-lead>3–5 hari kerja</span> setelah pembayaran.</p>
             </div>
           </article>
-          <article class="phone">
-            <header><span class="phone__step">B</span><b>Foto rakitan sebelum dikirim</b><small>Hari ke 3–5</small></header>
-            <div class="phone__chat">
-              <p class="bub">Halo Rani, ini foto rakitan <span class="mono" data-alur-code>MK-…</span> sebelum dikemas. Kalau sudah oke, balas “OK” dan kami kirim hari ini.</p>
-              <div class="bub bub--img" data-alur-photo aria-label="Foto rakitan (ilustrasi)"></div>
-              <p class="bub bub--you">OK, cantik! 😍</p>
+          <article class="alur__col" data-alur-col="1">
+            <header class="alur__head"><p class="label">B · Setelah rakitan jadi</p><h3>Foto rakitan sebelum dikirim</h3></header>
+            <div class="alur__chat">
+              <p class="bub" data-dynamic-text>Ini foto rakitan <span class="mono bub__code" data-alur-code>MK-…</span> sebelum dikemas. Kalau sudah oke, balas “OK” dan kami kirim hari ini.</p>
+              <div class="bub bub--img" data-alur-photo role="img" aria-label="Foto rakitan (ilustrasi)"></div>
+              <p class="bub bub--you">OK</p>
             </div>
           </article>
-          <article class="phone">
-            <header><span class="phone__step">C</span><b>Resi &amp; tips saat tiba</b><small>Hari yang sama</small></header>
-            <div class="phone__chat">
-              <p class="bub">Lampu sudah dikirim ✅<br />Kurir: JNE REG<br />Resi: <span class="mono">JP1234567890</span><br />Saat tiba, cek kardusnya dulu sebelum tanda tangan.</p>
-              <p class="bub">Sudah terpasang? Bohlam LED maksimal 5 W ya, supaya kap tetap dingin. Kalau berkenan, kirim fotonya di ruanganmu 🙂</p>
+          <article class="alur__col" data-alur-col="2">
+            <header class="alur__head"><p class="label">C · Saat paket berangkat</p><h3>Resi &amp; tips saat tiba</h3></header>
+            <div class="alur__chat">
+              <p class="bub">Kurir dan nomor resi kami kirim di sini.</p>
+              <p class="bub">Saat tiba, cek kardusnya dulu sebelum tanda tangan. Bohlam LED maksimal 5 W, supaya kap tetap dingin.</p>
             </div>
           </article>
         </div>
-        <p class="alur__note">Nama dan nomor resi di atas contoh. Balasan dikirim manusia, bukan bot: <span data-reply-inline></span>.</p>
+        <div class="alur__dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+        <p class="alur__note">Balasan dikirim manusia, bukan bot: <span data-reply-inline></span>.</p>
       </div>
     </section>
 
@@ -300,23 +302,27 @@
       <div class="wrap">
         <p class="eyebrow">06 · Bagian satuan</p>
         <h2 class="section-title">Ganti satu bagian, lampu terasa baru.</h2>
-        <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Pilih warna di kartu, lalu pakai langsung di konfigurator.</p>
+        <p class="section-sub">Semua bagian dijual satuan dan cocok dengan rakitan mana pun. Ketuk satu bagian untuk memilih warna, lalu pasang di studio rakit.</p>
         <p class="label bagian__il" data-dynamic-text>Gambar: ilustrasi, bukan foto</p>
         <div class="pcat room-body" id="catalog" data-dynamic></div>
-        <div class="havebase">
-          <div>
-            <h3>Sudah punya lampunya?</h3>
-            <p>Beli satu badan atau kap baru saja; ulirnya sama, tinggal putar. Pilih warna di kartu, lalu pesan sebagai bagian satuan lewat WhatsApp.</p>
+        <div class="bagian__more">
+          <div class="havebase">
+            <div>
+              <h3>Sudah punya lampunya?</h3>
+              <p>Beli satu badan atau kap baru saja; ulirnya sama, tinggal putar. Pilih bagiannya di atas, atau tanya dulu lewat WhatsApp.</p>
+            </div>
+            <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya sudah punya lampu rakitan dan mau beli bagian satuan: ">Pesan bagian satuan</a>
           </div>
-          <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya sudah punya lampu rakitan dan mau beli bagian satuan: ">Pesan bagian satuan</a>
-        </div>
-        <div class="bulk">
-          <div>
-            <h3>Pesan 10 lampu atau lebih?</h3>
-            <p>Untuk kafe, hotel, hampers, atau hadiah karyawan: warna seragam, logo di alas, dan harga khusus volume.</p>
+          <div class="bulk">
+            <div>
+              <h3>Pesan 10 lampu atau lebih?</h3>
+              <p>Untuk kafe, hotel, hampers, atau hadiah karyawan: warna seragam, logo di alas, dan harga khusus volume.</p>
+            </div>
+            <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
           </div>
-          <a class="btn btn--ghost" data-wa="Halo MahaKarya Studio, saya mau tanya harga untuk pesanan lampu dalam jumlah banyak (10+). Untuk: ">Tanya harga volume</a>
         </div>
+        <!-- Lembar bagian: <dialog> diisi lamp.js (modal 440 di desktop, lembar bawah di HP) -->
+        <dialog class="psheet paper" id="psheet" aria-labelledby="psheet-title" data-dynamic></dialog>
       </div>
     </section>
 
