@@ -6,7 +6,8 @@
 //          44 × 44 yang berpusat di kontrol; panggung/tab lengket dan orderbar disingkirkan saat ukur) dan jarak visual
 //          antarkontrol bertetangga dalam satu grup >= 8.
 //  c19     tanpa gulir samping di 320, 360, 390 (keempat tab, rincian terbuka).
-//  c24     tinggi 640 → panggung 200 dan lampu tidak tertutup pil, saklar, atau label tinggi; 844/740/664 → panggung 260
+//  c24     tinggi 640 → panggung 200 dan lampu tidak tertutup pil, saklar, atau label tinggi (pil dan saklar juga tidak
+//          bertumpuk, sampai lebar 320); 844/740/664 → panggung 260
 //          dan lampu bebas; tinggi 520 → panggung dan tab tidak lengket.
 //  teks    C15: tanpa HEAD/BODY/BASE, "—", "konfigurator" di teks terlihat #rakit (keempat tab dan rincian); C20: kalimat
 //          ringkasan >= 16 px di 390 dan 360; C11: pil ILUSTRASI di panggung studio desktop dan HP; harga ringkasan =
@@ -139,7 +140,7 @@ run(async ({ open, check, opt }) => {
 
   /* ---------- C24 ---------- */
   if (want('c24')) {
-    for (const [w, h, stageH] of [[390, 844, 260], [360, 740, 260], [390, 664, 260], [390, 640, 200], [360, 600, 200]]) {
+    for (const [w, h, stageH] of [[390, 844, 260], [360, 740, 260], [390, 664, 260], [390, 640, 200], [360, 600, 200], [320, 640, 200]]) {
       const p = await open([w, h, true], { wait: 900 });
       for (const t of ['head', 'power']) {
         await p.evaluate(() => { const s = document.querySelector('.studio__stage'); window.scrollTo({ top: s.getBoundingClientRect().top + scrollY + 40, behavior: 'instant' }); });
@@ -156,6 +157,7 @@ run(async ({ open, check, opt }) => {
             const L = { l: lamp.left, t: lamp.top, r: lamp.right, b: lamp.bottom };
             const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
             const items = { pil: box('#cfg-stage .stage__pill'), saklar: sw, 'teks saklar': swT, tinggi: box('#cfg-height') };
+            if (hit(items.pil, items['teks saklar']) || hit(items.pil, items.saklar)) items.__pil_saklar = { l: -1e4, t: -1e4, r: 1e4, b: 1e4 }; // pil dan saklar tidak boleh bertumpuk
             return { stageH: Math.round(st.height), stageTop: Math.round(st.top), covered: Object.entries(items).filter(([, b]) => hit(L, b)).map(([k]) => k), inside: L.t >= st.top - 0.5 && L.b <= st.bottom + 0.5, pos: getComputedStyle(document.querySelector('.studio__stage')).position, lampH: Math.round(lamp.height) };
           });
           check(r.stageH === stageH && r.covered.length === 0 && r.inside, `C24 ${w}×${h} ${t}${preset != null ? ' edisi ' + preset : ''}: panggung ${stageH}, lampu (${r.lampH} px) tidak tertutup pil/saklar/label`, JSON.stringify(r));

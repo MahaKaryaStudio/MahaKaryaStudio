@@ -35,19 +35,30 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   'Pilihan studio' tepat sekali dan terlihat di setiap edisi. C2 (ketukan beruntun) tetap di `c02-taps.js`.
 - `c04-gerak-sentuh.js [--only=token,c7,c8,c10,c11,c16,c13,c23,c14,toast]`: token gerak dan pendamping, tabel
   breakpoint di kepala base.css; C7 hover digerbang `(hover: hover) and (pointer: fine)` dan hanya pada yang bisa diklik (aturan nav/menu ikut dipindai walau tak cocok elemen di index);
-  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP, transisi dimatikan: ini simulasi, bukan pengganti uji ketuk di HP sungguhan) di empat
+  C8 status tekan setiap kontrol hero/#kenapa/#edisi/#tiga/#rakit/#paket/nav/orderbar/toast (`:active` dipaksa lewat CDP, transisi dimatikan: ini simulasi, bukan pengganti uji ketuk di HP sungguhan) di empat
   ukuran layar, biasa (transform atau warna) dan reduce (wajib warna/latar/opacity/box-shadow); C10 durasi dan delay pada
   token (biasa dan reduce); C11 label ILUSTRASI tabel #paket dan baris #bagian; C16 tanpa harga ketikan dan `wa.me/` di
   HTML mentah index/404, satu noscript, href WA awal dari config.js saat lamp.js diblokir; C13; C23 baris label #bagian
-  (Mode Edit dan Ekspor); C14 terhadap snapshot `data/c14-gerak-sentuh.json`; toast 3 s / 5 s / jeda saat hover dan fokus.
+  (Mode Edit dan Ekspor); C14 terhadap snapshot `data/c14-gerak-sentuh.json` (pesan `[data-wa]` dibandingkan sebagai himpunan
+  pesan unik sejak langkah rakit menghapus tautan WA ringkasan HP kedua yang pesannya sama); toast 3 s / 5 s / jeda saat hover dan fokus.
 - `c04-snap-c14.js <url> --tulis`: menulis snapshot C14 (harga, coret, pesan WA lima edisi, semua `[data-wa]`) pada commit
   dasar langkah; dipakai c04.
+- `c05-rakit-ketuk.js [--rate=4] [--n=5] [--vp=hp,desktop] [--only=waktu,beruntun] [--json]`: gerbang frekuensi 03 #rakit
+  (CPU 4x, median 5): tanda terpilih tercat <= 100 ms, lampu baru tercat <= 150 ms (warna) / <= 200 ms (bentuk, edisi), harga
+  berganti bersama tanda; 10 ketukan swatch berjarak 80 ms tanpa frame lampu kosong/pudar dan harga akhir benar; dua ketukan
+  berjarak 100 ms keduanya masuk. "Tercat" = tugas pertama sesudah frame tempat perubahan terlihat (batas atas).
+- `c09-rakit-tata.js [--only=c8,c9,c19,c24,teks,tab,lengket,ukur]`: 03 #rakit: C8 semua kontrol di empat tab dan rincian;
+  C9 area tekan 44 × 44 (elementFromPoint) dan jarak visual 8 di 390/360; C19 tanpa gulir samping 320/360/390; C24
+  panggung HP 260/200 (lampu tidak tertutup pil/saklar/label, pil dan saklar tidak bertumpuk) dan tidak lengket di
+  tinggi 520; C15, C20 kalimat ringkasan >= 16 px, C11 pil studio; ARIA tabs + papan ketik; bagian SVG desktop; orderbar
+  dan nav HP; panggung desktop/laptop lengket di nav + 24; `UKUR` tinggi #rakit terhadap brief.
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
-  saat menu dibuka/ditutup, dan setelah ganti lebar.
+  saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
+  (HP) dihitung tertutup, sama seperti di bawah nav.
 - `c18-scroll.js [--rate=4]` (lewat `serve-gz.js`): biaya gaya per frame pin #kenapa dan nav sembunyi/muncul
   dengan CPU 4x (angka lab; tiga lintasan karena derau ±3 ms).
-- `c24-sticky.js [--shots=<folder>]`: top panggung lengket tetap saat nav berganti (1440, 1366); di HP nav tidak
-  menutupi panggung #rakit; uji celah di atas panggung dicetak N/A selama panggung HP masih statis (langkah rakit).
+- `c24-sticky.js [--shots=<folder>]`: top panggung lengket tetap saat nav berganti (1440, 1366; .edisi__stage,
+  .tiga__fig, .studio__stage); di HP nav tidak menutupi panggung #rakit, panggung lengket tanpa celah di atasnya.
 - `c06-layout-props.js [--sel="#tiga,#pita"]`: hanya transform, opacity, warna, box-shadow, dan visibility
   yang dianimasikan di seksi yang sudah dibangun (daftar `SEKSI` di skrip bertambah per langkah).
 - `c11-ilustrasi.js [--only=tiga,hero]`: setiap gambar lampu berlabel ilustrasi, di empat ukuran layar.
@@ -57,7 +68,7 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   `editor.js`); kasus bertambah di langkah yang mengubah teks dasar.
 - `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif
   termasuk gulir berbalik dan lompatan, panggung lengket, lembar ringkas di tablet dan HP mendatar,
-  angka meta dari lamp-data dan token atomiknya di Mode Edit, pil dan label lembar ringkas sejajar margin halaman sampai 320, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
+  angka meta dari lamp-data dan token atomiknya di Mode Edit, pil dan label lembar ringkas sejajar margin halaman sampai 320, tanpa gulir samping 390/360/320, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
   melaporkan tinggi seksi terhadap angka brief saja (selisih dicatat sebagai deviasi di laporan langkah).
 
 Angka waktu dari skrip ini berasal dari Chromium ter-throttle, bukan HP sungguhan.

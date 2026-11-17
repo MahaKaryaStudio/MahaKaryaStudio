@@ -596,7 +596,6 @@ html.motion-off .tile:active { transform: none; }
 /* HP dan tablet (<= 1023): satu kolom, panggung + tab lengket di top 0, panel 280 bergulir sendiri */
 @media (max-width: 1023px) {
   .studio { display: block; }
-  .studio__chips { margin-bottom: 20px; }
   .studio__chips-row { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--page-margin)); padding: 2px var(--page-margin) 4px; scrollbar-width: none; scroll-padding-inline: var(--page-margin); }
   .studio__chips-row::-webkit-scrollbar { display: none; }
   .studio__chips-row .chip { flex: none; }
@@ -610,7 +609,9 @@ html.motion-off .tile:active { transform: none; }
   .slot-chip__k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .studio__panel .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 392px; } /* HP ±62 per ubin; tablet tetap 72 */
   .studio__panel .tile { width: 100%; height: 64px; }
-  .studio__sum { padding-top: 28px; }
+  .studio__sum { padding-top: 24px; gap: 16px; }
+  .studio__chips { margin-bottom: 16px; }
+  .janji__list li { padding: 8px 0; }
   /* HP: pil di kiri atas, saklar di kanan atas, tinggi di kiri bawah; tanpa bilah scrim di atas lampu */
   .studio__stage .stage__pill { top: 12px; left: var(--page-margin); max-width: calc(100% - 2 * var(--page-margin) - 124px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .studio__stage .stage-ui { position: static; }

@@ -639,14 +639,15 @@
       lateT = setTimeout(() => {
         lateT = 0;
         keepFocus(renderStudio);
-        late2 = setTimeout(() => {
+        // sisanya sesudah lampu tercat (rAF + tugas), supaya rincian dan #cara tidak menunda cat lampu
+        lateRaf = requestAnimationFrame(() => { late2 = setTimeout(() => {
           late2 = 0;
           keepFocus(renderRincian);
           renderSpec();
           const pi = presetIndex(state);
           if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); }
           persist();
-        }, 0);
+        }, 0); });
       }, 0);
     });
     return det;

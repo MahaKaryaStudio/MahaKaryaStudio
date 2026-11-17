@@ -15,21 +15,22 @@ const ARM = () => {
     const lamp = document.querySelector('#cfg-lamp');
     const svg0 = lamp && lamp.querySelector('svg');
     const pr0 = priceSel && document.querySelector(priceSel) ? document.querySelector(priceSel).textContent : null;
-    let t0 = null, mark = null, lampT = null, priceT = null;
+    let t0 = null, mark = null, lampT = null, priceT = null, fr = 0, markF = null, priceF = null;
     addEventListener('pointerdown', (e) => { t0 = performance.now(); }, { capture: true, once: true });
     const start = performance.now();
     const after = (set) => setTimeout(() => set(performance.now() - t0), 0);
     const tick = () => {
+      fr++;
       if (t0 != null) {
         const m = markSel ? document.querySelector(markSel) : null;
         const mOk = !markSel || (m && m.getAttribute('aria-pressed') === 'true');
         const lOk = lamp && lamp.querySelector('svg') && lamp.querySelector('svg') !== svg0;
-        if (mOk && mark == null) { mark = 'p'; after((v) => { mark = v; }); }
+        if (mOk && mark == null) { mark = 'p'; markF = fr; after((v) => { mark = v; }); }
         if (lOk && lampT == null) { lampT = 'p'; after((v) => { lampT = v; }); }
-        if (pr0 != null && priceT == null && document.querySelector(priceSel) && document.querySelector(priceSel).textContent !== pr0) { priceT = 'p'; after((v) => { priceT = v; }); }
+        if (pr0 != null && priceT == null && document.querySelector(priceSel) && document.querySelector(priceSel).textContent !== pr0) { priceT = 'p'; priceF = fr; after((v) => { priceT = v; }); }
       }
       const done = typeof mark === 'number' && typeof lampT === 'number' && (pr0 == null || typeof priceT === 'number');
-      if (done || performance.now() - start > 6000) return res({ mark, lamp: lampT, price: priceT, timeout: !done });
+      if (done || performance.now() - start > 6000) return res({ mark, lamp: lampT, price: priceT, sameFrame: priceF == null || markF == null ? null : priceF <= markF, timeout: !done });
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -91,7 +92,8 @@ run(async ({ open, check, opt }) => {
         json[`${vp}.${kind}`] = { mark: res.map((r) => r1(r.mark)), lamp: res.map((r) => r1(r.lamp)), price: res.map((r) => r1(r.price)) };
         check(mk <= LIM[kind][0], `${vp} ${kind}: tanda terpilih tercat <= ${LIM[kind][0]} ms (median ${N}, CPU ${RATE}x)`, `median ${r1(mk)} ms [${res.map((r) => r1(r.mark)).join(', ')}]`);
         check(lp <= LIM[kind][1], `${vp} ${kind}: lampu baru tercat <= ${LIM[kind][1]} ms (median ${N}, CPU ${RATE}x)`, `median ${r1(lp)} ms [${res.map((r) => r1(r.lamp)).join(', ')}]`);
-        if (Number.isFinite(pc)) check(pc <= mk + 1, `${vp} ${kind}: harga berganti paling lambat bersama tanda (tidak ditunda)`, `harga median ${r1(pc)} ms, tanda ${r1(mk)} ms`);
+        const sf = res.map((r) => r.sameFrame).filter((x) => x != null);
+        if (sf.length) check(sf.every(Boolean), `${vp} ${kind}: harga berganti di frame yang sama dengan tanda (tidak ditunda)`, `${sf.filter(Boolean).length}/${sf.length} ketukan; harga median ${r1(pc)} ms, tanda ${r1(mk)} ms`);
       }
     }
 
