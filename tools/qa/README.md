@@ -97,6 +97,14 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
 - `c20-tipografi.js [--page=koleksi.html]`: tidak ada teks < 12 px dan tidak ada bobot ≥ 700.
 - `c23-edit-migrasi.js`: suntingan Mode Edit di alamat lama tidak menimpa teks baru (tahap `STAGES` di
   `editor.js`); kasus bertambah di langkah yang mengubah teks dasar.
+- `c28-gerak.js <url serve-gz.js> [--only=c18,huruf,transfer,lt,bertahap,cls,c24,tab,kedua] [--json=<berkas>]` (langkah gerak):
+  C18 tanpa Google Fonts/GSAP/three dan HTML/CSS/JS gzip; lima woff2 sendiri <= 230 KB, lisensi OFL, satu preload Fraunces
+  roman; transfer muat pertama HP <= 345 KB / 19 permintaan; long task <= 200 ms dan TBT <= 350 ms (CPU 4x + 1,6 Mbps,
+  median 3), DOM saat load <= 4.000; muat bertahap (2 s setelah load semua [data-dynamic] terisi tanpa gulir, setiap
+  [data-wa] ber-href); CLS < 0,05 saat muat dan gulir penuh; C24 #paket, #faq, ?kode=…#rakit mendarat 0–120 px dan
+  bergeser <= 8 px; Tab tanpa gulir mencapai semua kontrol. `kedua` (informatif) butuh `serve-gz.js --pages=0`: kunjungan
+  kedua di tab baru dengan cache HTTP (video diblokir lewat CDP, karena `ctx.route` mematikan cache), mencatat jumlah 304
+  dan status face saat FCP (L/g/u).
 - `c90-tiga-pita.js`: tata letak dan perilaku 02 #tiga dan pita (lembar gambar kerja, baris aktif
   termasuk gulir berbalik dan lompatan, panggung lengket, lembar ringkas di tablet dan HP mendatar,
   angka meta dari lamp-data dan token atomiknya di Mode Edit, pil dan label lembar ringkas sejajar margin halaman sampai 320, tanpa gulir samping 390/360/320, pita tiga baris tanpa gerak dan tahan teks suntingan). Baris `UKUR`
