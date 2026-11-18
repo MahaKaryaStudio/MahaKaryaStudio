@@ -1636,8 +1636,8 @@
      digulir. Klik jangkar, hashchange, hash/?kode= saat muat, Tab, dan focusin merender seksi sasaran (dan semua di
      atasnya) seketika sebelum peramban menggulir. Wadah kosong memesan tinggi lewat :empty di lamp.css, jadi render
      tertunda tidak menggeser isi. Setiap seksi yang selesai memanggil sectionReady(): href WA di dalamnya diisi dan
-     nav.js menyegarkan kandidat tombol berisi (event "mks:section"). Mode Edit dan refresh() dari luar merender
-     semuanya seketika. */
+     nav.js menyegarkan kandidat tombol berisi (event "mks:section"). Mode Edit, refresh() dari luar (juga
+     editor.js saat browser punya suntingan tersimpan), dan muat ulang/kembali tanpa hash merender semuanya seketika. */
   const renderRakit = () => {
     renderPresets();
     keepFocus(() => { renderControls(); syncTabs(); syncPresets(); renderSummary(); renderRincian(); renderStudio(); });
@@ -1664,7 +1664,6 @@
     // #edisi menampilkan edisi rakitan bila rakitan berupa edisi (sama dengan renderAll)
     if (id === "edisi") { const pi = presetIndex(state); if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); } }
     try { document.dispatchEvent(new CustomEvent("mks:section", { detail: { id, done: !pending.size } })); } catch {}
-    if (!pending.size) document.documentElement.toggleAttribute("data-mks-wait", false);
   }
   function ensure(id) {
     if (!pending.has(id)) return false;
@@ -1681,6 +1680,17 @@
     ORDER.forEach((id) => {
       const s = document.getElementById(id);
       if (s && (s === el || s.contains(el) || (s.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING))) ensure(id);
+    });
+  }
+  // Sasaran mendarat: sasaran dan semua di atasnya, ditambah seksi sesudahnya yang ikut terlihat dalam satu layar
+  // di bawah sasaran (supaya seksi yang menyusul tidak menggeser isi yang sedang dilihat).
+  function ensureLanding(el) {
+    ensureUpTo(el);
+    if (!pending.size || !el || !el.getBoundingClientRect) return;
+    const top = el.getBoundingClientRect().top;
+    ORDER.forEach((id) => {
+      const s = document.getElementById(id);
+      if (s && pending.has(id) && s.getBoundingClientRect().top - top < innerHeight) ensure(id);
     });
   }
   function ensureAll() { ORDER.forEach(ensure); }
@@ -1741,17 +1751,38 @@
   })();
   (function boot() {
     const root = document.documentElement;
-    const all = !!window.MKS_EDITOR_ALWAYS || location.hash === "#edit" || !("IntersectionObserver" in window);
+    const nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]) || {};
+    // muat ulang / kembali: peramban memulihkan posisi gulir lama, jadi tata letak harus sudah final (semua seksi)
+    const restoring = nav.type === "reload" || nav.type === "back_forward";
+    const all = !!window.MKS_EDITOR_ALWAYS || location.hash === "#edit" || !("IntersectionObserver" in window) || (restoring && !location.hash);
     if (!all) ORDER.forEach((id) => { if (document.getElementById(id)) pending.add(id); });
-    if (pending.size) root.toggleAttribute("data-mks-wait", true);
-    // hash / ?kode=…#rakit saat muat: sasaran dan semua di atasnya dirender sekarang; tanpa gulir halus selama muat
-    // (peramban menggulir ke fragmen sesudah parse; jangkar gulir menahan posisinya saat seksi lain menyusul)
+    // hash / ?kode=…#rakit saat muat: sasaran, semua seksi di atasnya, dan seksi yang ikut terlihat dirender sekarang,
+    // tanpa gulir halus selama muat; boot tidak menggulir sendiri. Untuk #hash, peramban menggulir ke fragmen sesudah
+    // parse (DOMContentLoaded), saat tata letak baru sudah terlukis selagi sasaran di luar layar, jadi frame itu hanya
+    // menggulir. Tumbuh tinggi dan gulir di frame yang sama dihitung Chrome sebagai pergeseran tata letak (lihat juga
+    // pin awal di motion.js). Tanpa hash (?kode= saja) atau bila peramban tidak menggulir, lamp.js menggulir sesudahnya.
     const target = targetOf(location.hash) || (bootInfo.link ? $("#rakit") : null);
-    if (target) { root.style.scrollBehavior = "auto"; ensureUpTo(target); }
+    if (target || restoring) root.style.scrollBehavior = "auto";
+    if (target) ensureUpTo(target);
     try { renderBase(); } catch (err) { setTimeout(() => { throw err; }); }
+    if (target) ensureLanding(target);
     lastDet = snapshot("refresh");
-    if (target) {
-      target.scrollIntoView({ behavior: "instant", block: "start" });
+    if (target || restoring) {
+      if (target) {
+        // gulir saat posisi sasaran di dokumen tetap selama dua frame berturut-turut (tata letak barunya sudah terlukis;
+        // pin motion.js ditulis di rAF yang dipicu IntersectionObserver, jadi satu frame belum cukup), paling lama 40
+        // frame; gulir pengguna di sela itu membatalkannya
+        let prev = null, same = 0, n = 0;
+        const tick = () => {
+          if (scrollY > 0) return; // peramban sudah menggulir ke fragmen, atau pengguna menggulir
+          const y = Math.round(target.getBoundingClientRect().top + scrollY);
+          same = y === prev ? same + 1 : 0; prev = y;
+          if (same >= 2 || ++n > 40) target.scrollIntoView({ behavior: "instant", block: "start" });
+          else requestAnimationFrame(tick);
+        };
+        const land = () => requestAnimationFrame(tick);
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", land, { once: true }); else land();
+      }
       const back = () => setTimeout(() => { root.style.scrollBehavior = ""; }, 600);
       if (document.readyState === "complete") back(); else addEventListener("load", back, { once: true });
     }
@@ -1774,9 +1805,9 @@
     // klik jangkar dan hashchange: sasaran seketika, sebelum peramban menggulir
     document.addEventListener("click", (e) => {
       const a = e.target.closest && e.target.closest('a[href^="#"]');
-      if (a && pending.size) ensureUpTo(targetOf(a.getAttribute("href")));
+      if (a && pending.size) ensureLanding(targetOf(a.getAttribute("href")));
     }, true);
-    addEventListener("hashchange", () => ensureUpTo(targetOf(location.hash)));
+    addEventListener("hashchange", () => ensureLanding(targetOf(location.hash)));
     // papan ketik: Tab pertama merender semuanya sebelum fokus berpindah (Tab tanpa gulir mencapai semua kontrol);
     // fokus yang masuk ke seksi tertunda lewat jalan lain (pembaca layar, skrip) merender seksinya
     document.addEventListener("keydown", (e) => { if (e.key === "Tab" && pending.size) ensureAll(); }, true);

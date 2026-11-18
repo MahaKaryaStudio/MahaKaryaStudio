@@ -33,6 +33,11 @@
   const hasIO = "IntersectionObserver" in window;
 
   // Script dimuat sebelum DOM selesai di beberapa halaman: tunggu bila perlu
+  // Pin #kenapa dipasang sekarang bila seksinya sudah ada (skrip di akhir body), tidak menunggu DOMContentLoaded:
+  // seksi tumbuh ke 200vh di frame yang lebih awal, bukan di frame gulir fragmen peramban (#paket, #faq saat muat),
+  // yang akan dihitung sebagai pergeseran tata letak. init() menulis keadaan yang sama, jadi tidak ada lompatan.
+  const story0 = document.querySelector(".story");
+  if (story0 && !off && innerHeight >= 600 && !(document.body && document.body.classList.contains("mks-has-panel"))) story0.classList.add("story--pin");
   const ready = (fn) => (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", fn, { once: true }) : fn());
   ready(init);
 
