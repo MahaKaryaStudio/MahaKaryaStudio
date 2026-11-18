@@ -24,7 +24,12 @@
 /* ---------- Huruf sendiri (adendum v3.1 K7): woff2 Fontsource di assets/vendor/fonts (lisensi OFL di sana) ----------
    Bobot dibatasi ke yang dipakai (sama dengan permintaan Google Fonts lama): Fraunces roman 300–600 dan italic
    300–500 (sumbu opsz + wght), Inter 400–600 (sumbu wght), DM Mono 400 dan 500. font-display: swap; hanya
-   Fraunces roman yang di-preload di <head>. Fallback bermetrik di bawah tetap menahan pergeseran saat tukar. */
+   Fraunces roman yang di-preload di <head>. Fallback bermetrik di bawah tetap menahan pergeseran saat tukar.
+   DM Mono tetap swap. Kunjungan kedua (cache kedaluwarsa, validasi ulang 304, RTT 150 ms; c28 kedua) melukis label
+   mono dengan fallback bermetrik lalu menukarnya ±250 ms kemudian: hanya bentuk huruf yang berganti, tanpa geser.
+   font-display: optional sudah diuji: DM Mono lalu tidak pernah tampil, bahkan pada muat pertama di localhost tanpa
+   throttle (berkasnya baru diminta setelah gaya dihitung, lewat jendela ±100 ms). Ganti ke optional di dua face
+   DM Mono di bawah bila pemilik lebih memilih fallback daripada tukar. */
 @font-face {
   font-family: "Fraunces";
   font-style: normal;

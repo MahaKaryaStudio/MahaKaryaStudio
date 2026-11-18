@@ -241,28 +241,41 @@ run(async ({ check, base, opt, browser }) => {
 
   /* ---------- Kunjungan kedua (cache kedaluwarsa, RTT 150 ms) ---------- */
   if (on('kedua')) {
-    const ctx = await ctxOf(HP); const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
-    await p.goto(base + 'index.html', { waitUntil: 'load' }); await p.waitForTimeout(1500);
+    // ctx.route mematikan cache HTTP Playwright: video diblokir lewat CDP supaya cache dan ETag bekerja seperti peramban biasa
+    const ctx = await ctxOf(HP, { blockVideo: false }); const errs = [];
+    const p0 = await ctx.newPage(); p0.on('pageerror', (e) => errs.push(String(e)));
+    const c0 = await ctx.newCDPSession(p0); await c0.send('Network.enable');
+    await c0.send('Network.setBlockedURLs', { urls: ['*.mp4', '*.webm'] });
+    await p0.goto(base + 'index.html', { waitUntil: 'load' }); await p0.waitForTimeout(1500);
+    await p0.close();
+    // kunjungan kedua di tab baru (cache disk + validasi ulang, bukan cache memori tab lama)
+    const p = await ctx.newPage(); p.on('pageerror', (e) => errs.push(String(e)));
     const cdp = await ctx.newCDPSession(p); await cdp.send('Network.enable');
+    await cdp.send('Network.setBlockedURLs', { urls: ['*.mp4', '*.webm'] });
     await cdp.send('Network.emulateNetworkConditions', SLOW);
     const st = new Map();
-    cdp.on('Network.responseReceived', (e) => st.set(e.response.url, [e.response.status, e.response.fromDiskCache]));
+    // status di kabel (304 = permintaan bersyarat berhasil) dari ExtraInfo; responseReceived melaporkan 200 dari cache
+    const wire = new Map();
+    cdp.on('Network.responseReceivedExtraInfo', (e) => wire.set(e.requestId, e.statusCode));
+    cdp.on('Network.responseReceived', (e) => st.set(e.response.url, [e.requestId, e.response.fromDiskCache]));
     await p.addInitScript(() => {
       window.__ff = [];
-      const tick = () => { const s = [...document.fonts].filter((f) => /Fraunces|Inter|DM Mono/.test(f.family) && !/Fallback/.test(f.family)).map((f) => f.status[0]).join(''); window.__ff.push([Math.round(performance.now()), s]); if (performance.now() < 4000) requestAnimationFrame(tick); };
+      const C = { unloaded: 'u', loading: 'g', loaded: 'L', error: 'x' };
+      const tick = () => { const s = [...document.fonts].filter((f) => /Fraunces|Inter|DM Mono/.test(f.family) && !/Fallback/.test(f.family)).map((f) => C[f.status]).join(''); window.__ff.push([Math.round(performance.now()), s]); if (performance.now() < 4000) requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     });
-    await p.reload({ waitUntil: 'load' }); await p.waitForTimeout(2500);
+    await p.goto(base + 'index.html', { waitUntil: 'load' }); await p.waitForTimeout(2500);
     const r = await p.evaluate(() => {
       const fcp = (performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || 0;
       const atFcp = (window.__ff.find((x) => x[0] >= fcp) || window.__ff[0] || [0, ''])[1];
-      const done = window.__ff.find((x) => x[1] && !/[ul]/.test(x[1]));
+      const done = window.__ff.find((x) => x[1] && !/[ug]/.test(x[1]));
       return { fcp: Math.round(fcp), atFcp, allLoadedAt: done ? done[0] : null };
     });
-    const fontsSt = [...st.entries()].filter(([u]) => /vendor\/fonts/.test(u)).map(([u, s]) => u.split('/').pop() + ' ' + s[0] + (s[1] ? ' cache' : ''));
-    const n304 = [...st.values()].filter((s) => s[0] === 304).length;
+    const code = (s) => wire.get(s[0]) || (s[1] ? 'cache' : '?');
+    const fontsSt = [...st.entries()].filter(([u]) => /vendor\/fonts/.test(u)).map(([u, s]) => u.split('/').pop() + ' ' + code(s));
+    const n304 = [...st.values()].filter((s) => wire.get(s[0]) === 304).length;
     out.kedua = { r, fontsSt, n304, total: st.size };
-    console.log(`      kunjungan kedua: ${st.size} respons, ${n304} × 304; huruf: ${fontsSt.join(', ') || '-'}; FCP ${r.fcp} ms, status face saat FCP "${r.atFcp}" (l=loaded, u=unloaded, l…), semua termuat ${r.allLoadedAt} ms`);
+    console.log(`      kunjungan kedua: ${st.size} respons, ${n304} × 304; huruf: ${fontsSt.join(', ') || '-'}; FCP ${r.fcp} ms, status face saat FCP "${r.atFcp}" (L=loaded, g=loading, u=unloaded), semua termuat ${r.allLoadedAt} ms`);
     check(!errs.length, 'kunjungan kedua tanpa galat (informatif: kedipan dicatat di atas)', errs.join(' | '));
     await ctx.close();
   }
