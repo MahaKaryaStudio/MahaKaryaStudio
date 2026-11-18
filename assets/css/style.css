@@ -280,6 +280,7 @@ html.motion-off .final__stage { --dim: 1 !important; }
 /* Responsif footer (index): <= 1023 merek penuh, lalu kolom; <= 760 tautan blok 44 */
 @media (max-width: 1023px) {
   .footer__grid:has(> .footer__brand) { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; max-width: 720px; }
+  .footer:has(.footer__brand) .footer__bottom { max-width: 720px; } /* baris legal sekolom dengan grid di atasnya */
   .footer__brand { grid-column: 1 / -1; }
 }
 @media (max-width: 760px) {

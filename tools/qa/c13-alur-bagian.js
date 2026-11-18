@@ -114,7 +114,9 @@ run(async ({ open, check, opt }) => {
       const bad = [];
       els.forEach((e) => {
         const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-        if (cy < 0 || cy > innerHeight) return;
+        // kotak 44 yang terpotong orderbar tetap (HP) tidak diukur pada posisi gulir ini (koleksi-qa: ubin HP 4:3 lebih pendek)
+        const ob = document.querySelector('.orderbar.is-on'), lim = ob ? ob.getBoundingClientRect().top : innerHeight;
+        if (cy < 0 || cy > innerHeight || cy + 22 > lim) return;
         const pts = [[cx, cy], [cx - 21.5, cy - 21.5], [cx + 21.5, cy - 21.5], [cx - 21.5, cy + 21.5], [cx + 21.5, cy + 21.5]];
         const miss = pts.filter(([x, y]) => { const h = document.elementFromPoint(x, y); return !h || !(h === e || e.contains(h)); });
         if (miss.length) bad.push(`${e.className.split(' ')[0]}[${e.dataset.psColor || e.dataset.psSlot || e.dataset.ptile || e.dataset.pfilter || ''}] ${Math.round(r.width)}×${Math.round(r.height)}`);

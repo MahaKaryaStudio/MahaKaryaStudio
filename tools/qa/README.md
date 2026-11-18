@@ -74,13 +74,15 @@ Cek adendum v3.1 (`cNN-*.js <url>`, keluar 0 bila lulus; `_lib.js` hanya pembant
   JS (FAQ dan kalimat SNI terbaca), C9 footer/#faq/#cara >= 44 di 390 dan 360, heading tanpa loncatan, orderbar tersembunyi
   di .final dan footer, footer (legal, catatan video AI, "Studio rakit", logotype 40, WA + nomor + Salin), `rapi` (panggung .final 420:480, pemisah legal di depan span, summary spesifikasi bisa diklik di Mode Edit, email ber-wbr, baris WA dan Jelajah dua kolom di HP, WA .final 56), `UKUR` tinggi.
   C7, C8, C10 seksi ini lewat c04 (SEKSI memuat #cara–footer), garis #cara lewat c06.
-- `c21-koleksi.js [--only=c21,ongkir,c11,c13,c14,c16,c19,c9,berisi,c23,edit,tinggi]`: koleksi.html (langkah koleksi-qa): C21 tanpa
+- `c21-koleksi.js [--only=c21,ongkir,c11,c13,c14,c16,c19,c9,berisi,c23,edit,tinggi,rapi,laci]`: koleksi.html (langkah koleksi-qa): C21 tanpa
   pita promo, gelembung WA, animasi berjalan, @keyframes float, nomor 01–04; di 390 × 664 gambar hero utuh dan tepat satu aksi
   WA di layar pertama; saklar `freeShipping` false = tanpa "gratis ongkir" di halaman dan keranjang berisi (true = bilah scaleX);
   C11 pil ILUSTRASI hero/kartu/modal + legal footer; C13; C14 harga kartu, modal, subtotal = products.js; C16 HTML mentah, satu
   noscript, href WA awal saat main.js diblokir, tanpa JS terbaca; C19 tanpa gulir samping di 320/360/390/820/1024/1440 (koleksi
   dan index); C9 kontrol >= 44 di 390/360 (juga modal); satu tombol berisi per layar; C23 suntingan lama koleksi (tahap 11);
-  Mode Edit koleksi (teks, Produk, Ekspor); `tinggi` halaman index 390 <= 16.500.
+  Mode Edit koleksi (teks, Produk, Ekspor); `tinggi` halaman index 390 <= 16.500; `rapi` tanpa "Pilihan studio" di koleksi,
+  tanda logo nav >= 28 di 320/360/390, pil ILUSTRASI di sepertiga atas gambar, harga + tombol sebaris per baris kartu, hero
+  satu kolom di 820/1000; `laci` keranjang sebagai dialog (fokus masuk, halaman inert, Tab tertahan, Esc kembali ke pembuka).
 - `c12-tombol-berisi.js`: paling banyak satu tombol berisi per layar sepanjang gulir 390/1440, setelah mks:change,
   saat menu dibuka/ditutup, dan setelah ganti lebar. Tombol di bawah panggung + tab studio yang lengket di tepi atas
   (HP) dihitung tertutup, sama seperti di bawah nav (rantai dari tepi atas: panggung lalu tab tepat di bawahnya).

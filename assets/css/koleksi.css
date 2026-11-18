@@ -182,8 +182,8 @@ body[data-page="koleksi.html"] .final__inner > p { color: var(--fg-2); margin: 0
   .hero .lead { order: 5; margin-top: 24px; }
   .hero__points { order: 6; margin-top: 8px; }
   .hero .noscript-note { order: 7; }
-  .hero__grid, .why__grid, .collection > .wrap, .custom__grid, .b2b > .wrap, .process__grid, .material__grid { max-width: 720px; }
-  .hero__grid, .why > .wrap, .collection > .wrap, .custom > .wrap, .b2b > .wrap, .process > .wrap, .material > .wrap, .faq > .wrap { margin-inline: auto; }
+  /* wadah isi maks 720 di 761–1023 untuk SEMUA seksi: tepi kiri judul, teks, dan grid sama di tiap seksi */
+  main > section > .wrap { max-width: 720px; margin-inline: auto; }
   .why__grid, .process__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 32px; }
   .b2b__grid { grid-template-columns: minmax(0, 1fr); }
   .custom__grid, .material__grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
