@@ -993,3 +993,21 @@ html.motion-off .psheet[open]::backdrop { animation: none; }
 @media (max-width: 1023px) {
   .stage:not(.stage--hero):not(.stage--vitrine) { aspect-ratio: 4 / 4.4; }
 }
+
+/* ---------- Muat awal bertahap (langkah gerak): tinggi cadangan wadah yang belum dirender ----------
+   lamp.js merender seksi di bawah hero satu per satu (paling lambat 1,5 s setelah load). Selama wadah [data-dynamic]
+   masih kosong, :empty memesan kira-kira tinggi isinya (diukur di 320–1920), jadi render tertunda tidak menggeser
+   halaman dan jangkar (#paket, #faq, ?kode=…#rakit) mendarat di tempat yang benar. Tanpa JS: dinolkan lewat <noscript>. */
+#edisi-app:empty { min-height: 970px; }
+#presets:empty { min-height: 64px; }
+#controls:empty { min-height: 219px; }
+#summary:empty { min-height: 260px; }
+#pkgs:empty { min-height: 600px; }
+#catalog:empty { min-height: 600px; }
+#spec-fig:empty { aspect-ratio: 360 / 464; }
+@media (max-width: 1023px) {
+  #presets:empty { min-height: 70px; }
+  #controls:empty { min-height: 0; } /* panel HP bertinggi tetap 280 */
+  #catalog:empty { min-height: min(2690px, 260px + 2.75 * 100vw); }
+}
+@media (max-width: 900px) { #edisi-app:empty { min-height: 1290px; } } /* #edisi tetap 900/901 (pengecualian koleksi-qa) */

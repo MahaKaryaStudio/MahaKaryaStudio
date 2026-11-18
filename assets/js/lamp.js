@@ -37,6 +37,11 @@
   const reduceMotion = () => document.documentElement.classList.contains("motion-off") || !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const scrollToEl = (el, block) => { if (el) el.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: block || "start" }); };
   const find = A.find;
+  // Muat awal bertahap (langkah gerak): id seksi yang belum dirender. Fungsi render sebuah seksi tidak berbuat apa-apa
+  // selama seksinya masih tertunda; boot() di bawah merender seksi satu per satu (lihat "Muat awal bertahap").
+  const pending = new Set();
+  const hold = (id) => pending.has(id);
+  let lastDet = null; // siaran terakhir (emit), dipakai sectionReady() untuk href WA seksi yang baru dirender
   const pick = (list) => {
     const ok = list.filter((x) => x.stock !== false);
     return (ok.length ? ok : list)[Math.floor(Math.random() * (ok.length ? ok : list).length)].id;
@@ -340,6 +345,7 @@
   let booted = false;
   function emit(reason) {
     const det = snapshot(reason);
+    lastDet = det;
     refreshWa(det);
     if (booted) announce(det);
     else lastLive = `Total ${rp(det.price.total)}` + (det.anchor > det.price.total ? `, hemat ${rp(det.anchor - det.price.total)}` : "");
@@ -379,6 +385,7 @@
   const TABS = ["head", "body", "base", "power"];
   const TAB_LABEL = { head: "Kap", body: "Badan", base: "Alas", power: "Listrik" };
   function renderControls() {
+    if (hold("rakit")) return;
     const el = $("#controls");
     if (!el) return;
     const d = D();
@@ -476,6 +483,7 @@
     $$("#presets [data-preset]").forEach((b) => { const on = +b.dataset.preset === pi; if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", on); });
   }
   function renderPresets() {
+    if (hold("rakit")) return;
     const el = $("#presets");
     if (!el) return;
     el.innerHTML =
@@ -496,6 +504,7 @@
     return p.led ? "Bagian cetak dan bohlam LED, tanpa kit kelistrikan." : "Bagian cetak saja, tanpa kit kelistrikan.";
   }
   function renderSummary() {
+    if (hold("rakit")) return;
     const summary = $("#summary");
     if (!summary) return;
     const p = price(state), anchorTotal = p.parts + p.wiring + p.led;
@@ -521,6 +530,7 @@
   }
   // Rincian (<details> statis tetap terbuka/tertutup; isinya dirender ulang): baris .rincian__row
   function renderRincian() {
+    if (hold("rakit")) return;
     const el = $("#rincian-body");
     if (!el) return;
     const p = price(state), pi = presetIndex(state), z = zoneOf(state), zs = zones();
@@ -552,6 +562,7 @@
   // layar <= 640), lantai 80%, lampu acuan ±50% tinggi, supaya pil di atas dan saklar di bawah tidak menutupi lampu.
   const STUDIO_HP = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
   function renderStudio() {
+    if (hold("rakit")) return;
     const host = $("#cfg-lamp");
     if (host) {
       const st = $("#cfg-stage");
@@ -579,6 +590,7 @@
   }
   // #cara: spesifikasi rakitanmu (di luar layar saat merakit; dirender sesudah panggung)
   function renderSpec() {
+    if (hold("cara")) return;
     const cm = `≈ ${A.totalCm(state).toFixed(0)} cm`;
     setHtml("#spec-fig", A.renderLamp(state, { uid: "spec", on: true, dim: 0.9, dims: true, vb: "0 36 360 464", label: "Ilustrasi rakitanmu dengan ukuran", pill: "Ilustrasi" }));
     setText("#spec-height", cm);
@@ -591,6 +603,7 @@
   // (ditulis sekali oleh finalLight); render ulang innerHTML tidak menyentuh style panggung. Dilewati bila kode sama.
   let finalKey = "";
   function renderFinal() {
+    if (hold("konsultasi")) return;
     const host = $("#final-lamp");
     if (!host) return;
     const hp = STUDIO_HP.matches;
@@ -781,6 +794,7 @@
     return `<div class="paket__price"><p class="price-block__label">Mulai dari</p><p class="price-amount price-amount--md num">${amountHtml(m.price)}</p>${was}</div>`;
   }
   function renderPackages() {
+    if (hold("paket")) return;
     const el = $("#pkgs");
     if (!el) return;
     const list = pkgList();
@@ -865,6 +879,7 @@
   };
   function renderCatalog() { keepFocus(renderCatalogNow); }
   function renderCatalogNow() {
+    if (hold("bagian")) return;
     const el = $("#catalog");
     if (!el) return;
     const n = { head: D().heads.length, body: D().bodies.length, base: D().bases.length };
@@ -1010,6 +1025,7 @@
      Tanpa pin (gerak dikurangi) hanya lapisan 3 yang tampil, menyala penuh. */
   const storyNarrow = window.matchMedia ? window.matchMedia("(max-width: 760px)") : { matches: false };
   function renderStory() {
+    if (hold("kenapa")) return;
     const host = $("#story-art");
     if (!host) return;
     const d = D();
@@ -1038,6 +1054,7 @@
      Harga coret = harga satuan bagian + kit dari price(); hemat selalu rupiah. */
   function renderEditions() { keepFocus(renderEditionsNow); }
   function renderEditionsNow() {
+    if (hold("edisi")) return;
     const el = $("#edisi-app");
     if (!el) return;
     const d = D();
@@ -1219,6 +1236,7 @@
   })();
   // Mockup alur WA mengikuti edisi pilihan studio
   function renderAlur() {
+    if (hold("alur")) return;
     const d = D(); const i = d.popularPreset || 0; const cfg = presetCfg(i); const pr = price(cfg);
     const z = zones()[0];
     // Simulasi (label "Simulasi alur pesan" di kepala seksi). Kode hanya patah di tanda hubung; rincian di halaman memakai
@@ -1245,6 +1263,7 @@
      Sekalian mengisi angka baris meta ([data-tiga-n="heads|bases|colors|maxBodies"]) dari lamp-data. */
   const tigaNarrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : { matches: false };
   function renderExploded() {
+    if (hold("tiga")) return;
     const el = $("#exploded");
     if (!el || !A.sheet) return;
     const d = D();
@@ -1288,6 +1307,7 @@
      (repeating-linear-gradient), jadi tetap tajam di ukuran berapa pun dan tidak perlu render ulang.
      Variabel ditulis sekali di .band__art (induk siluet, garis penunjuk, dan anotasi). */
   function renderBand() {
+    if (hold("pita")) return;
     const el = $("#pita-sil");
     if (!el || !A.outline) return;
     const d = D();
@@ -1300,12 +1320,8 @@
     el.classList.add("is-on");
   }
 
+  // Isian statis murah (bukan seksi): catatan harga kit/LED, lama produksi, persen paket
   function renderStatic() {
-    renderExploded();
-    renderBand();
-    renderStory();
-    renderEditions();
-    renderAlur();
     setText("#led-price-note", rp(D().ledPrice));
     setText("#wiring-price-note", rp(D().wiringPrice));
     $$("[data-lead-preset]").forEach((el) => { el.textContent = D().leadTime.preset; });
@@ -1613,22 +1629,84 @@
     selectTab(TABS[j], { focus: true });
   });
   document.addEventListener("pointerdown", () => { const studio = $("#studio"); if (studio && studio.dataset.input) delete studio.dataset.input; }, true);
+  /* ---------- Muat awal bertahap (adendum v3.1, langkah gerak) ----------
+     Saat muat hanya hero, isian statis, href WA, dan siaran mks:change (orderbar, nav) yang dirender. Seksi lain
+     (SECTIONS, urut dokumen) dirender satu seksi per tugas: yang mendekati layar lebih dulu (IntersectionObserver,
+     satu layar di depan), sisanya di waktu idle, dan SEMUANYA selesai paling lambat 1,5 s setelah load walau tidak
+     digulir. Klik jangkar, hashchange, hash/?kode= saat muat, Tab, dan focusin merender seksi sasaran (dan semua di
+     atasnya) seketika sebelum peramban menggulir. Wadah kosong memesan tinggi lewat :empty di lamp.css, jadi render
+     tertunda tidak menggeser isi. Setiap seksi yang selesai memanggil sectionReady(): href WA di dalamnya diisi dan
+     nav.js menyegarkan kandidat tombol berisi (event "mks:section"). Mode Edit dan refresh() dari luar merender
+     semuanya seketika. */
+  const renderRakit = () => {
+    renderPresets();
+    keepFocus(() => { renderControls(); syncTabs(); syncPresets(); renderSummary(); renderRincian(); renderStudio(); });
+  };
+  const SECTIONS = [
+    ["kenapa", renderStory],
+    ["edisi", renderEditions],
+    ["tiga", renderExploded],
+    ["pita", renderBand],
+    ["rakit", renderRakit],
+    ["alur", renderAlur],
+    ["paket", renderPackages],
+    ["bagian", renderCatalog],
+    ["cara", renderSpec],
+    ["konsultasi", renderFinal],
+  ];
+  const ORDER = SECTIONS.map((x) => x[0]);
+  function sectionReady(id) {
+    const sec = document.getElementById(id);
+    if (sec && lastDet) $$("[data-wa]", sec).forEach((a) => {
+      a.href = waLink(waMessageFor(a, lastDet));
+      if (a.tagName === "A") { a.target = "_blank"; a.rel = "noopener"; }
+    });
+    // #edisi menampilkan edisi rakitan bila rakitan berupa edisi (sama dengan renderAll)
+    if (id === "edisi") { const pi = presetIndex(state); if (pi >= 0 && pi !== state.edition) { state.edition = pi; fillEdition(); } }
+    try { document.dispatchEvent(new CustomEvent("mks:section", { detail: { id, done: !pending.size } })); } catch {}
+    if (!pending.size) document.documentElement.toggleAttribute("data-mks-wait", false);
+  }
+  function ensure(id) {
+    if (!pending.has(id)) return false;
+    pending.delete(id);
+    const fn = SECTIONS[ORDER.indexOf(id)][1];
+    try { keepFocus(fn); } catch (err) { setTimeout(() => { throw err; }); }
+    sectionReady(id);
+    return true;
+  }
+  // Seksi sasaran dan semua seksi tertunda di atasnya (supaya posisi sasaran sudah final sebelum peramban menggulir).
+  // Sasaran di luar seksi bernomor (footer, dsb.): semua seksi yang mendahuluinya di dokumen.
+  function ensureUpTo(el) {
+    if (!pending.size || !el || !el.compareDocumentPosition) return;
+    ORDER.forEach((id) => {
+      const s = document.getElementById(id);
+      if (s && (s === el || s.contains(el) || (s.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING))) ensure(id);
+    });
+  }
+  function ensureAll() { ORDER.forEach(ensure); }
+  const targetOf = (hash) => { try { return hash && hash.length > 1 ? document.getElementById(decodeURIComponent(hash.slice(1))) : null; } catch { return null; } };
   function refresh() {
+    ensureAll(); // dari luar (Mode Edit, editor-lamp.js): semua seksi seketika
+    return renderBase();
+  }
+  // Render dasar: hero + isian statis + seksi yang sudah hidup + siaran
+  function renderBase() {
     sanitize(state);
     sanitize(hero.cfg);
     bindStatic();
-    renderSchema();
+    if (!pending.size) renderSchema();
     renderStatic();
     heroKey = ""; // data bisa berubah (warna/nama dari Mode Edit): hero digambar ulang; jalur saklar tetap memakai cache
     renderHero();
+    // renderAll merender #rakit (kecuali chip edisi), #cara, .final bila hidup; seksi lain di sini. Fungsi seksi yang
+    // masih tertunda tidak berbuat apa-apa.
+    SECTIONS.forEach(([id, fn]) => { if (!hold(id) && id !== "rakit" && id !== "cara" && id !== "konsultasi") fn(); });
     renderPresets();
-    renderPackages();
-    renderCatalog();
     return renderAll("refresh");
   }
-  refresh();
-  // Buka dari tautan bagikan (?kode=…) atau pulihkan rakitan terakhir
-  (function restore() {
+  // Rakitan awal dari tautan bagikan (?kode=…) atau rakitan tersimpan, diterapkan SEBELUM render pertama
+  // (dulu: render penuh, lalu render penuh kedua setelah pulih)
+  const bootInfo = (function restore() {
     const q = new URLSearchParams(location.search);
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch {}
@@ -1641,27 +1719,68 @@
       Object.assign(state, fromLink);
       const z = q.get("zona"); if (z && zones().some((x) => x.id === z)) state.zone = z;
       touched = true;
-      refresh();
-      toast("Rakitan dari tautan dimuat");
-      setTimeout(() => scrollToEl($("#rakit"), "start"), 300);
-      return;
+      return { link: true, msg: "Rakitan dari tautan dimuat" };
     }
     if (q.get("kode")) history.replaceState(null, "", location.pathname + location.hash);
-    if (!validSaved) return;
+    if (!validSaved) return {};
     const snap = clone(state);
     try {
       const before = code(state);
       const g = saved.gift && typeof saved.gift === "object" ? saved.gift : {};
       Object.assign(state, { head: saved.head, body: saved.body, base: saved.base, led: !!saved.led, wiring: saved.wiring !== false, zone: typeof saved.zone === "string" ? saved.zone : state.zone, gift: { on: !!g.on, to: typeof g.to === "string" ? g.to : "", msg: typeof g.msg === "string" ? g.msg : "", hide: g.hide !== false } });
       sanitize(state);
-      refresh();
-      if (code(state) !== before && !q.get("kode")) toast("Rakitan terakhirmu dipulihkan");
+      // uji bahwa rakitan pulihan bisa dihitung dan digambar (dulu: render penuh di dalam try)
+      price(state); waText(state); A.renderLamp(state, { uid: "chk", variant: "thumb", decorative: true });
+      return code(state) !== before && !q.get("kode") ? { msg: "Rakitan terakhirmu dipulihkan" } : {};
     } catch {
       // data tersimpan rusak: kembali ke rakitan awal, buang yang rusak
       Object.assign(state, snap);
       try { localStorage.removeItem(SAVE_KEY); } catch {}
-      try { refresh(); } catch {}
+      return {};
     }
+  })();
+  (function boot() {
+    const root = document.documentElement;
+    const all = !!window.MKS_EDITOR_ALWAYS || location.hash === "#edit" || !("IntersectionObserver" in window);
+    if (!all) ORDER.forEach((id) => { if (document.getElementById(id)) pending.add(id); });
+    if (pending.size) root.toggleAttribute("data-mks-wait", true);
+    // hash / ?kode=…#rakit saat muat: sasaran dan semua di atasnya dirender sekarang; tanpa gulir halus selama muat
+    // (peramban menggulir ke fragmen sesudah parse; jangkar gulir menahan posisinya saat seksi lain menyusul)
+    const target = targetOf(location.hash) || (bootInfo.link ? $("#rakit") : null);
+    if (target) { root.style.scrollBehavior = "auto"; ensureUpTo(target); }
+    try { renderBase(); } catch (err) { setTimeout(() => { throw err; }); }
+    lastDet = snapshot("refresh");
+    if (target) {
+      target.scrollIntoView({ behavior: "instant", block: "start" });
+      const back = () => setTimeout(() => { root.style.scrollBehavior = ""; }, 600);
+      if (document.readyState === "complete") back(); else addEventListener("load", back, { once: true });
+    }
+    if (bootInfo.msg) toast(bootInfo.msg);
+    if (!pending.size) return renderSchema();
+    // 1. dekat layar: satu layar di depan viewport
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); ensure(e.target.id); } }), { rootMargin: "0px 0px 100% 0px" });
+    pending.forEach((id) => io.observe(document.getElementById(id)));
+    // 2. idle: satu seksi per tugas, urut dokumen; 3. batas: semua selesai <= 1,5 s setelah load
+    const ric = window.requestIdleCallback ? (f) => requestIdleCallback(f, { timeout: 250 }) : (f) => setTimeout(f, 16);
+    const step = () => {
+      const id = ORDER.find((x) => pending.has(x));
+      if (!id) { io.disconnect(); return renderSchema(); }
+      ensure(id);
+      ric(step);
+    };
+    ric(step);
+    const deadline = () => setTimeout(() => { if (pending.size) ensureAll(); io.disconnect(); }, 1500);
+    if (document.readyState === "complete") deadline(); else addEventListener("load", deadline, { once: true });
+    // klik jangkar dan hashchange: sasaran seketika, sebelum peramban menggulir
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest && e.target.closest('a[href^="#"]');
+      if (a && pending.size) ensureUpTo(targetOf(a.getAttribute("href")));
+    }, true);
+    addEventListener("hashchange", () => ensureUpTo(targetOf(location.hash)));
+    // papan ketik: Tab pertama merender semuanya sebelum fokus berpindah (Tab tanpa gulir mencapai semua kontrol);
+    // fokus yang masuk ke seksi tertunda lewat jalan lain (pembaca layar, skrip) merender seksinya
+    document.addEventListener("keydown", (e) => { if (e.key === "Tab" && pending.size) ensureAll(); }, true);
+    document.addEventListener("focusin", (e) => { if (pending.size) ensureUpTo(e.target); }, true);
   })();
   // Nyala hero sekali: setelah render pertama dan dua frame, satu penulisan --dim (transisi 600 ms, delay 200 ms
   // lewat .is-waking di lamp.css). Saklar yang disentuh lebih dulu membatalkannya.

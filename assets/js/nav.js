@@ -246,6 +246,9 @@
   window.addEventListener("scroll", sync, { passive: true });
   // Lembar bagian (#bagian) dibuka/ditutup: orderbar disembunyikan selama <dialog> terbuka, slot "Pesan" nav ikut diam
   document.addEventListener("mks:dialog", sync);
+  // Muat awal bertahap (lamp.js sectionReady): seksi yang baru dirender bisa membawa tombol berisi; daftar kandidat
+  // disegarkan sekarang (tidak menunggu MutationObserver) dan keadaan nav/orderbar dihitung ulang di frame berikutnya
+  document.addEventListener("mks:section", () => { dirty = true; sync(); });
   window.addEventListener("resize", sync);
   window.addEventListener("load", sync);
   nav.addEventListener("focusin", sync);

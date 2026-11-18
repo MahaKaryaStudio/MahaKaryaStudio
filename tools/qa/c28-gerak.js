@@ -8,7 +8,7 @@
 //  - lt       : CPU 4x + 1,6 Mbps / RTT 150 ms: long task terpanjang <= 200 ms, total blocking time <= 350 ms
 //               (jumlah bagian > 50 ms dari semua long task sampai load + 2 s), node DOM saat load <= 4.000.
 //  - bertahap : 2 s setelah load, tanpa gulir: semua wadah [data-dynamic] terisi (kecuali dialog tertutup), setiap
-//               [data-wa] punya href wa.me.
+//               [data-wa] punya href wa.me. Siluet #pita (topeng CSS) dihitung terisi lewat .is-on.
 //  - cls      : CLS < 0,05 saat muat dan sepanjang gulir penuh (390 dan 1440).
 //  - c24      : #paket, #faq, ?kode=…#rakit tepat setelah muat: sasaran 0–120 px dari atas viewport, bergeser <= 8 px
 //               dalam 2,5 s sesudahnya (390 dan 1440).
@@ -152,7 +152,7 @@ run(async ({ check, base, opt, browser }) => {
       await p.goto(base + 'index.html', { waitUntil: 'load' });
       await p.waitForTimeout(2000);
       const r = await p.evaluate(() => {
-        const empty = [...document.querySelectorAll('[data-dynamic]')].filter((el) => !(el.tagName === 'DIALOG' && !el.open) && el.id !== 'orderbar' && !el.textContent.trim() && !el.querySelector('svg,img,button,input'));
+        const empty = [...document.querySelectorAll('[data-dynamic]')].filter((el) => !(el.tagName === 'DIALOG' && !el.open) && el.id !== 'orderbar' && !el.textContent.trim() && !el.querySelector('svg,img,button,input') && !el.classList.contains('is-on'));
         const wa = [...document.querySelectorAll('[data-wa]')].filter((a) => !/^https:\/\/wa\.me\/\d+/.test(a.getAttribute('href') || ''));
         return { n: document.querySelectorAll('[data-dynamic]').length, empty: empty.map((e) => e.id || e.className), wa: wa.map((a) => a.outerHTML.slice(0, 80)), y: scrollY, nwa: document.querySelectorAll('[data-wa]').length };
       });
@@ -226,6 +226,8 @@ run(async ({ check, base, opt, browser }) => {
         const list = [...document.querySelectorAll(sel)].filter((el) => {
           if (el.disabled || el.tabIndex < 0 || el.closest('[inert],dialog:not([open]),[hidden]')) return false;
           if (el.tagName === 'INPUT' && el.type === 'radio' && !el.checked) return false;
+          // checkVisibility: di dalam <details> tertutup (content-visibility) atau display:none tidak bisa di-Tab
+          if (el.checkVisibility && !el.checkVisibility({ visibilityProperty: true })) return false;
           const cs = getComputedStyle(el); if (cs.visibility === 'hidden') return false;
           const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 || el.matches('input[type=radio],input[type=checkbox]');
         });
