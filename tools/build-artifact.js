@@ -24,7 +24,8 @@ fs.mkdirSync(out, { recursive: true });
 // Halaman utama → format artifact (tanpa kerangka dokumen)
 const index = read("index.html");
 const head = index.match(/<head>([\s\S]*)<\/head>/)[1];
-const headKeep = [...head.matchAll(/<link[^>]+(?:fonts\.googleapis\.com|rel="stylesheet")[^>]*>/g)].map((m) => m[0]).join("\n");
+// stylesheet + preload huruf sendiri (assets/vendor/fonts, ikut tersalin bersama assets/)
+const headKeep = [...head.matchAll(/<link[^>]+(?:rel="preload"[^>]+as="font"|rel="stylesheet")[^>]*>/g)].map((m) => m[0]).join("\n");
 let body = index.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 body = body.replace(/(\s*)(<script src="assets\/js\/config\.js"><\/script>)/, `$1${boot("index.html", index)}$1$2`);
 fs.writeFileSync(path.join(out, "index.html"), `<title>MahaKarya Studio Editor</title>\n${headKeep}\n${body}\n`);
